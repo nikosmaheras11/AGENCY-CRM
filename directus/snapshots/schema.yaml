@@ -1,0 +1,345 @@
+version: 1
+directus: 10.x.x
+
+collections:
+  - collection: sectors
+    meta:
+      collection: sectors
+      icon: folder_open
+      note: Main sectors of the agency
+      display_template: "{{name}}"
+    schema:
+      name: sectors
+    fields:
+      - field: id
+        type: integer
+        schema:
+          is_primary_key: true
+          has_auto_increment: true
+      - field: name
+        type: string
+        schema:
+          is_nullable: false
+      - field: slug
+        type: string
+        schema:
+          is_unique: true
+      - field: description
+        type: text
+      - field: color
+        type: string
+      - field: icon
+        type: string
+
+  - collection: clients
+    meta:
+      collection: clients
+      icon: business
+      note: Client organizations
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: name
+        type: string
+        schema:
+          is_nullable: false
+      - field: logo
+        type: uuid
+      - field: website
+        type: string
+      - field: industry
+        type: string
+      - field: status
+        type: string
+      - field: created_at
+        type: timestamp
+      - field: updated_at
+        type: timestamp
+
+  - collection: projects
+    meta:
+      collection: projects
+      icon: work
+      note: All agency projects across sectors
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: name
+        type: string
+        schema:
+          is_nullable: false
+      - field: client_id
+        type: uuid
+      - field: sector_id
+        type: integer
+      - field: status
+        type: string
+      - field: priority
+        type: string
+      - field: start_date
+        type: date
+      - field: due_date
+        type: date
+      - field: budget
+        type: decimal
+      - field: description
+        type: text
+      - field: created_at
+        type: timestamp
+      - field: updated_at
+        type: timestamp
+
+  - collection: creative_assets
+    meta:
+      collection: creative_assets
+      icon: palette
+      note: Creative review and approval items
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: project_id
+        type: uuid
+      - field: title
+        type: string
+        schema:
+          is_nullable: false
+      - field: file
+        type: uuid
+      - field: version
+        type: integer
+      - field: status
+        type: string
+      - field: approval_status
+        type: string
+      - field: feedback
+        type: json
+      - field: created_by
+        type: uuid
+      - field: created_at
+        type: timestamp
+      - field: updated_at
+        type: timestamp
+
+  - collection: performance_campaigns
+    meta:
+      collection: performance_campaigns
+      icon: trending_up
+      note: Marketing campaign tracking
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: project_id
+        type: uuid
+      - field: name
+        type: string
+        schema:
+          is_nullable: false
+      - field: platform
+        type: string
+      - field: budget
+        type: decimal
+      - field: spend
+        type: decimal
+      - field: impressions
+        type: bigInteger
+      - field: clicks
+        type: integer
+      - field: conversions
+        type: integer
+      - field: start_date
+        type: date
+      - field: end_date
+        type: date
+      - field: metrics
+        type: json
+      - field: created_at
+        type: timestamp
+      - field: updated_at
+        type: timestamp
+
+  - collection: design_components
+    meta:
+      collection: design_components
+      icon: widgets
+      note: Design system component library
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: name
+        type: string
+        schema:
+          is_nullable: false
+      - field: category
+        type: string
+      - field: description
+        type: text
+      - field: preview_image
+        type: uuid
+      - field: figma_link
+        type: string
+      - field: code_snippet
+        type: text
+      - field: tags
+        type: json
+      - field: created_at
+        type: timestamp
+      - field: updated_at
+        type: timestamp
+
+  - collection: resources
+    meta:
+      collection: resources
+      icon: folder
+      note: Digital Asset Management (DAM) entries
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: title
+        type: string
+        schema:
+          is_nullable: false
+      - field: file
+        type: uuid
+      - field: type
+        type: string
+      - field: category
+        type: string
+      - field: tags
+        type: json
+      - field: auto_tags
+        type: json
+      - field: metadata
+        type: json
+      - field: client_id
+        type: uuid
+      - field: project_id
+        type: uuid
+      - field: uploaded_by
+        type: uuid
+      - field: file_size
+        type: bigInteger
+      - field: mime_type
+        type: string
+      - field: created_at
+        type: timestamp
+      - field: updated_at
+        type: timestamp
+
+  - collection: tags
+    meta:
+      collection: tags
+      icon: label
+      note: Tagging taxonomy for assets
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: name
+        type: string
+        schema:
+          is_nullable: false
+          is_unique: true
+      - field: category
+        type: string
+      - field: color
+        type: string
+      - field: auto_generated
+        type: boolean
+      - field: created_at
+        type: timestamp
+
+  - collection: team_members
+    meta:
+      collection: team_members
+      icon: people
+      note: Team directory
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: user_id
+        type: uuid
+      - field: name
+        type: string
+        schema:
+          is_nullable: false
+      - field: email
+        type: string
+      - field: role
+        type: string
+      - field: sector_id
+        type: integer
+      - field: avatar
+        type: uuid
+      - field: slack_id
+        type: string
+      - field: bio
+        type: text
+      - field: created_at
+        type: timestamp
+      - field: updated_at
+        type: timestamp
+
+  - collection: slack_notifications
+    meta:
+      collection: slack_notifications
+      icon: notifications
+      note: Slack notification log
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: channel
+        type: string
+      - field: message
+        type: text
+      - field: related_item
+        type: string
+      - field: related_collection
+        type: string
+      - field: sent_at
+        type: timestamp
+      - field: status
+        type: string
+
+  - collection: activity_feed
+    meta:
+      collection: activity_feed
+      icon: feed
+      note: Unified activity feed across all sectors
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+      - field: action
+        type: string
+      - field: collection
+        type: string
+      - field: item_id
+        type: string
+      - field: user_id
+        type: uuid
+      - field: sector_id
+        type: integer
+      - field: description
+        type: text
+      - field: metadata
+        type: json
+      - field: created_at
+        type: timestamp

@@ -1,0 +1,34 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  compatibilityDate: '2024-11-01',
+  devtools: { enabled: true },
+  
+  modules: [
+    '@nuxt/ui',
+    '@nuxtjs/tailwindcss',
+    '@vueuse/nuxt'
+  ],
+
+  runtimeConfig: {
+    // Private keys (server-side only)
+    directusServerToken: process.env.DIRECTUS_SERVER_TOKEN,
+    slackBotToken: process.env.SLACK_BOT_TOKEN,
+    slackSigningSecret: process.env.SLACK_SIGNING_SECRET,
+    
+    // Public keys (exposed to client)
+    public: {
+      directusUrl: process.env.DIRECTUS_URL || 'http://localhost:8055',
+      siteUrl: process.env.SITE_URL || 'http://localhost:3000'
+    }
+  },
+
+  typescript: {
+    strict: true,
+    typeCheck: true
+  },
+
+  tailwindcss: {
+    cssPath: '~/assets/css/tailwind.css',
+    configPath: 'tailwind.config.ts'
+  }
+})
