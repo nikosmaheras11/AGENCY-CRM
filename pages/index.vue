@@ -57,40 +57,56 @@
             </div>
             
             <div class="p-4 sm:p-5">
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div class="space-y-2">
                 <div 
                   v-for="alert in alerts" 
                   :key="alert.id"
-                  class="relative card-glass border border-white/10 rounded-lg overflow-hidden shadow-sm hover:shadow-primary/20 transition-all group cursor-pointer"
+                  class="relative flex items-center gap-4 p-4 card-glass border border-white/10 rounded-lg hover:bg-white/5 hover:shadow-primary/20 transition-all cursor-pointer group"
+                  @click="openTask(alert.id)"
                 >
-                  <div :class="`absolute top-0 left-0 w-1.5 h-full ${getAlertColor(alert.type)}`"></div>
+                  <!-- Priority/Type Indicator -->
+                  <div :class="`w-1 h-12 rounded-full flex-shrink-0 ${getAlertColor(alert.type)}`"></div>
                   
-                  <div class="relative pt-[60%] overflow-hidden">
-                    <div class="absolute inset-0 bg-white/5 backdrop-blur-xl flex items-center justify-center">
-                      <div class="text-center px-4 py-2 bg-gradient-primary text-white w-full">
-                        {{ alert.type.charAt(0).toUpperCase() + alert.type.slice(1) }} Asset
+                  <!-- Task Icon -->
+                  <div :class="`w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center ${getAlertBgColor(alert.type)}`">
+                    <span class="material-icons text-lg" :class="getAlertTextColor(alert.type)">{{ getAlertIcon(alert.type) }}</span>
+                  </div>
+                  
+                  <!-- Task Content -->
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-medium text-sm text-white truncate">{{ alert.title }}</h3>
+                        <p class="mt-1 text-xs text-slate-400 line-clamp-1">{{ alert.description }}</p>
+                      </div>
+                      <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-xs px-2 py-1 rounded-full bg-white/10 text-slate-300">Creative</span>
+                        <span :class="`text-xs px-2 py-1 rounded-full font-medium ${getAlertBadgeColor(alert.type)}`">
+                          {{ alert.type.charAt(0).toUpperCase() + alert.type.slice(1) }}
+                        </span>
                       </div>
                     </div>
                     
-                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
-                      <button class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-success flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <span class="material-icons">check_circle</span>
-                      </button>
-                      <button class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-primary-400 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <span class="material-icons">chat_bubble</span>
-                      </button>
+                    <!-- Metadata Row -->
+                    <div class="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                      <div class="flex items-center gap-1">
+                        <span class="material-icons text-sm">person</span>
+                        <span>{{ alert.assignee || 'Unassigned' }}</span>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <span class="material-icons text-sm">calendar_today</span>
+                        <span>{{ alert.dueDate || 'No due date' }}</span>
+                      </div>
+                      <div v-if="alert.projectName" class="flex items-center gap-1">
+                        <span class="material-icons text-sm">folder</span>
+                        <span>{{ alert.projectName }}</span>
+                      </div>
                     </div>
                   </div>
                   
-                  <div class="p-3">
-                    <h3 class="font-medium text-sm text-white">{{ alert.title }}</h3>
-                    <div class="flex items-center mt-2 text-xs">
-                      <span class="bg-white/10 text-slate-300 px-2 py-1 rounded-full">Creative</span>
-                      <span class="ml-2 text-slate-400">#{{ alert.type }}</span>
-                    </div>
-                    <div class="mt-2 text-xs font-medium text-slate-300">
-                      {{ alert.description }}
-                    </div>
+                  <!-- Arrow Icon -->
+                  <div class="flex-shrink-0 text-slate-400 group-hover:text-white transition-colors">
+                    <span class="material-icons">chevron_right</span>
                   </div>
                 </div>
               </div>
@@ -208,25 +224,37 @@ const alerts = ref([
     id: 1,
     type: 'warning',
     title: 'Campaign budget threshold',
-    description: 'Summer campaign reaching 85% of budget'
+    description: 'Summer campaign reaching 85% of budget',
+    assignee: 'Alex Johnson',
+    dueDate: 'Today',
+    projectName: 'Summer Campaign'
   },
   {
     id: 2,
     type: 'info',
     title: 'Creative review required',
-    description: '5 assets awaiting approval'
+    description: '5 assets awaiting approval',
+    assignee: 'Taylor Wong',
+    dueDate: 'Tomorrow',
+    projectName: 'Brand Refresh'
   },
   {
     id: 3,
     type: 'success',
     title: 'Campaign milestone reached',
-    description: 'Product launch +200% impressions'
+    description: 'Product launch +200% impressions',
+    assignee: 'Jordan Lee',
+    dueDate: 'Completed',
+    projectName: 'Product Launch'
   },
   {
     id: 4,
     type: 'error',
     title: 'Deadline approaching',
-    description: 'Q4 campaign assets due in 2 days'
+    description: 'Q4 campaign assets due in 2 days',
+    assignee: 'Sam Rivera',
+    dueDate: 'In 2 days',
+    projectName: 'Q4 Campaign'
   }
 ])
 
@@ -269,5 +297,52 @@ function getAlertColor(type: string) {
     error: 'bg-error'
   }
   return colors[type] || 'bg-gray-500'
+}
+
+function getAlertBgColor(type: string) {
+  const colors: Record<string, string> = {
+    warning: 'bg-orange-300/20',
+    info: 'bg-primary-400/20',
+    success: 'bg-success/20',
+    error: 'bg-error/20'
+  }
+  return colors[type] || 'bg-gray-500/20'
+}
+
+function getAlertTextColor(type: string) {
+  const colors: Record<string, string> = {
+    warning: 'text-orange-300',
+    info: 'text-primary-400',
+    success: 'text-success',
+    error: 'text-error'
+  }
+  return colors[type] || 'text-gray-500'
+}
+
+function getAlertBadgeColor(type: string) {
+  const colors: Record<string, string> = {
+    warning: 'bg-orange-300/20 text-orange-300',
+    info: 'bg-primary-400/20 text-primary-300',
+    success: 'bg-success/20 text-success',
+    error: 'bg-error/20 text-error'
+  }
+  return colors[type] || 'bg-gray-500/20 text-gray-500'
+}
+
+function getAlertIcon(type: string) {
+  const icons: Record<string, string> = {
+    warning: 'warning',
+    info: 'info',
+    success: 'check_circle',
+    error: 'error'
+  }
+  return icons[type] || 'help'
+}
+
+function openTask(taskId: number) {
+  // Navigate to task detail page or open modal
+  console.log('Opening task:', taskId)
+  // TODO: Implement navigation to task detail
+  // navigateTo(`/tasks/${taskId}`)
 }
 </script>
