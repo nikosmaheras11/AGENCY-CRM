@@ -169,6 +169,20 @@
 const liveCreatives = ref([
   {
     id: 1,
+    name: 'Google Ad Brainstorm',
+    platform: 'Google',
+    type: 'figma',
+    impressions: 0,
+    clicks: 0,
+    ctr: 0,
+    conversions: 0,
+    spend: 0,
+    roas: 0,
+    status: 'in-progress',
+    figmaUrl: 'https://www.figma.com/design/oNc959dRXzFRbRdWbDkW0R/Polymarket-Ad-Master-Doc?node-id=383-3866&t=AO2exoexFrM7drs2-4'
+  },
+  {
+    id: 2,
     name: 'Hero Banner - Holiday Sale',
     platform: 'Google Ads',
     type: 'image',
@@ -181,7 +195,7 @@ const liveCreatives = ref([
     status: 'performing'
   },
   {
-    id: 2,
+    id: 3,
     name: 'Product Video - Black Friday',
     platform: 'Facebook Ads',
     type: 'video',
@@ -194,7 +208,7 @@ const liveCreatives = ref([
     status: 'performing'
   },
   {
-    id: 3,
+    id: 4,
     name: 'Carousel Ad - Gift Guide',
     platform: 'Instagram',
     type: 'carousel',
@@ -207,7 +221,7 @@ const liveCreatives = ref([
     status: 'underperforming'
   },
   {
-    id: 4,
+    id: 5,
     name: 'Retargeting Banner',
     platform: 'Google Ads',
     type: 'image',
@@ -220,7 +234,7 @@ const liveCreatives = ref([
     status: 'performing'
   },
   {
-    id: 5,
+    id: 6,
     name: 'Story Ad - Limited Offer',
     platform: 'Instagram',
     type: 'story',
@@ -233,7 +247,7 @@ const liveCreatives = ref([
     status: 'performing'
   },
   {
-    id: 6,
+    id: 7,
     name: 'LinkedIn Sponsored Post',
     platform: 'LinkedIn',
     type: 'image',

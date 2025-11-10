@@ -1,11 +1,23 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+  <div 
+    class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+    :class="creative.figmaUrl ? 'cursor-pointer' : ''"
+    @click="handleClick"
+  >
     <!-- Creative Preview -->
-    <div class="relative aspect-video bg-gradient-to-br from-blue-100 to-cyan-100">
+    <div class="relative aspect-video bg-gradient-to-br from-blue-100 to-cyan-100 group">
       <div class="absolute inset-0 flex items-center justify-center">
         <span class="material-icons text-6xl text-blue-300">
           {{ getTypeIcon(creative.type) }}
         </span>
+      </div>
+      
+      <!-- Figma hover overlay -->
+      <div 
+        v-if="creative.figmaUrl" 
+        class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+      >
+        <span class="text-white font-medium text-sm">Open in Figma</span>
       </div>
       
       <!-- Platform Badge -->
@@ -22,7 +34,7 @@
           :class="getPerformanceBadge(creative.status)"
         >
           <span class="w-1.5 h-1.5 rounded-full" :class="getPerformanceDot(creative.status)"></span>
-          {{ creative.status === 'performing' ? 'Performing' : 'Needs Attention' }}
+          {{ getStatusLabel(creative.status) }}
         </span>
       </div>
     </div>
@@ -86,26 +98,46 @@ interface Creative {
   spend: number
   roas: number
   status: string
+  figmaUrl?: string
 }
 
-defineProps<{
+const props = defineProps<{
   creative: Creative
 }>()
+
+const handleClick = () => {
+  if (props.creative.figmaUrl) {
+    window.open(props.creative.figmaUrl, '_blank')
+  }
+}
 
 const getTypeIcon = (type: string) => {
   const icons: Record<string, string> = {
     video: 'play_circle',
     image: 'image',
     carousel: 'view_carousel',
-    story: 'auto_stories'
+    story: 'auto_stories',
+    figma: 'dashboard'
   }
   return icons[type] || 'campaign'
 }
 
 const getPerformanceBadge = (status: string) => {
-  return status === 'performing' 
-    ? 'bg-green-500/90 text-white' 
-    : 'bg-orange-500/90 text-white'
+  const badges: Record<string, string> = {
+    'performing': 'bg-green-500/90 text-white',
+    'in-progress': 'bg-blue-500/90 text-white',
+    'underperforming': 'bg-orange-500/90 text-white'
+  }
+  return badges[status] || 'bg-orange-500/90 text-white'
+}
+
+const getStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    'performing': 'Performing',
+    'in-progress': 'In Progress',
+    'underperforming': 'Needs Attention'
+  }
+  return labels[status] || 'Needs Attention'
 }
 
 const getPerformanceDot = (status: string) => {
