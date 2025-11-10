@@ -15,7 +15,7 @@ importers:
         specifier: ^2.18.0
         version: 2.22.3(axios@1.13.2)(magicast@0.5.1)(tsx@4.20.6)(vite@7.2.2(@types/node@20.19.24)(jiti@2.6.1)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(vue@3.5.24(typescript@5.9.3))(yaml@2.8.1)
       '@slack/web-api':
-        specifier: ^7.0.0
+        specifier: ^7.12.0
         version: 7.12.0
       '@supabase/supabase-js':
         specifier: ^2.80.0

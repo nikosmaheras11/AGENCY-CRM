@@ -14,6 +14,10 @@ export default defineNuxtConfig({
     directusServerToken: process.env.DIRECTUS_SERVER_TOKEN,
     slackBotToken: process.env.SLACK_BOT_TOKEN,
     slackSigningSecret: process.env.SLACK_SIGNING_SECRET,
+    slackChannelCreative: process.env.SLACK_CHANNEL_CREATIVE,
+    slackChannelPerformance: process.env.SLACK_CHANNEL_PERFORMANCE,
+    slackChannelRequests: process.env.SLACK_CHANNEL_REQUESTS,
+    slackChannelUgc: process.env.SLACK_CHANNEL_UGC,
     supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
     
     // Public keys (exposed to client)

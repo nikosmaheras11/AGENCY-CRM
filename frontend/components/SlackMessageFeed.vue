@@ -1,56 +1,42 @@
 <script setup lang="ts">
-import { readItems } from '@directus/sdk'
-
 interface SlackMessage {
   id: string
-  channel_name: string
+  user_id: string
   user_name: string
+  user_avatar?: string
   text: string
   thread_ts?: string
   ts: string
-  attachments?: Array<{
-    id: string
-    name: string
-    mimetype: string
-    url: string
-    permalink: string
-  }>
-  sector: string
-  created_at: string
+  attachments?: any[]
+  timestamp: string
 }
 
 const props = defineProps<{
-  sector?: string
+  channelId: string
+  channelName?: string
   limit?: number
 }>()
 
-const { client } = useDirectus()
 const messages = ref<SlackMessage[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// Fetch messages from Directus
+// Fetch messages from Slack API via our server endpoint
 async function fetchMessages() {
   loading.value = true
   error.value = null
   
   try {
-    const filter: any = {}
-    
-    // Filter by sector if provided
-    if (props.sector) {
-      filter.sector = { _eq: props.sector }
-    }
-    
-    const result = await client.request(
-      readItems('slack_messages', {
-        filter,
-        sort: ['-created_at'],
+    const data = await $fetch('/api/slack/messages', {
+      query: {
+        channel: props.channelId,
         limit: props.limit || 50
-      })
-    )
+      }
+    })
     
-    messages.value = result as SlackMessage[]
+    if (data.ok) {
+      messages.value = data.messages
+    }
   } catch (e: any) {
     error.value = e.message || 'Failed to fetch messages'
     console.error('Error fetching Slack messages:', e)
@@ -98,10 +84,7 @@ onUnmounted(() => {
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold">
-        Slack Feed
-        <span v-if="sector" class="text-sm text-gray-500 ml-2">
-          ({{ sector }})
-        </span>
+        {{ channelName || 'Slack Feed' }}
       </h3>
       <UButton 
         icon="i-heroicons-arrow-path" 
@@ -138,6 +121,7 @@ onUnmounted(() => {
         <div class="flex gap-3">
           <!-- Avatar -->
           <UAvatar 
+            :src="message.user_avatar"
             :alt="message.user_name" 
             size="sm"
           />
@@ -149,11 +133,6 @@ onUnmounted(() => {
               <span class="text-xs text-gray-500">
                 {{ formatTimestamp(message.ts) }}
               </span>
-              <UBadge 
-                :label="message.channel_name" 
-                size="xs" 
-                variant="subtle"
-              />
             </div>
             
             <!-- Message Text -->
