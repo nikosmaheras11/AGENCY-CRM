@@ -44,7 +44,7 @@
       </div>
       
       <!-- Main Content Grid -->
-      <div class="grid grid-cols-12 gap-4 h-[calc(100vh-13rem)] mb-6">
+      <div class="grid grid-cols-12 gap-4 h-[calc(100vh-10rem)]">
         
         <!-- Left Column: Items Needing Review -->
         <div class="col-span-12 lg:col-span-7 xl:col-span-8">
@@ -243,52 +243,6 @@
           </div>
         </div>
       </div>
-      
-      <!-- Performance Snapshot Section (below main grid) -->
-      <div class="card-glass card-elevated">
-        <div class="p-3 sm:p-4 border-b border-white/10">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <h2 class="text-lg font-semibold text-white">Performance Snapshot</h2>
-                  <div class="ml-3 text-sm text-slate-400 flex items-center">
-                    <span class="material-icons text-base mr-1">refresh</span>
-                    Updated 10 minutes ago
-                  </div>
-                </div>
-                <div class="flex items-center">
-                  <select class="text-sm bg-white/5 backdrop-blur-xl border border-white/10 rounded-md px-2 py-1 text-white">
-                    <option>Last 7 days</option>
-                    <option>Last 30 days</option>
-                    <option>This month</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-        
-        <div class="p-3 sm:p-4">
-          <!-- Key Metrics -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div 
-                  v-for="metric in performanceMetrics" 
-                  :key="metric.label"
-                  class="card-glass border border-white/10 rounded-lg p-4"
-                >
-                  <div class="text-sm text-slate-400">{{ metric.label }}</div>
-                  <div class="mt-1 flex items-baseline">
-                    <div class="text-2xl font-bold text-white">{{ metric.value }}</div>
-                    <div :class="`ml-2 text-sm font-medium ${metric.change >= 0 ? 'text-success' : 'text-error'}`">
-                      {{ metric.change >= 0 ? '↑' : '↓' }} {{ metric.changeText }}
-                    </div>
-                  </div>
-                  <div class="mt-3 h-8">
-                    <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                      <div class="h-full bg-gradient-teal" :style="{width: metric.progress + '%'}"></div>
-                    </div>
-                  </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
   </div>
 </template>
@@ -459,13 +413,6 @@ const weeklyObjectives = ref([
     dueDate: 'Today',
     completed: false
   }
-])
-
-const performanceMetrics = ref([
-  { label: 'ROAS', value: '3.6x', change: 0.4, changeText: '+0.4', progress: 70 },
-  { label: 'CPA', value: '$18.45', change: -2.30, changeText: '$2.30', progress: 65 },
-  { label: 'Total Spend', value: '$12,450', change: 2100, changeText: '+$2,100', progress: 75 },
-  { label: 'Conversions', value: '674', change: 107, changeText: '+107', progress: 60 }
 ])
 
 function getAlertColor(type: string) {
