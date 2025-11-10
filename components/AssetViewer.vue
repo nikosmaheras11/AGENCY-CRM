@@ -37,15 +37,21 @@
       <!-- Left: Video Player -->
       <div class="flex-1 flex flex-col bg-[#1E1E1E]">
         <!-- Video Container -->
-        <div class="flex-1 flex items-center justify-center p-6">
-          <div class="relative max-w-full max-h-full" :style="{ aspectRatio: asset?.aspectRatio || '9/16' }">
-            <!-- Video/Image Display -->
-            <div v-if="asset?.type === 'video'" class="relative w-full h-full bg-black rounded-lg overflow-hidden">
+        <div class="flex-1 flex items-center justify-center p-6 bg-[#1E1E1E]">
+          <!-- Loading state -->
+          <div v-if="!asset" class="text-gray-400 text-center">
+            <div class="text-lg">Loading asset...</div>
+          </div>
+          
+          <!-- Video Display -->
+          <div v-else-if="asset.type === 'video'" class="relative w-full h-full flex items-center justify-center">
+            <div class="relative" style="max-width: 100%; max-height: 100%;">
               <!-- Google Drive embed -->
               <iframe
-                v-if="asset?.videoUrl?.includes('drive.google.com')"
+                v-if="asset.videoUrl?.includes('drive.google.com')"
                 :src="asset.videoUrl"
                 class="w-full h-full"
+                style="min-width: 800px; min-height: 600px;"
                 allowfullscreen
                 allow="autoplay"
               />
@@ -54,27 +60,21 @@
               <template v-else>
                 <video 
                   ref="videoPlayer"
-                  class="w-full h-full object-contain"
-                  :src="asset?.videoUrl || '/placeholder-video.mp4'"
+                  class="max-w-full max-h-full rounded-lg"
+                  :src="asset.videoUrl"
                   @loadedmetadata="onVideoLoaded"
                   @timeupdate="onTimeUpdate"
+                  controls
                 >
                   Your browser does not support video playback.
                 </video>
-                
-                <!-- Play Overlay -->
-                <div v-if="!isPlaying" class="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <button @click="togglePlay" class="w-20 h-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full flex items-center justify-center transition-all">
-                    <span class="material-icons text-white text-5xl">play_arrow</span>
-                  </button>
-                </div>
               </template>
             </div>
+          </div>
 
-            <!-- Image Display -->
-            <div v-else class="w-full h-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
-              <img :src="asset?.imageUrl || '/placeholder.jpg'" alt="Asset" class="max-w-full max-h-full object-contain" />
-            </div>
+          <!-- Image Display -->
+          <div v-else class="w-full h-full flex items-center justify-center">
+            <img :src="asset.imageUrl || '/placeholder.jpg'" alt="Asset" class="max-w-full max-h-full object-contain rounded-lg" />
           </div>
         </div>
 
@@ -339,6 +339,11 @@ const asset = computed<Asset | null>(() => {
   const req = requestData.value
   if (!req) return null
   
+  // Only convert Google Drive URLs, keep local URLs as-is
+  const videoUrl = req.videoUrl 
+    ? (req.videoUrl.includes('drive.google.com') ? convertGoogleDriveUrl(req.videoUrl) : req.videoUrl)
+    : undefined
+  
   return {
     id: req.id,
     title: req.title,
@@ -348,7 +353,7 @@ const asset = computed<Asset | null>(() => {
     dimensions: req.dimensions || 'Unknown',
     duration: req.duration || '0:00',
     aspectRatio: '16/9',
-    videoUrl: req.videoUrl ? convertGoogleDriveUrl(req.videoUrl) : undefined,
+    videoUrl,
     imageUrl: req.thumbnail,
     reviewCount: req.comments?.length || 0
   }
