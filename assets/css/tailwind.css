@@ -3,11 +3,6 @@
 @tailwind utilities;
 
 @layer base {
-  /* Elevated dark mode base */
-  body {
-    @apply bg-gradient-dark text-white;
-  }
-  
   /* Improved font rendering */
   * {
     -webkit-font-smoothing: antialiased;

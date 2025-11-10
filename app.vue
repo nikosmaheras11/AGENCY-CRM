@@ -106,12 +106,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-variant-numeric: tabular-nums;
 }
 
-/* Smooth transitions globally */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 250ms;
-}
+/* Removed global transitions to prevent flickering - transitions now applied per component */
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -124,17 +119,17 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Focus visible styles */
 *:focus-visible {
-  outline: 2px solid #E8FF00;
+  outline: 2px solid #7551FF;
   outline-offset: 2px;
 }
 </style>
