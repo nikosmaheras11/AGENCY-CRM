@@ -117,7 +117,15 @@
                     class="absolute inset-0 w-full h-full border-0 pointer-events-none"
                     allowfullscreen
                   />
-                  <!-- Colorful gradient background layer for non-Figma items -->
+                  <!-- Video thumbnail -->
+                  <video
+                    v-else-if="asset.videoUrl"
+                    class="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                    :src="asset.videoUrl"
+                    muted
+                    preload="metadata"
+                  />
+                  <!-- Colorful gradient background layer for non-video/non-Figma items -->
                   <div 
                     v-else
                     class="absolute inset-0"
