@@ -34,7 +34,7 @@ async function fetchMessages() {
     })
     
     if (data.ok) {
-      messages.value = data.messages
+      messages.value = data.messages as SlackMessage[]
     }
   } catch (e: any) {
     error.value = e.message || 'Failed to fetch messages'

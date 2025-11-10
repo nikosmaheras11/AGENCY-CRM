@@ -1,12 +1,15 @@
 import { WebClient } from '@slack/web-api'
 
 interface SlackMessage {
-  type: string
-  user: string
-  text: string
+  type?: string
+  user?: string
+  text?: string
   ts: string
   thread_ts?: string
   files?: any[]
+  subtype?: string
+  channel_id?: string
+  channel_name?: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -44,7 +47,7 @@ export default defineEventHandler(async (event) => {
         })
         
         if (result.ok && result.messages) {
-          return result.messages.map((m: SlackMessage) => ({
+          return (result.messages as any[]).map((m: any) => ({
             ...m,
             channel_id: channel.id,
             channel_name: channel.name
@@ -86,13 +89,13 @@ export default defineEventHandler(async (event) => {
     
     // Format messages
     const messages = recentMessages
-      .filter((m: any) => m.type === 'message' && m.text && !m.text.includes('has joined'))
+      .filter((m: any) => m.type === 'message' && m.text && !m.text.includes('has joined') && !m.subtype)
       .map((m: any) => ({
         id: m.ts,
-        user_id: m.user,
+        user_id: m.user || '',
         user_name: userMap.get(m.user)?.name || 'Unknown User',
         user_avatar: userMap.get(m.user)?.avatar,
-        text: m.text,
+        text: m.text || '',
         ts: m.ts,
         thread_ts: m.thread_ts,
         channel_name: m.channel_name,

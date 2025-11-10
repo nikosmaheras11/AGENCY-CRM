@@ -1,12 +1,13 @@
 import { WebClient } from '@slack/web-api'
 
 interface SlackMessage {
-  type: string
-  user: string
-  text: string
+  type?: string
+  user?: string
+  text?: string
   ts: string
   thread_ts?: string
   files?: any[]
+  subtype?: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -46,7 +47,7 @@ export default defineEventHandler(async (event) => {
     }
     
     // Get user info for messages
-    const userIds = [...new Set(result.messages.map((m: SlackMessage) => m.user).filter(Boolean))]
+    const userIds = [...new Set(result.messages.map((m: any) => m.user).filter(Boolean))]
     const userInfoPromises = userIds.map(userId => 
       client.users.info({ user: userId as string }).catch(() => null)
     )
@@ -65,13 +66,13 @@ export default defineEventHandler(async (event) => {
     
     // Format messages
     const messages = result.messages
-      .filter((m: SlackMessage) => m.type === 'message' && m.text && !m.text.includes('has joined'))
-      .map((m: SlackMessage) => ({
+      .filter((m: any) => m.type === 'message' && m.text && !m.text.includes('has joined') && !m.subtype)
+      .map((m: any) => ({
         id: m.ts,
-        user_id: m.user,
+        user_id: m.user || '',
         user_name: userMap.get(m.user)?.name || 'Unknown User',
         user_avatar: userMap.get(m.user)?.avatar,
-        text: m.text,
+        text: m.text || '',
         ts: m.ts,
         thread_ts: m.thread_ts,
         attachments: m.files || [],

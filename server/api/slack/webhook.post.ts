@@ -1,13 +1,14 @@
 import crypto from 'crypto'
-import { createDirectus, rest, createItem } from '@directus/sdk'
+import { createDirectus, rest, createItem, staticToken } from '@directus/sdk'
 
 interface SlackEvent {
   type: string
-  channel: string
-  user: string
-  text: string
+  user?: string
+  text?: string
   ts: string
+  channel: string
   thread_ts?: string
+  subtype?: string
   files?: Array<{
     id: string
     name: string
@@ -128,8 +129,8 @@ async function storeSlackMessageInDirectus(event: SlackEvent): Promise<void> {
     throw new Error('DIRECTUS_SERVER_TOKEN not configured')
   }
   
-  // Initialize Directus client
-  const client = createDirectus(directusUrl).with(rest())
+  // Initialize Directus client with authentication
+  const client = createDirectus(directusUrl).with(rest()).with(staticToken(directusToken))
   
   // Get channel name from environment or mapping
   const channelId = event.channel
@@ -157,10 +158,6 @@ async function storeSlackMessageInDirectus(event: SlackEvent): Promise<void> {
       ts: event.ts,
       attachments: attachments,
       sector: sector
-    }, {
-      headers: {
-        Authorization: `Bearer ${directusToken}`
-      }
     })
   )
   
