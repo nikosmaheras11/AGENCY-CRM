@@ -13,8 +13,9 @@
 @layer components {
   /* Deep blue card from Figma */
   .card-glass {
-    background: linear-gradient(127deg, rgba(6, 11, 40, 0.94) 28.26%, rgba(10, 14, 35, 0.49) 91.2%);
-    @apply backdrop-blur-xl rounded-2xl border border-white/[0.06] shadow-[0px_18px_40px_rgba(7,7,20,0.6)];
+    background: linear-gradient(127deg, rgba(6, 11, 38, 0.94) 19.41%, rgba(10, 14, 35, 0.49) 76.65%);
+    box-shadow: inset 0px 0px 1px 1px rgba(26, 50, 130, 0.2), 0px 18px 40px rgba(0, 0, 0, 0.55);
+    @apply backdrop-blur-xl rounded-2xl border border-white/[0.04];
   }
   
   /* Elevated card hover effect */
