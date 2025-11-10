@@ -358,16 +358,23 @@ function getStatusText(status: string) {
 
 const router = useRouter()
 
+/**
+ * Handle asset card click
+ * 
+ * ROUTING RULES:
+ * - Figma assets: Open directly in Figma (new tab)
+ * - All other assets (video, image, etc): Open in asset viewer canvas
+ */
 function handleAssetClick(asset: any) {
   console.log('👁️ Asset clicked:', asset.id, asset.title)
   
   // If it's a Figma link, open directly in new tab
   if (asset.figmaUrl) {
-    console.log('🎨 Opening Figma link:', asset.figmaUrl)
+    console.log('🎨 Figma asset detected - Opening in Figma:', asset.figmaUrl)
     window.open(asset.figmaUrl, '_blank')
   } else {
-    // Otherwise navigate to asset detail page
-    console.log('📹 Navigating to asset viewer')
+    // All other asset types render in preview canvas
+    console.log('📹 Non-Figma asset - Opening in canvas viewer')
     navigateTo(`/creative/asset/${asset.id}`)
   }
 }
