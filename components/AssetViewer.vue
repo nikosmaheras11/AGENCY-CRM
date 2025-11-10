@@ -9,7 +9,7 @@
         </button>
         <span class="text-gray-400">POLYMARKET</span>
         <span class="text-gray-600">/</span>
-        <span class="text-gray-400">POLYMARKET REQUESTS</span>
+        <span class="text-gray-400">POLYMARKET CREATIVE REQUESTS</span>
         <span class="text-gray-600">/</span>
         <span class="text-white">{{ asset?.title || 'Loading...' }}</span>
       </div>

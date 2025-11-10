@@ -13,7 +13,7 @@
         <span>/</span>
         <span class="uppercase cursor-pointer hover:text-gray-900 transition-colors">Polymarket</span>
         <span>/</span>
-        <span class="uppercase text-gray-900">Polymarket Requests</span>
+        <span class="uppercase text-gray-900">Polymarket Creative Requests</span>
       </div>
     </div>
 
@@ -22,7 +22,7 @@
       <div class="flex items-center justify-between">
         <!-- Left: Title & Actions -->
         <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-gray-900">POLYMARKET REQUESTS</h1>
+          <h1 class="text-2xl font-bold text-gray-900">POLYMARKET CREATIVE REQUESTS</h1>
           <button class="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center transition-colors" aria-label="Bookmark">
             <span class="material-icons text-gray-400 text-xl">star_border</span>
           </button>
@@ -253,8 +253,16 @@ interface Column {
 
 const columns = ref<Column[]>([
   {
+    id: 'new-request',
+    title: 'New Request',
+    emoji: '📬',
+    badgeClass: 'bg-purple-100 text-purple-700 border border-purple-200',
+    assets: []
+  },
+  {
     id: 'in-progress',
-    title: 'Palm Place In-Progress',
+    title: 'In Progress',
+    emoji: '🔄',
     badgeClass: 'bg-amber-100 text-amber-700 border border-amber-200',
     assets: []
   },
