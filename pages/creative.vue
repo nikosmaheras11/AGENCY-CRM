@@ -247,18 +247,32 @@ import { convertToFigmaEmbedUrl } from '~/utils/figma'
 const selectedAssetId = ref<string | null>(null)
 
 // Use unified request system
-const { fetchRequests, getRequestsByTypeAndStatus, requestToAsset } = useRequests()
+const { fetchRequests, getRequestsByTypeAndStatus, requestToAsset, allRequests, loading, error } = useRequests()
+
+// Get creative requests grouped by status
+const requestsByStatus = getRequestsByTypeAndStatus('creative')
 
 // Fetch requests on mount
 onMounted(async () => {
   console.log('🔄 Fetching requests...')
-  await fetchRequests()
-  console.log('✅ Requests fetched!')
-  console.log('📊 Creative requests by status:', requestsByStatus.value)
+  try {
+    await fetchRequests()
+    console.log('✅ Requests fetched!')
+    console.log('📦 All requests:', allRequests.value)
+    console.log('📊 Creative requests by status:', requestsByStatus.value)
+    console.log('🔢 Total creative requests:', 
+      Object.values(requestsByStatus.value).reduce((sum, arr) => sum + arr.length, 0)
+    )
+  } catch (e) {
+    console.error('❌ Error fetching requests:', e)
+  }
 })
 
-// Get creative requests grouped by status
-const requestsByStatus = getRequestsByTypeAndStatus('creative')
+// Watch for changes
+watch([loading, error], () => {
+  console.log('⏳ Loading:', loading.value)
+  console.log('⚠️ Error:', error.value)
+})
 
 // Convert to column format for existing UI
 const columns = computed(() => [
