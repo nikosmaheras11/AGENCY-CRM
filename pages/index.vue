@@ -47,8 +47,8 @@
         
         <!-- Left Column: Items Needing Review -->
         <div class="col-span-12 lg:col-span-7 xl:col-span-8 space-y-4">
-          <div class="card-glass card-elevated">
-            <div class="p-3 sm:p-4 border-b border-white/10">
+          <div class="card-glass card-elevated flex flex-col h-[calc(100vh-10rem)]">
+            <div class="p-3 sm:p-4 border-b border-white/10 flex-shrink-0">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <h2 class="text-lg font-semibold text-white">Items Needing Review</h2>
@@ -62,8 +62,8 @@
               </div>
             </div>
             
-            <div class="p-3 sm:p-4">
-              <div class="space-y-2 max-h-[calc(100vh-28rem)] overflow-y-auto">
+            <div class="p-3 sm:p-4 flex-1 overflow-y-auto">
+              <div class="space-y-2">
                 <div 
                   v-for="alert in alerts" 
                   :key="alert.id"
@@ -121,9 +121,9 @@
         </div>
         
         <!-- Right Column: Slack Messages + This Week's Objectives -->
-        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-4">
+        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-4 h-[calc(100vh-10rem)] flex flex-col">
           <!-- Slack Messages Section -->
-          <div class="card-glass card-elevated">
+          <div class="card-glass card-elevated flex-shrink-0">
             <div class="p-3 sm:p-4 border-b border-white/10">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
@@ -172,8 +172,8 @@
           </div>
           
           <!-- This Week's Objectives Section -->
-          <div class="card-glass card-elevated">
-            <div class="p-3 sm:p-4 border-b border-white/10">
+          <div class="card-glass card-elevated flex-1 flex flex-col">
+            <div class="p-3 sm:p-4 border-b border-white/10 flex-shrink-0">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <h2 class="text-lg font-semibold text-white">This Week's Objectives</h2>
@@ -190,8 +190,8 @@
               </div>
             </div>
             
-            <div class="p-3 sm:p-4">
-              <div class="space-y-2 max-h-72 overflow-y-auto">
+            <div class="p-3 sm:p-4 flex-1 overflow-y-auto">
+              <div class="space-y-2">
                 <div 
                   v-for="objective in weeklyObjectives" 
                   :key="objective.id"
