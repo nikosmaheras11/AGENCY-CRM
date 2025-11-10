@@ -359,9 +359,17 @@ function getStatusText(status: string) {
 const router = useRouter()
 
 function handleAssetClick(asset: any) {
-  // Navigate to asset detail page
-  console.log('👁️ Navigating to asset:', asset.id, asset.title)
-  navigateTo(`/creative/asset/${asset.id}`)
+  console.log('👁️ Asset clicked:', asset.id, asset.title)
+  
+  // If it's a Figma link, open directly in new tab
+  if (asset.figmaUrl) {
+    console.log('🎨 Opening Figma link:', asset.figmaUrl)
+    window.open(asset.figmaUrl, '_blank')
+  } else {
+    // Otherwise navigate to asset detail page
+    console.log('📹 Navigating to asset viewer')
+    navigateTo(`/creative/asset/${asset.id}`)
+  }
 }
 
 function openAssetDetail(asset: any) {
