@@ -430,9 +430,7 @@ function openObjective(objectiveId: number) {
 }
 
 function navigateToCRM() {
-  // Navigate to CRM tab filtered by this week's priorities
-  console.log('Navigating to CRM with weekly priorities filter')
-  // TODO: Implement navigation to CRM with filters
-  // navigateTo('/crm?filter=weekly-priorities')
+  // Navigate to weekly objectives page
+  navigateTo('/weekly-objectives')
 }
 </script>
