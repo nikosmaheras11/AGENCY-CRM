@@ -269,6 +269,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: false
+})
+
 interface Comment {
   id: number
   author: string
