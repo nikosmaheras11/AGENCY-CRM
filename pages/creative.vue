@@ -97,6 +97,7 @@
                 v-for="asset in column.assets"
                 :key="asset.id"
                 :to="`/creative/asset/${asset.id}`"
+                @click="() => console.log('🎯 Clicked asset:', asset.id, 'Target URL:', `/creative/asset/${asset.id}`)"
                 class="block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
               >
                 <!-- Thumbnail with actual gradient background -->
