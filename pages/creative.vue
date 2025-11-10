@@ -102,7 +102,7 @@
               <div
                 v-for="asset in column.assets"
                 :key="asset.id"
-                @click="selectedAssetId = asset.id"
+                @click="handleAssetClick(asset)"
                 class="block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
               >
                 <!-- Thumbnail with actual gradient background -->
@@ -116,10 +116,11 @@
                     :style="{ backgroundImage: getAssetGradient(asset.id) }"
                   />
                   
-                  <!-- Center play icon -->
+                  <!-- Center icon (play or figma) -->
                   <div class="absolute inset-0 flex items-center justify-center z-10">
                     <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-transform hover:scale-110">
-                      <span class="material-icons text-white text-4xl">play_arrow</span>
+                      <span v-if="asset.figmaUrl" class="material-icons text-white text-4xl">dashboard</span>
+                      <span v-else class="material-icons text-white text-4xl">play_arrow</span>
                     </div>
                   </div>
                   
@@ -139,11 +140,13 @@
                     </div>
                   </div>
 
-                  <!-- Play overlay on hover -->
-                  <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <!-- Play/Figma overlay on hover -->
+                  <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                     <div class="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
-                      <span class="material-icons text-gray-900 text-2xl">play_arrow</span>
+                      <span v-if="asset.figmaUrl" class="material-icons text-gray-900 text-2xl">dashboard</span>
+                      <span v-else class="material-icons text-gray-900 text-2xl">play_arrow</span>
                     </div>
+                    <span v-if="asset.figmaUrl" class="text-white text-sm font-medium drop-shadow-lg">Open in Figma</span>
                   </div>
                 </div>
 
@@ -225,259 +228,55 @@
 <script setup lang="ts">
 const selectedAssetId = ref<string | null>(null)
 
-interface Asset {
-  id: string
-  thumbnail: string
-  title: string
-  format: 'MOV' | 'MP4'
-  size: string
-  dimensions: string
-  duration: string
-  commentCount: number
-  status: 'in-progress' | 'needs-review' | 'needs-edit' | 'done'
-  metadata: {
-    assignee: string | null
-    dueDate: string | null
-    tags: string | null
-    priority: string | null
-  }
-}
+// Use unified request system
+const { fetchRequests, getRequestsByTypeAndStatus, requestToAsset } = useRequests()
 
-interface Column {
-  id: string
-  title: string
-  emoji?: string
-  badgeClass: string
-  assets: Asset[]
-}
+// Fetch requests on mount
+onMounted(async () => {
+  await fetchRequests()
+})
 
-const columns = ref<Column[]>([
+// Get creative requests grouped by status
+const requestsByStatus = getRequestsByTypeAndStatus('creative')
+
+// Convert to column format for existing UI
+const columns = computed(() => [
   {
     id: 'new-request',
     title: 'New Request',
     emoji: '📬',
     badgeClass: 'bg-purple-100 text-purple-700 border border-purple-200',
-    assets: []
+    assets: requestsByStatus.value['new-request'].map(requestToAsset)
   },
   {
     id: 'in-progress',
     title: 'In Progress',
     emoji: '🔄',
     badgeClass: 'bg-amber-100 text-amber-700 border border-amber-200',
-    assets: []
+    assets: requestsByStatus.value['in-progress'].map(requestToAsset)
   },
   {
     id: 'needs-review',
     title: 'Needs Review',
     emoji: '👀',
     badgeClass: 'bg-blue-100 text-blue-700 border border-blue-200',
-    assets: [
-      {
-        id: '1',
-        thumbnail: '',
-        title: 'LA Fitness - Spring Campaign Hero Video',
-        format: 'MOV',
-        size: '47 MB',
-        dimensions: '1080 × 1920',
-        duration: '0:15',
-        commentCount: 3,
-        status: 'needs-review',
-        metadata: {
-          assignee: null,
-          dueDate: null,
-          tags: null,
-          priority: null
-        }
-      },
-      {
-        id: '2',
-        thumbnail: '',
-        title: 'Gym Equipment Showcase - Vertical Edit',
-        format: 'MP4',
-        size: '52 MB',
-        dimensions: '1080 × 1920',
-        duration: '0:30',
-        commentCount: 1,
-        status: 'needs-review',
-        metadata: {
-          assignee: 'Sarah J.',
-          dueDate: 'Apr 15',
-          tags: 'social',
-          priority: 'High'
-        }
-      },
-      {
-        id: '3',
-        thumbnail: '',
-        title: 'Member Testimonial - John\'s Fitness Journey',
-        format: 'MOV',
-        size: '89 MB',
-        dimensions: '1920 × 1080',
-        duration: '1:45',
-        commentCount: 5,
-        status: 'needs-review',
-        metadata: {
-          assignee: 'Mike C.',
-          dueDate: 'Apr 12',
-          tags: 'testimonial',
-          priority: 'Medium'
-        }
-      }
-    ]
+    assets: requestsByStatus.value['needs-review'].map(requestToAsset)
   },
   {
     id: 'needs-edit',
     title: 'Needs Edit',
     emoji: '✏️',
     badgeClass: 'bg-orange-100 text-orange-700 border border-orange-200',
-    assets: [
-      {
-        id: '4',
-        thumbnail: '',
-        title: 'Class Schedule Promo - Morning Sessions',
-        format: 'MP4',
-        size: '35 MB',
-        dimensions: '1080 × 1920',
-        duration: '0:10',
-        commentCount: 2,
-        status: 'needs-edit',
-        metadata: {
-          assignee: 'Emma D.',
-          dueDate: 'Apr 10',
-          tags: 'promo',
-          priority: 'Critical'
-        }
-      },
-      {
-        id: '5',
-        thumbnail: '',
-        title: 'New Equipment Reveal - Cardio Zone',
-        format: 'MOV',
-        size: '68 MB',
-        dimensions: '1920 × 1080',
-        duration: '0:45',
-        commentCount: 4,
-        status: 'needs-edit',
-        metadata: {
-          assignee: null,
-          dueDate: 'Apr 18',
-          tags: 'equipment',
-          priority: 'Low'
-        }
-      }
-    ]
+    assets: requestsByStatus.value['needs-edit'].map(requestToAsset)
   },
   {
     id: 'done',
     title: 'Done',
     emoji: '✅',
     badgeClass: 'bg-green-100 text-green-700 border border-green-200',
-    assets: [
-      {
-        id: '6',
-        thumbnail: '',
-        title: 'Grand Opening Event Recap',
-        format: 'MP4',
-        size: '125 MB',
-        dimensions: '1920 × 1080',
-        duration: '2:30',
-        commentCount: 0,
-        status: 'done',
-        metadata: {
-          assignee: 'Sarah J.',
-          dueDate: 'Completed',
-          tags: 'event',
-          priority: null
-        }
-      },
-      {
-        id: '7',
-        thumbnail: '',
-        title: 'Membership Benefits Overview',
-        format: 'MOV',
-        size: '43 MB',
-        dimensions: '1080 × 1920',
-        duration: '0:20',
-        commentCount: 0,
-        status: 'done',
-        metadata: {
-          assignee: 'Mike C.',
-          dueDate: 'Completed',
-          tags: 'membership',
-          priority: null
-        }
-      },
-      {
-        id: '8',
-        thumbnail: '',
-        title: 'Personal Training Success Stories',
-        format: 'MP4',
-        size: '76 MB',
-        dimensions: '1920 × 1080',
-        duration: '1:15',
-        commentCount: 0,
-        status: 'done',
-        metadata: {
-          assignee: 'Emma D.',
-          dueDate: 'Completed',
-          tags: 'testimonial',
-          priority: null
-        }
-      },
-      {
-        id: '9',
-        thumbnail: '',
-        title: 'Summer Transformation Challenge Promo',
-        format: 'MOV',
-        size: '54 MB',
-        dimensions: '1080 × 1920',
-        duration: '0:25',
-        commentCount: 0,
-        status: 'done',
-        metadata: {
-          assignee: 'Sarah J.',
-          dueDate: 'Completed',
-          tags: 'challenge',
-          priority: null
-        }
-      },
-      {
-        id: '10',
-        thumbnail: '',
-        title: 'Facility Tour - Full Walkthrough',
-        format: 'MP4',
-        size: '189 MB',
-        dimensions: '1920 × 1080',
-        duration: '3:45',
-        commentCount: 0,
-        status: 'done',
-        metadata: {
-          assignee: 'Mike C.',
-          dueDate: 'Completed',
-          tags: 'tour',
-          priority: null
-        }
-      },
-      {
-        id: '11',
-        thumbnail: '',
-        title: 'Group Fitness Class Highlights',
-        format: 'MOV',
-        size: '92 MB',
-        dimensions: '1080 × 1920',
-        duration: '1:00',
-        commentCount: 0,
-        status: 'done',
-        metadata: {
-          assignee: 'Emma D.',
-          dueDate: 'Completed',
-          tags: 'fitness',
-          priority: null
-        }
-      }
-    ]
+    assets: requestsByStatus.value['done'].map(requestToAsset)
   }
-])
+)
 
 const totalAssets = computed(() => {
   return columns.value.reduce((sum, col) => sum + col.assets.length, 0)
@@ -498,7 +297,8 @@ function getStatusBadgeClass(status: string) {
     'needs-review': 'bg-blue-100 text-blue-700 border border-blue-200',
     'needs-edit': 'bg-orange-100 text-orange-700 border border-orange-200',
     'done': 'bg-green-100 text-green-700 border border-green-200',
-    'in-progress': 'bg-amber-100 text-amber-700 border border-amber-200'
+    'in-progress': 'bg-amber-100 text-amber-700 border border-amber-200',
+    'new-request': 'bg-purple-100 text-purple-700 border border-purple-200'
   }
   return classes[status] || 'bg-gray-100 text-gray-700'
 }
@@ -508,7 +308,8 @@ function getStatusEmoji(status: string) {
     'needs-review': '👀',
     'needs-edit': '✏️',
     'done': '✅',
-    'in-progress': '🔄'
+    'in-progress': '🔄',
+    'new-request': '📬'
   }
   return emojis[status] || ''
 }
@@ -518,15 +319,24 @@ function getStatusText(status: string) {
     'needs-review': 'Needs Review',
     'needs-edit': 'Needs Edit',
     'done': 'Done',
-    'in-progress': 'In Progress'
+    'in-progress': 'In Progress',
+    'new-request': 'New Request'
   }
   return text[status] || status
 }
 
 const router = useRouter()
 
+function handleAssetClick(asset: any) {
+  if (asset.figmaUrl) {
+    window.open(asset.figmaUrl, '_blank')
+  } else {
+    selectedAssetId.value = asset.id
+  }
+}
+
 function openAssetDetail(asset: Asset) {
-  router.push(`/creative/asset/${asset.id}`)
+  selectedAssetId.value = asset.id
 }
 
 function getAssetGradient(id: string): string {

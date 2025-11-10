@@ -45,6 +45,30 @@
       "updatedAt": "2025-01-10T09:20:00Z"
     },
     {
+      "id": "req-005",
+      "projectType": "creative",
+      "status": "in-progress",
+      "title": "Google Ad Brainstorm",
+      "format": "Figma",
+      "size": "—",
+      "dimensions": "—",
+      "duration": "—",
+      "thumbnail": "",
+      "figmaUrl": "https://www.figma.com/design/oNc959dRXzFRbRdWbDkW0R/Polymarket-Ad-Master-Doc?node-id=383-3866&t=AO2exoexFrM7drs2-4",
+      "metadata": {
+        "assignee": null,
+        "dueDate": null,
+        "tags": ["google", "ads", "brainstorm"],
+        "priority": null,
+        "client": "Polymarket",
+        "campaign": "Google Ads",
+        "platform": "Google"
+      },
+      "comments": [],
+      "createdAt": "2025-01-10T06:00:00Z",
+      "updatedAt": "2025-01-10T06:00:00Z"
+    },
+    {
       "id": "req-003",
       "projectType": "performance",
       "status": "new-request",
