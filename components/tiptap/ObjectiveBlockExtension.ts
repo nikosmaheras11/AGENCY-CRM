@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from '@tiptap/core'
+import { Node, mergeAttributes, type Command } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ObjectiveBlockView from './ObjectiveBlockView.vue'
 
@@ -51,7 +51,7 @@ export const ObjectiveBlock = Node.create({
     ]
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, any> }) {
     return ['objective-block', mergeAttributes(HTMLAttributes)]
   },
 
@@ -61,12 +61,14 @@ export const ObjectiveBlock = Node.create({
 
   addCommands() {
     return {
-      setObjectiveBlock: (attributes: ObjectiveBlockAttributes) => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: attributes,
-        })
-      },
-    }
+      setObjectiveBlock:
+        (attributes: ObjectiveBlockAttributes): Command =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: attributes,
+          })
+        },
+    } as any
   },
 })

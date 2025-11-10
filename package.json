@@ -15,13 +15,17 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "slack-monitor": "node scripts/slack-monitor.cjs",
+    "setup-supabase": "node scripts/setup-supabase.cjs"
   },
   "dependencies": {
     "@directus/sdk": "^17.0.0",
     "@nuxt/ui": "^2.18.0",
+    "@slack/bolt": "^3.22.0",
     "@slack/web-api": "^7.12.0",
     "@supabase/supabase-js": "^2.80.0",
+    "@tiptap/core": "^3.10.5",
     "@tiptap/extension-placeholder": "^3.10.5",
     "@tiptap/starter-kit": "^3.10.5",
     "@tiptap/vue-3": "^3.10.5",
