@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-dark text-white overflow-auto relative">
+  <div class="h-screen bg-gradient-dark text-white overflow-hidden relative flex flex-col">
     <!-- Background pattern overlay -->
     <div class="absolute inset-0 bg-pattern opacity-[0.015] pointer-events-none"></div>
     
@@ -36,7 +36,7 @@
     </header>
     
     <!-- Dashboard Content -->
-    <main class="p-6 relative z-10">
+    <main class="flex-1 overflow-y-auto p-6 relative z-10">
       <div class="grid grid-cols-12 gap-6">
 
         <!-- Items Needing Review Section -->
