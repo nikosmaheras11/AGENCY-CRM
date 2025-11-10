@@ -337,14 +337,18 @@ function convertGoogleDriveUrl(url: string): string {
 // Map request to asset format
 const asset = computed<Asset | null>(() => {
   const req = requestData.value
-  if (!req) return null
+  console.log('🎬 AssetViewer - Request data:', req)
+  if (!req) {
+    console.log('⚠️ No request data found for ID:', props.assetId)
+    return null
+  }
   
   // Only convert Google Drive URLs, keep local URLs as-is
   const videoUrl = req.videoUrl 
     ? (req.videoUrl.includes('drive.google.com') ? convertGoogleDriveUrl(req.videoUrl) : req.videoUrl)
     : undefined
   
-  return {
+  const assetData = {
     id: req.id,
     title: req.title,
     type: req.videoUrl ? 'video' : 'image',
@@ -357,6 +361,8 @@ const asset = computed<Asset | null>(() => {
     imageUrl: req.thumbnail,
     reviewCount: req.comments?.length || 0
   }
+  console.log('✅ AssetViewer - Computed asset:', assetData)
+  return assetData
 })
 
 const comments = ref<Comment[]>([
