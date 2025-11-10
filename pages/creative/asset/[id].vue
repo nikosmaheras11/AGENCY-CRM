@@ -269,6 +269,31 @@
 </template>
 
 <script setup lang="ts">
+interface Comment {
+  id: number
+  author: string
+  initials: string
+  avatarColor: string
+  time: string
+  version: string
+  text: string
+  replies: Comment[]
+}
+
+interface Asset {
+  id: string | string[]
+  title: string
+  type: 'video' | 'image'
+  format: string
+  size: string
+  dimensions: string
+  duration: string
+  aspectRatio: string
+  videoUrl?: string
+  imageUrl?: string
+  reviewCount: number
+}
+
 const route = useRoute()
 const assetId = route.params.id
 
@@ -281,7 +306,7 @@ const activeTab = ref<'info' | 'comments'>('comments')
 const newComment = ref('')
 
 // Mock asset data - replace with actual API call
-const asset = ref({
+const asset = ref<Asset>({
   id: assetId,
   title: 'Glute Burner Circuit',
   type: 'video',
@@ -294,7 +319,7 @@ const asset = ref({
   reviewCount: 33
 })
 
-const comments = ref([
+const comments = ref<Comment[]>([
   {
     id: 1,
     author: 'Nikos Maheras',
@@ -358,7 +383,7 @@ function formatTime(seconds: number): string {
 function addComment() {
   if (!newComment.value.trim()) return
   
-  comments.value.push({
+  const newCommentObj: Comment = {
     id: Date.now(),
     author: 'You',
     initials: 'YO',
@@ -367,8 +392,9 @@ function addComment() {
     version: 'V1',
     text: newComment.value,
     replies: []
-  })
+  }
   
+  comments.value.push(newCommentObj)
   newComment.value = ''
 }
 
