@@ -1,18 +1,21 @@
 <template>
   <div class="novel-editor-wrapper">
     <ClientOnly>
-      <Editor
-        :default-value="modelValue"
-        @update="handleUpdate"
-        :storage-key="storageKey"
-        class="novel-editor-custom"
-      />
+      <EditorRoot>
+        <EditorContent
+          :initialContent="initialContent"
+          :extensions="extensions"
+          class="novel-editor-custom"
+          @update="handleUpdate"
+        />
+      </EditorRoot>
     </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
-import Editor from 'novel'
+import { EditorRoot, EditorContent } from 'novel'
+import { defaultExtensions } from 'novel/extensions'
 import 'novel/styles.css'
 
 interface Props {
@@ -29,9 +32,38 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-function handleUpdate(editor: any) {
-  const html = editor.getHTML()
-  emit('update:modelValue', html)
+const initialContent = computed(() => {
+  if (!props.modelValue) {
+    return {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: []
+        }
+      ]
+    }
+  }
+  try {
+    return JSON.parse(props.modelValue)
+  } catch {
+    return {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: []
+        }
+      ]
+    }
+  }
+})
+
+const extensions = defaultExtensions
+
+function handleUpdate({ editor }: any) {
+  const json = editor.getJSON()
+  emit('update:modelValue', JSON.stringify(json))
 }
 </script>
 
