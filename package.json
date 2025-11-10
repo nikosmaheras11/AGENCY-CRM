@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
+    "prebuild": "rm -rf .nuxt .output",
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
