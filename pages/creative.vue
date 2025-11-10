@@ -93,11 +93,11 @@
 
             <!-- Cards Container -->
             <div class="flex-1 overflow-y-auto space-y-3 pr-1">
-              <div
+              <NuxtLink
                 v-for="asset in column.assets"
                 :key="asset.id"
-                class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                @click="openAssetDetail(asset)"
+                :to="`/creative/asset/${asset.id}`"
+                class="block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
               >
                 <!-- Thumbnail with actual gradient background -->
                 <div 
@@ -184,7 +184,7 @@
                     </span>
                   </div>
                 </div>
-              </div>
+              </NuxtLink>
 
               <!-- Empty state -->
               <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
