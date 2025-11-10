@@ -37,12 +37,18 @@
     
     <!-- Dashboard Content -->
     <main class="flex-1 overflow-y-auto p-6 relative z-10">
-      <div class="grid grid-cols-12 gap-6">
+      <!-- Welcome Section -->
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-white mb-1">Welcome back, Polymarket</h2>
+        <p class="text-slate-400 text-sm">{{ currentTime }} • {{ currentDate }}</p>
+      </div>
+      
+      <div class="grid grid-cols-12 gap-4">
         
         <!-- Left Column: Items Needing Review -->
-        <div class="col-span-12 lg:col-span-7 xl:col-span-8 space-y-6">
+        <div class="col-span-12 lg:col-span-7 xl:col-span-8 space-y-4">
           <div class="card-glass card-elevated">
-            <div class="p-4 sm:p-5 border-b border-white/10">
+            <div class="p-3 sm:p-4 border-b border-white/10">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <h2 class="text-lg font-semibold text-white">Items Needing Review</h2>
@@ -56,8 +62,8 @@
               </div>
             </div>
             
-            <div class="p-4 sm:p-5">
-              <div class="space-y-2">
+            <div class="p-3 sm:p-4">
+              <div class="space-y-2 max-h-[calc(100vh-28rem)] overflow-y-auto">
                 <div 
                   v-for="alert in alerts" 
                   :key="alert.id"
@@ -115,10 +121,10 @@
         </div>
         
         <!-- Right Column: Slack Messages + This Week's Objectives -->
-        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-6">
+        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-4">
           <!-- Slack Messages Section -->
           <div class="card-glass card-elevated">
-            <div class="p-4 sm:p-5 border-b border-white/10">
+            <div class="p-3 sm:p-4 border-b border-white/10">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <h2 class="text-lg font-semibold text-white">Slack Messages</h2>
@@ -132,8 +138,8 @@
               </div>
             </div>
             
-            <div class="p-4 sm:p-5">
-              <div class="space-y-2">
+            <div class="p-3 sm:p-4">
+              <div class="space-y-2 max-h-64 overflow-y-auto">
                 <div 
                   v-for="(message, index) in slackMessages" 
                   :key="index"
@@ -167,7 +173,7 @@
           
           <!-- This Week's Objectives Section -->
           <div class="card-glass card-elevated">
-            <div class="p-4 sm:p-5 border-b border-white/10">
+            <div class="p-3 sm:p-4 border-b border-white/10">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <h2 class="text-lg font-semibold text-white">This Week's Objectives</h2>
@@ -184,8 +190,8 @@
               </div>
             </div>
             
-            <div class="p-4 sm:p-5">
-              <div class="space-y-2">
+            <div class="p-3 sm:p-4">
+              <div class="space-y-2 max-h-72 overflow-y-auto">
                 <div 
                   v-for="objective in weeklyObjectives" 
                   :key="objective.id"
@@ -289,6 +295,30 @@
 </template>
 
 <script setup lang="ts">
+// Current time and date
+const currentTime = ref('')
+const currentDate = ref('')
+
+const updateTime = () => {
+  const now = new Date()
+  currentTime.value = now.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  })
+  currentDate.value = now.toLocaleDateString('en-US', { 
+    weekday: 'long',
+    month: 'long', 
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
+
+// Update time immediately and every minute
+onMounted(() => {
+  updateTime()
+  setInterval(updateTime, 60000) // Update every minute
+})
 
 const alerts = ref([
   {
