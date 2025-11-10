@@ -11,11 +11,9 @@
         <div class="w-6 h-6 rounded-full bg-gradient-to-br from-amber-200 to-orange-300 flex-shrink-0" />
         <span class="uppercase cursor-pointer hover:text-gray-900 transition-colors">Clients</span>
         <span>/</span>
-        <span class="uppercase cursor-pointer hover:text-gray-900 transition-colors">Fitness Intl.</span>
+        <span class="uppercase cursor-pointer hover:text-gray-900 transition-colors">Polymarket</span>
         <span>/</span>
-        <span class="uppercase cursor-pointer hover:text-gray-900 transition-colors">LA Fitness</span>
-        <span>/</span>
-        <span class="uppercase text-gray-900">LAF Media Requests</span>
+        <span class="uppercase text-gray-900">Polymarket Requests</span>
       </div>
     </div>
 
@@ -24,7 +22,7 @@
       <div class="flex items-center justify-between">
         <!-- Left: Title & Actions -->
         <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-gray-900">LAF MEDIA REQUESTS</h1>
+          <h1 class="text-2xl font-bold text-gray-900">POLYMARKET REQUESTS</h1>
           <button class="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center transition-colors" aria-label="Bookmark">
             <span class="material-icons text-gray-400 text-xl">star_border</span>
           </button>
@@ -38,6 +36,10 @@
 
         <!-- Right: Controls -->
         <div class="flex items-center gap-3">
+          <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+            <span class="material-icons text-lg">add</span>
+            <span>Upload Asset</span>
+          </button>
           <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 font-medium bg-white cursor-pointer hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option>Group by: Status</option>
             <option>Group by: Assignee</option>

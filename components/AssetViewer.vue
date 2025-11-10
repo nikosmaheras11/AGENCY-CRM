@@ -7,11 +7,9 @@
         <button @click="$emit('close')" class="hover:bg-gray-700 p-2 rounded transition-colors">
           <span class="material-icons text-xl">arrow_back</span>
         </button>
-        <span class="text-gray-400">FITNESS INTL.</span>
+        <span class="text-gray-400">POLYMARKET</span>
         <span class="text-gray-600">/</span>
-        <span class="text-gray-400">LA FITNESS</span>
-        <span class="text-gray-600">/</span>
-        <span class="text-gray-400">LAF MEDIA REQUESTS</span>
+        <span class="text-gray-400">POLYMARKET REQUESTS</span>
         <span class="text-gray-600">/</span>
         <span class="text-white">{{ asset?.title || 'Loading...' }}</span>
       </div>
