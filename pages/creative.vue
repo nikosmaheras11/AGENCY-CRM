@@ -110,8 +110,16 @@
                   class="relative rounded-t-lg overflow-hidden"
                   style="aspect-ratio: 16/9; min-height: 180px;"
                 >
-                  <!-- Colorful gradient background layer -->
+                  <!-- Figma embed iframe -->
+                  <iframe
+                    v-if="asset.figmaUrl"
+                    :src="`https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(asset.figmaUrl)}`"
+                    class="absolute inset-0 w-full h-full pointer-events-none"
+                    allowfullscreen
+                  />
+                  <!-- Colorful gradient background layer for non-Figma items -->
                   <div 
+                    v-else
                     class="absolute inset-0"
                     :style="{ backgroundImage: getAssetGradient(asset.id) }"
                   />
