@@ -1,5 +1,9 @@
 <template>
   <div class="h-screen bg-[#1E1E1E] flex flex-col text-white">
+    <!-- DEBUG: Visible indicator that page loaded -->
+    <div class="bg-green-600 text-white text-center py-1 text-xs font-mono">
+      🎬 Asset Page Loaded - ID: {{ assetId }} - Time: {{ new Date().toLocaleTimeString() }}
+    </div>
     <!-- Top Navigation Bar -->
     <div class="bg-[#2D2D2D] border-b border-gray-800 px-6 py-3 flex items-center justify-between">
       <!-- Left: Breadcrumb -->
@@ -269,6 +273,9 @@
 </template>
 
 <script setup lang="ts">
+// DEBUG: Log when this component is loaded
+console.log('🎬 [Asset Page] Component loaded at:', new Date().toISOString())
+
 definePageMeta({
   layout: false
 })
@@ -300,6 +307,11 @@ interface Asset {
 
 const route = useRoute()
 const assetId = route.params.id
+
+// DEBUG: Log route info
+console.log('🎬 [Asset Page] Route path:', route.path)
+console.log('🎬 [Asset Page] Asset ID:', assetId)
+console.log('🎬 [Asset Page] Full route params:', route.params)
 
 const videoPlayer = ref<HTMLVideoElement>()
 const isPlaying = ref(false)
