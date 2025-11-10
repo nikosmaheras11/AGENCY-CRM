@@ -359,9 +359,9 @@ function getStatusText(status: string) {
 const router = useRouter()
 
 function handleAssetClick(asset: any) {
-  // Always open AssetViewer modal
-  selectedAssetId.value = asset.id
-  console.log('👁️ Opening AssetViewer for:', asset.id, asset.title)
+  // Navigate to asset detail page
+  console.log('👁️ Navigating to asset:', asset.id, asset.title)
+  navigateTo(`/creative/asset/${asset.id}`)
 }
 
 function openAssetDetail(asset: any) {
