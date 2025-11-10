@@ -326,6 +326,42 @@ const alerts = ref([
     assignee: 'Sam Rivera',
     dueDate: 'In 2 days',
     projectName: 'Q4 Campaign'
+  },
+  {
+    id: 5,
+    type: 'info',
+    title: 'Social media content approval needed',
+    description: 'Instagram posts for next week ready for review',
+    assignee: 'Morgan Chen',
+    dueDate: 'Today',
+    projectName: 'Social Strategy'
+  },
+  {
+    id: 6,
+    type: 'warning',
+    title: 'Performance report pending',
+    description: 'Monthly analytics report needs final review',
+    assignee: 'Casey Kim',
+    dueDate: 'Tomorrow',
+    projectName: 'Analytics Dashboard'
+  },
+  {
+    id: 7,
+    type: 'info',
+    title: 'New brand assets uploaded',
+    description: 'Logo variations and style guide updates',
+    assignee: 'Riley Park',
+    dueDate: 'Today',
+    projectName: 'Brand Evolution'
+  },
+  {
+    id: 8,
+    type: 'warning',
+    title: 'Ad copy revisions requested',
+    description: 'Client feedback on display ad campaign',
+    assignee: 'Jordan Lee',
+    dueDate: 'In 3 days',
+    projectName: 'Display Campaign'
   }
 ])
 
