@@ -2,15 +2,11 @@
   <div class="flex h-screen bg-gradient-dark overflow-hidden">
     <!-- Elevated Glass Sidebar -->
     <aside class="w-20 backdrop-blur-xl border-r-0 flex flex-col items-center py-6 gap-6 flex-shrink-0 relative" style="background: linear-gradient(111.84deg, rgba(6, 11, 38, 0.94) 59.3%, rgba(26, 31, 55, 0) 100%); box-shadow: inset -1px 0px 2px rgba(26, 50, 130, 0.5), 20px 0px 40px rgba(0, 0, 0, 0.3);">
-      <!-- Logo with gradient glow -->
+      <!-- Logo -->
       <div class="relative group cursor-pointer">
-        <div class="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-primary transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(67,24,255,0.5)] overflow-hidden">
-          <img v-if="logoExists" src="/logo.svg" alt="Logo" class="w-8 h-8 object-contain" @error="logoExists = false" />
-          <img v-else-if="logoPngExists" src="/logo.png" alt="Logo" class="w-8 h-8 object-contain" @error="logoPngExists = false" />
-          <span v-else class="text-white font-bold text-xl tracking-tight">A</span>
-        </div>
-        <!-- Purple glow on hover -->
-        <div class="absolute inset-0 bg-primary-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+        <img v-if="logoExists" src="/logo.svg" alt="Polymarket Logo" class="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110" @error="logoExists = false" />
+        <img v-else-if="logoPngExists" src="/logo.png" alt="Polymarket Logo" class="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110" @error="logoPngExists = false" />
+        <span v-else class="text-white font-bold text-2xl">P</span>
       </div>
 
       <!-- Divider -->
