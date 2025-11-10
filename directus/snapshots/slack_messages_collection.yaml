@@ -1,0 +1,65 @@
+collections:
+  - collection: slack_messages
+    meta:
+      collection: slack_messages
+      icon: chat
+      note: Slack messages feed from monitored channels
+    fields:
+      - field: id
+        type: uuid
+        schema:
+          is_primary_key: true
+          default_value: uuid()
+      - field: channel_id
+        type: string
+        schema:
+          is_nullable: false
+        meta:
+          note: Slack channel ID
+      - field: channel_name
+        type: string
+        schema:
+          is_nullable: false
+        meta:
+          note: Human-readable channel name
+      - field: user_id
+        type: string
+        meta:
+          note: Slack user ID who posted the message
+      - field: user_name
+        type: string
+        meta:
+          note: Display name of user who posted
+      - field: text
+        type: text
+        schema:
+          is_nullable: false
+        meta:
+          note: Message content
+      - field: thread_ts
+        type: string
+        meta:
+          note: Thread timestamp if message is part of a thread
+      - field: ts
+        type: string
+        schema:
+          is_nullable: false
+          is_unique: true
+        meta:
+          note: Slack message timestamp (unique identifier)
+      - field: attachments
+        type: json
+        meta:
+          note: File attachments and metadata
+      - field: sector
+        type: string
+        meta:
+          note: Which sector this belongs to (creative, performance, ugc)
+      - field: created_at
+        type: timestamp
+        schema:
+          default_value: now()
+      - field: updated_at
+        type: timestamp
+        schema:
+          default_value: now()

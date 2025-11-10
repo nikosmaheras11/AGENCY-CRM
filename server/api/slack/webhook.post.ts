@@ -1,6 +1,5 @@
 import crypto from 'crypto'
-import { readFile, writeFile } from 'fs/promises'
-import { join } from 'path'
+import { createDirectus, rest, createItem } from '@directus/sdk'
 
 interface SlackEvent {
   type: string
@@ -24,32 +23,6 @@ interface SlackPayload {
   event: SlackEvent
   type: string
   challenge?: string
-}
-
-interface Request {
-  id: string
-  projectType: 'creative' | 'performance' | 'design' | 'ugc'
-  status: 'new-request' | 'in-progress' | 'needs-review' | 'needs-edit' | 'done'
-  title: string
-  format: string
-  size: string
-  dimensions: string
-  duration?: string
-  thumbnail: string
-  assignee: string | null
-  dueDate: string | null
-  tags: string[]
-  priority: 'high' | 'medium' | 'low' | null
-  client: string
-  campaign: string
-  comments: Array<{
-    id: string
-    author: string
-    text: string
-    timestamp: string
-  }>
-  createdAt: string
-  updatedAt: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -111,22 +84,26 @@ export default defineEventHandler(async (event) => {
   if (body.type === 'event_callback' && body.event.type === 'message') {
     const slackEvent = body.event
     
-    // Ignore bot messages and message edits
-    if (slackEvent.user === 'USLACKBOT' || slackEvent.text?.includes('has joined')) {
+    // Ignore bot messages, message edits, and join messages
+    if (slackEvent.user === 'USLACKBOT' || 
+        slackEvent.text?.includes('has joined') ||
+        slackEvent.subtype === 'message_changed') {
       return { ok: true }
     }
 
-    // Parse the message to extract request details
-    const request = await parseSlackMessageToRequest(slackEvent)
-    
-    if (request) {
-      // Add to requests.json
-      await addRequestToDatabase(request)
+    // Store message in Directus
+    try {
+      await storeSlackMessageInDirectus(slackEvent)
       
       return { 
         ok: true, 
-        message: 'Request created successfully',
-        requestId: request.id 
+        message: 'Message stored successfully'
+      }
+    } catch (error) {
+      console.error('Error storing Slack message:', error)
+      return { 
+        ok: true, // Still return ok to Slack to avoid retries
+        error: 'Failed to store message' 
       }
     }
   }
@@ -134,103 +111,72 @@ export default defineEventHandler(async (event) => {
   return { ok: true }
 })
 
-async function parseSlackMessageToRequest(event: SlackEvent): Promise<Request | null> {
-  const text = event.text || ''
-  
-  // Simple parser - you can enhance this based on your needs
-  // Example message format: "Creative request: Video ad for Polymarket\nType: creative\nDue: 2024-01-15"
-  
-  const lines = text.split('\n')
-  let title = lines[0].replace(/^(creative|performance|design|ugc)\s+request:\s*/i, '').trim()
-  let projectType: 'creative' | 'performance' | 'design' | 'ugc' = 'creative'
-  let dueDate: string | null = null
-  let priority: 'high' | 'medium' | 'low' | null = null
-  let tags: string[] = []
-
-  // Parse message content
-  for (const line of lines) {
-    const lower = line.toLowerCase()
-    
-    if (lower.includes('type:')) {
-      const typeMatch = line.match(/type:\s*(creative|performance|design|ugc)/i)
-      if (typeMatch) projectType = typeMatch[1].toLowerCase() as any
-    }
-    
-    if (lower.includes('due:')) {
-      const dateMatch = line.match(/due:\s*(\d{4}-\d{2}-\d{2})/)
-      if (dateMatch) dueDate = dateMatch[1]
-    }
-    
-    if (lower.includes('priority:')) {
-      const priorityMatch = line.match(/priority:\s*(high|medium|low)/i)
-      if (priorityMatch) priority = priorityMatch[1].toLowerCase() as any
-    }
-    
-    if (lower.includes('tags:')) {
-      const tagsMatch = line.match(/tags:\s*(.+)/)
-      if (tagsMatch) tags = tagsMatch[1].split(',').map(t => t.trim())
-    }
-  }
-
-  // If no title found, use first line
-  if (!title) {
-    title = lines[0] || 'New Request from Slack'
-  }
-
-  // Handle attachments/files
-  let thumbnail = ''
-  let format = 'N/A'
-  let size = 'N/A'
-  let dimensions = 'N/A'
-  
-  if (event.files && event.files.length > 0) {
-    const file = event.files[0]
-    thumbnail = file.url_private
-    format = file.mimetype.split('/')[1]?.toUpperCase() || 'N/A'
-    // Size would need to be fetched from Slack API
-  }
-
-  const now = new Date().toISOString()
-  const requestId = `slack-${event.ts.replace('.', '-')}`
-
-  return {
-    id: requestId,
-    projectType,
-    status: 'new-request',
-    title,
-    format,
-    size,
-    dimensions,
-    thumbnail,
-    assignee: null,
-    dueDate,
-    tags,
-    priority,
-    client: 'Polymarket',
-    campaign: 'Slack Import',
-    comments: [],
-    createdAt: now,
-    updatedAt: now
-  }
+// Channel name to sector mapping
+const CHANNEL_MAPPING: Record<string, string> = {
+  'hours-creative-polymarket': 'creative',
+  'hours-performance-polymarket': 'performance',
+  'polymarket-creative-requests': 'creative-requests',
+  'polymarket-ugc-hours': 'ugc'
 }
 
-async function addRequestToDatabase(request: Request): Promise<void> {
-  const dataPath = join(process.cwd(), 'data', 'requests', 'requests.json')
+async function storeSlackMessageInDirectus(event: SlackEvent): Promise<void> {
+  const config = useRuntimeConfig()
+  const directusUrl = config.directusUrl || process.env.DIRECTUS_URL || 'http://localhost:8055'
+  const directusToken = config.directusServerToken || process.env.DIRECTUS_SERVER_TOKEN
   
-  try {
-    // Read existing requests
-    const fileContent = await readFile(dataPath, 'utf-8')
-    const requests: Request[] = JSON.parse(fileContent)
-    
-    // Add new request at the beginning
-    requests.unshift(request)
-    
-    // Write back to file
-    await writeFile(dataPath, JSON.stringify(requests, null, 2), 'utf-8')
-    
-    console.log(`✅ Added request ${request.id} to database`)
-  } catch (error) {
-    console.error('Error adding request to database:', error)
-    throw error
+  if (!directusToken) {
+    throw new Error('DIRECTUS_SERVER_TOKEN not configured')
   }
+  
+  // Initialize Directus client
+  const client = createDirectus(directusUrl).with(rest())
+  
+  // Get channel name from environment or mapping
+  const channelId = event.channel
+  const channelName = getChannelName(channelId)
+  const sector = CHANNEL_MAPPING[channelName] || 'unknown'
+  
+  // Prepare attachments data
+  const attachments = event.files ? event.files.map(file => ({
+    id: file.id,
+    name: file.name,
+    mimetype: file.mimetype,
+    url: file.url_private,
+    permalink: file.permalink
+  })) : null
+  
+  // Create message record in Directus
+  await client.request(
+    createItem('slack_messages', {
+      channel_id: channelId,
+      channel_name: channelName,
+      user_id: event.user,
+      user_name: 'User', // We'll fetch this from Slack API later
+      text: event.text,
+      thread_ts: event.thread_ts || null,
+      ts: event.ts,
+      attachments: attachments,
+      sector: sector
+    }, {
+      headers: {
+        Authorization: `Bearer ${directusToken}`
+      }
+    })
+  )
+  
+  console.log(`✅ Stored Slack message ${event.ts} from ${channelName}`)
+}
+
+function getChannelName(channelId: string): string {
+  const config = useRuntimeConfig()
+  
+  // Map channel IDs to names based on environment variables
+  const channelMapping: Record<string, string> = {
+    [config.slackChannelCreative || process.env.SLACK_CHANNEL_CREATIVE || '']: 'hours-creative-polymarket',
+    [config.slackChannelPerformance || process.env.SLACK_CHANNEL_PERFORMANCE || '']: 'hours-performance-polymarket',
+    [config.slackChannelRequests || process.env.SLACK_CHANNEL_REQUESTS || '']: 'polymarket-creative-requests',
+    [config.slackChannelUgc || process.env.SLACK_CHANNEL_UGC || '']: 'polymarket-ugc-hours'
+  }
+  
+  return channelMapping[channelId] || channelId
 }

@@ -12,6 +12,7 @@ interface Schema {
   tags: any[]
   team_members: any[]
   activity_feed: any[]
+  slack_messages: any[]
 }
 
 export const useDirectus = () => {
