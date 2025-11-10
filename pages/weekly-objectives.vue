@@ -1,171 +1,242 @@
 <template>
-  <div class="min-h-screen bg-gradient-dark text-white relative flex flex-col">
+  <div class="min-h-screen bg-gradient-dark text-white relative flex">
     <!-- Background pattern overlay -->
     <div class="absolute inset-0 bg-pattern opacity-[0.015] pointer-events-none"></div>
     
-    <!-- Header -->
-    <header class="h-16 bg-white/5 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6 relative z-10">
-      <div class="flex items-center gap-4">
-        <button @click="navigateTo('/')" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
-          <span class="material-icons">arrow_back</span>
-        </button>
-        <h1 class="text-xl font-semibold text-white">This Week's Objectives</h1>
-      </div>
-      <div class="flex items-center gap-3">
-        <button @click="addNewObjective" class="px-4 py-2 bg-teal-400 hover:bg-teal-500 text-black rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-          <span class="material-icons text-lg">add</span>
-          <span>New Objective</span>
-        </button>
-      </div>
-    </header>
-    
-    <!-- Document Canvas -->
-    <main class="flex-1 overflow-y-auto p-6 relative z-10">
-      <div class="max-w-4xl mx-auto">
-        <!-- Page Title (Editable) -->
-        <div class="mb-8">
-          <input
-            v-model="pageTitle"
-            type="text"
-            class="w-full text-4xl font-bold bg-transparent border-none outline-none text-white placeholder-white/30 mb-2"
-            placeholder="Untitled"
-          />
-          <div class="text-sm text-slate-400">
-            {{ formattedDate }}
-          </div>
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col relative z-10">
+      <!-- Header -->
+      <header class="h-16 bg-white/5 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6">
+        <div class="flex items-center gap-4">
+          <button @click="navigateTo('/')" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          <h1 class="text-xl font-semibold text-white">This Week's Objectives</h1>
         </div>
-        
-        <!-- Objectives List -->
-        <div class="space-y-3">
-          <div
-            v-for="(objective, index) in objectives"
-            :key="objective.id"
-            class="card-glass rounded-lg overflow-hidden transition-all hover:shadow-lg"
-            :class="{ 'ring-2 ring-teal-400': selectedObjective?.id === objective.id }"
-          >
-            <!-- Objective Header -->
-            <div class="flex items-start gap-3 p-4 cursor-pointer" @click="selectObjective(objective)">
-              <!-- Checkbox -->
-              <button
-                @click.stop="toggleComplete(objective)"
-                :class="[
-                  'w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors mt-0.5',
-                  objective.completed
-                    ? 'bg-success border-success'
-                    : 'border-white/30 hover:border-white/50'
-                ]"
-              >
-                <span v-if="objective.completed" class="material-icons text-white text-sm">check</span>
-              </button>
-              
-              <!-- Content -->
-              <div class="flex-1 min-w-0">
-                <input
-                  v-model="objective.title"
-                  @click.stop
-                  type="text"
-                  :class="[
-                    'w-full bg-transparent border-none outline-none font-medium text-base mb-2',
-                    objective.completed ? 'text-slate-400 line-through' : 'text-white'
-                  ]"
-                  placeholder="Objective title..."
-                />
-                
-                <!-- Metadata -->
-                <div class="flex items-center gap-3 text-xs text-slate-400">
-                  <div class="flex items-center gap-1">
-                    <span class="material-icons text-sm">folder</span>
-                    <input
-                      v-model="objective.category"
-                      @click.stop
-                      type="text"
-                      class="bg-transparent border-none outline-none w-24"
-                      placeholder="Category"
-                    />
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <span class="material-icons text-sm">calendar_today</span>
-                    <input
-                      v-model="objective.dueDate"
-                      @click.stop
-                      type="text"
-                      class="bg-transparent border-none outline-none w-24"
-                      placeholder="Due date"
-                    />
-                  </div>
-                  <select
-                    v-model="objective.priority"
-                    @click.stop
-                    :class="[
-                      'bg-transparent border-none outline-none text-xs px-2 py-1 rounded-full font-medium',
-                      objective.priority === 'high' ? 'bg-error/20 text-error' :
-                      objective.priority === 'medium' ? 'bg-orange-300/20 text-orange-300' :
-                      'bg-teal-400/20 text-teal-300'
-                    ]"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-              </div>
-              
-              <!-- Actions -->
-              <button
-                @click.stop="deleteObjective(objective.id)"
-                class="p-2 hover:bg-error/20 rounded-lg text-slate-400 hover:text-error transition-colors"
-              >
-                <span class="material-icons text-lg">delete</span>
-              </button>
-            </div>
-            
-            <!-- Notes Section (Expandable) -->
-            <div
-              v-if="selectedObjective?.id === objective.id"
-              class="border-t border-white/10 p-4 bg-white/5"
-            >
-              <div class="mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Notes</div>
-              <textarea
-                v-model="objective.notes"
-                class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-white placeholder-white/30 outline-none focus:border-teal-400 resize-none"
-                rows="6"
-                placeholder="Add notes, context, or details about this objective..."
-              ></textarea>
-              
-              <!-- Note Actions -->
-              <div class="flex items-center gap-2 mt-3">
-                <button
-                  @click="saveNotes"
-                  class="px-3 py-1.5 bg-teal-400 hover:bg-teal-500 text-black rounded text-xs font-medium transition-colors"
-                >
-                  Save Notes
-                </button>
-                <button
-                  @click="selectedObjective = null"
-                  class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-xs font-medium transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Empty State -->
-        <div v-if="objectives.length === 0" class="text-center py-12">
-          <div class="text-6xl mb-4">📋</div>
-          <h3 class="text-xl font-semibold text-white mb-2">No objectives yet</h3>
-          <p class="text-slate-400 mb-4">Start planning your week by adding your first objective</p>
-          <button
-            @click="addNewObjective"
-            class="px-4 py-2 bg-teal-400 hover:bg-teal-500 text-black rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-2"
-          >
-            <span class="material-icons">add</span>
+        <div class="flex items-center gap-3">
+          <button @click="insertObjectiveBlock" class="px-4 py-2 bg-teal-400 hover:bg-teal-500 text-black rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+            <span class="material-icons text-lg">add_task</span>
             <span>Add Objective</span>
           </button>
         </div>
+      </header>
+      
+      <!-- Document Canvas with Novel Editor -->
+      <main class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-4xl mx-auto">
+          <!-- Page Title (Editable) -->
+          <div class="mb-8">
+            <input
+              v-model="pageTitle"
+              type="text"
+              class="w-full text-4xl font-bold bg-transparent border-none outline-none text-white placeholder-white/30 mb-2"
+              placeholder="Untitled"
+            />
+            <div class="text-sm text-slate-400">
+              {{ formattedDate }}
+            </div>
+          </div>
+          
+          <!-- Novel Editor for free-form notes -->
+          <div class="mb-6">
+            <NovelEditor
+              v-model="documentContent"
+              storage-key="weekly-objectives-doc"
+            />
+          </div>
+          
+          <!-- Objectives Blocks (insertable into document) -->
+          <div class="space-y-4 mt-8">
+            <div
+              v-for="objective in objectives"
+              :key="objective.id"
+              class="card-glass rounded-lg overflow-hidden transition-all hover:shadow-lg cursor-pointer"
+              @click="openObjectivePanel(objective)"
+            >
+              <div class="flex items-start gap-3 p-4">
+                <!-- Checkbox -->
+                <button
+                  @click.stop="toggleComplete(objective)"
+                  :class="[
+                    'w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors mt-0.5',
+                    objective.completed
+                      ? 'bg-success border-success'
+                      : 'border-white/30 hover:border-white/50'
+                  ]"
+                >
+                  <span v-if="objective.completed" class="material-icons text-white text-sm">check</span>
+                </button>
+                
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                  <h3 :class="[
+                    'font-medium text-base mb-2',
+                    objective.completed ? 'text-slate-400 line-through' : 'text-white'
+                  ]">
+                    {{ objective.title || 'Untitled Objective' }}
+                  </h3>
+                  
+                  <!-- Metadata -->
+                  <div class="flex items-center gap-3 text-xs text-slate-400">
+                    <span v-if="objective.category" class="flex items-center gap-1">
+                      <span class="material-icons text-sm">folder</span>
+                      {{ objective.category }}
+                    </span>
+                    <span v-if="objective.dueDate" class="flex items-center gap-1">
+                      <span class="material-icons text-sm">calendar_today</span>
+                      {{ objective.dueDate }}
+                    </span>
+                    <span :class="[
+                      'px-2 py-0.5 rounded-full font-medium',
+                      objective.priority === 'high' ? 'bg-error/20 text-error' :
+                      objective.priority === 'medium' ? 'bg-orange-300/20 text-orange-300' :
+                      'bg-teal-400/20 text-teal-300'
+                    ]">
+                      {{ objective.priority }}
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Arrow Icon -->
+                <div class="flex-shrink-0 text-slate-400">
+                  <span class="material-icons">chevron_right</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Empty State -->
+          <div v-if="objectives.length === 0" class="text-center py-12">
+            <div class="text-6xl mb-4">📋</div>
+            <h3 class="text-xl font-semibold text-white mb-2">No objectives yet</h3>
+            <p class="text-slate-400 mb-4">Start planning your week by adding objectives</p>
+          </div>
+        </div>
+      </main>
+    </div>
+    
+    <!-- Side Panel for Objective Details -->
+    <Transition name="slide">
+      <div
+        v-if="sidePanelOpen"
+        class="w-[480px] bg-slate-900/95 backdrop-blur-xl border-l border-white/10 flex flex-col relative z-20"
+      >
+        <!-- Panel Header -->
+        <div class="h-16 px-6 flex items-center justify-between border-b border-white/10">
+          <h2 class="text-lg font-semibold text-white">Objective Details</h2>
+          <button @click="closeSidePanel" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        
+        <!-- Panel Content -->
+        <div v-if="selectedObjective" class="flex-1 overflow-y-auto p-6">
+          <!-- Title -->
+          <div class="mb-6">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Title</label>
+            <input
+              v-model="selectedObjective.title"
+              type="text"
+              class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 outline-none focus:border-teal-400"
+              placeholder="Objective title..."
+            />
+          </div>
+          
+          <!-- Metadata Grid -->
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Category</label>
+              <input
+                v-model="selectedObjective.category"
+                type="text"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-teal-400"
+                placeholder="e.g. Creative"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Due Date</label>
+              <input
+                v-model="selectedObjective.dueDate"
+                type="text"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-teal-400"
+                placeholder="e.g. Today"
+              />
+            </div>
+          </div>
+          
+          <!-- Priority -->
+          <div class="mb-6">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Priority</label>
+            <div class="flex gap-2">
+              <button
+                v-for="priority in ['low', 'medium', 'high']"
+                :key="priority"
+                @click="selectedObjective.priority = priority as any"
+                :class="[
+                  'flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                  selectedObjective.priority === priority
+                    ? priority === 'high' ? 'bg-error text-white' :
+                      priority === 'medium' ? 'bg-orange-300 text-black' :
+                      'bg-teal-400 text-black'
+                    : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                ]"
+              >
+                {{ priority.charAt(0).toUpperCase() + priority.slice(1) }}
+              </button>
+            </div>
+          </div>
+          
+          <!-- Status -->
+          <div class="mb-6">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <div
+                :class="[
+                  'w-6 h-6 rounded flex items-center justify-center border-2 transition-colors',
+                  selectedObjective.completed
+                    ? 'bg-success border-success'
+                    : 'border-white/30'
+                ]"
+              >
+                <span v-if="selectedObjective.completed" class="material-icons text-white text-sm">check</span>
+              </div>
+              <input
+                type="checkbox"
+                v-model="selectedObjective.completed"
+                class="sr-only"
+              />
+              <span class="text-sm text-white">Mark as completed</span>
+            </label>
+          </div>
+          
+          <!-- Notes -->
+          <div class="mb-6">
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Notes</label>
+            <textarea
+              v-model="selectedObjective.notes"
+              class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-white placeholder-white/30 outline-none focus:border-teal-400 resize-none"
+              rows="8"
+              placeholder="Add notes, context, or details about this objective..."
+            ></textarea>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex gap-3">
+            <button
+              @click="saveAndClose"
+              class="flex-1 px-4 py-3 bg-teal-400 hover:bg-teal-500 text-black rounded-lg text-sm font-medium transition-colors"
+            >
+              Save & Close
+            </button>
+            <button
+              @click="deleteCurrentObjective"
+              class="px-4 py-3 bg-error/20 hover:bg-error/30 text-error rounded-lg text-sm font-medium transition-colors"
+            >
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+        </div>
       </div>
-    </main>
+    </Transition>
   </div>
 </template>
 
@@ -182,6 +253,10 @@ interface Objective {
 }
 
 const pageTitle = ref('This Week\'s Priorities')
+const documentContent = ref('')
+const sidePanelOpen = ref(false)
+const selectedObjective = ref<Objective | null>(null)
+
 const objectives = ref<Objective[]>([
   {
     id: '1',
@@ -235,8 +310,6 @@ const objectives = ref<Objective[]>([
   }
 ])
 
-const selectedObjective = ref<Objective | null>(null)
-
 const formattedDate = computed(() => {
   const now = new Date()
   const start = new Date(now)
@@ -247,7 +320,7 @@ const formattedDate = computed(() => {
   return `Week of ${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
 })
 
-function addNewObjective() {
+function insertObjectiveBlock() {
   const newObjective: Objective = {
     id: Date.now().toString(),
     title: '',
@@ -259,11 +332,22 @@ function addNewObjective() {
     createdAt: new Date().toISOString()
   }
   objectives.value.unshift(newObjective)
-  selectedObjective.value = newObjective
+  openObjectivePanel(newObjective)
 }
 
-function selectObjective(objective: Objective) {
-  selectedObjective.value = selectedObjective.value?.id === objective.id ? null : objective
+function openObjectivePanel(objective: Objective) {
+  selectedObjective.value = objective
+  sidePanelOpen.value = true
+}
+
+function closeSidePanel() {
+  sidePanelOpen.value = false
+  saveToLocalStorage()
+}
+
+function saveAndClose() {
+  saveToLocalStorage()
+  sidePanelOpen.value = false
 }
 
 function toggleComplete(objective: Objective) {
@@ -271,24 +355,20 @@ function toggleComplete(objective: Objective) {
   saveToLocalStorage()
 }
 
-function deleteObjective(id: string) {
-  objectives.value = objectives.value.filter(obj => obj.id !== id)
-  if (selectedObjective.value?.id === id) {
+function deleteCurrentObjective() {
+  if (selectedObjective.value) {
+    objectives.value = objectives.value.filter(obj => obj.id !== selectedObjective.value?.id)
+    sidePanelOpen.value = false
     selectedObjective.value = null
+    saveToLocalStorage()
   }
-  saveToLocalStorage()
-}
-
-function saveNotes() {
-  saveToLocalStorage()
-  // Show a brief success message
-  console.log('Notes saved!')
 }
 
 function saveToLocalStorage() {
   if (process.client) {
     localStorage.setItem('weekly-objectives', JSON.stringify(objectives.value))
     localStorage.setItem('page-title', pageTitle.value)
+    localStorage.setItem('document-content', documentContent.value)
   }
 }
 
@@ -296,6 +376,7 @@ function loadFromLocalStorage() {
   if (process.client) {
     const savedObjectives = localStorage.getItem('weekly-objectives')
     const savedTitle = localStorage.getItem('page-title')
+    const savedContent = localStorage.getItem('document-content')
     
     if (savedObjectives) {
       objectives.value = JSON.parse(savedObjectives)
@@ -303,11 +384,14 @@ function loadFromLocalStorage() {
     if (savedTitle) {
       pageTitle.value = savedTitle
     }
+    if (savedContent) {
+      documentContent.value = savedContent
+    }
   }
 }
 
 // Auto-save on changes
-watch([objectives, pageTitle], () => {
+watch([objectives, pageTitle, documentContent], () => {
   saveToLocalStorage()
 }, { deep: true })
 
@@ -316,3 +400,19 @@ onMounted(() => {
   loadFromLocalStorage()
 })
 </script>
+
+<style scoped>
+/* Slide transition for side panel */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from {
+  transform: translateX(100%);
+}
+
+.slide-leave-to {
+  transform: translateX(100%);
+}
+</style>
