@@ -165,6 +165,78 @@
           </div>
         </div>
         
+        <!-- This Week's Objectives Section -->
+        <div class="col-span-12 md:col-span-6 lg:col-span-5 xl:col-span-4">
+          <div class="card-glass card-elevated">
+            <div class="p-4 sm:p-5 border-b border-white/10">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <h2 class="text-lg font-semibold text-white">This Week's Objectives</h2>
+                  <div class="ml-2 bg-teal-400/20 text-teal-300 text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
+                    {{ weeklyObjectives.length }}
+                  </div>
+                </div>
+                <button 
+                  @click="navigateToCRM"
+                  class="text-xs font-semibold text-slate-400 hover:text-white uppercase tracking-wider transition-colors"
+                >
+                  See More
+                </button>
+              </div>
+            </div>
+            
+            <div class="p-4 sm:p-5">
+              <div class="space-y-2">
+                <div 
+                  v-for="objective in weeklyObjectives" 
+                  :key="objective.id"
+                  class="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors cursor-pointer group"
+                  @click="openObjective(objective.id)"
+                >
+                  <!-- Checkbox -->
+                  <div 
+                    :class="`w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors ${
+                      objective.completed 
+                        ? 'bg-success border-success' 
+                        : 'border-white/30 group-hover:border-white/50'
+                    }`"
+                  >
+                    <span v-if="objective.completed" class="material-icons text-white text-sm">check</span>
+                  </div>
+                  
+                  <!-- Content -->
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2">
+                      <h3 :class="`font-medium text-sm truncate ${
+                        objective.completed ? 'text-slate-400 line-through' : 'text-white'
+                      }`">
+                        {{ objective.title }}
+                      </h3>
+                      <span :class="`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                        objective.priority === 'high' ? 'bg-error/20 text-error' :
+                        objective.priority === 'medium' ? 'bg-orange-300/20 text-orange-300' :
+                        'bg-teal-400/20 text-teal-300'
+                      }`">
+                        {{ objective.priority }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                      <span>{{ objective.category }}</span>
+                      <span>•</span>
+                      <span>{{ objective.dueDate }}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Arrow Icon -->
+                  <div class="flex-shrink-0 text-slate-400 group-hover:text-white transition-colors">
+                    <span class="material-icons text-sm">chevron_right</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- Performance Snapshot Section -->
         <div class="col-span-12">
           <div class="card-glass card-elevated">
@@ -282,6 +354,49 @@ const slackMessages = ref([
   }
 ])
 
+const weeklyObjectives = ref([
+  {
+    id: 1,
+    title: 'Complete Q4 campaign creative assets',
+    category: 'Creative',
+    priority: 'high',
+    dueDate: 'Wed, Nov 13',
+    completed: false
+  },
+  {
+    id: 2,
+    title: 'Review and approve brand guidelines update',
+    category: 'Design',
+    priority: 'medium',
+    dueDate: 'Thu, Nov 14',
+    completed: false
+  },
+  {
+    id: 3,
+    title: 'Optimize campaign budget allocation',
+    category: 'Performance',
+    priority: 'high',
+    dueDate: 'Tue, Nov 12',
+    completed: false
+  },
+  {
+    id: 4,
+    title: 'Upload new product images to DAM',
+    category: 'Resources',
+    priority: 'low',
+    dueDate: 'Fri, Nov 15',
+    completed: true
+  },
+  {
+    id: 5,
+    title: 'Client meeting prep: Q3 results presentation',
+    category: 'Performance',
+    priority: 'medium',
+    dueDate: 'Today',
+    completed: false
+  }
+])
+
 const performanceMetrics = ref([
   { label: 'ROAS', value: '3.6x', change: 0.4, changeText: '+0.4', progress: 70 },
   { label: 'CPA', value: '$18.45', change: -2.30, changeText: '$2.30', progress: 65 },
@@ -344,5 +459,19 @@ function openTask(taskId: number) {
   console.log('Opening task:', taskId)
   // TODO: Implement navigation to task detail
   // navigateTo(`/tasks/${taskId}`)
+}
+
+function openObjective(objectiveId: number) {
+  // Navigate to objective detail or CRM with filter
+  console.log('Opening objective:', objectiveId)
+  // TODO: Implement navigation to objective detail
+  // navigateTo(`/crm?filter=objective-${objectiveId}`)
+}
+
+function navigateToCRM() {
+  // Navigate to CRM tab filtered by this week's priorities
+  console.log('Navigating to CRM with weekly priorities filter')
+  // TODO: Implement navigation to CRM with filters
+  // navigateTo('/crm?filter=weekly-priorities')
 }
 </script>
