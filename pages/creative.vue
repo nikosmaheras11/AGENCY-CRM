@@ -507,8 +507,10 @@ function getStatusText(status: string) {
   return text[status] || status
 }
 
+const router = useRouter()
+
 function openAssetDetail(asset: Asset) {
-  navigateTo(`/creative/asset/${asset.id}`)
+  router.push(`/creative/asset/${asset.id}`)
 }
 
 function getAssetGradient(id: string): string {
