@@ -140,10 +140,7 @@
             </div>
             
             <div class="p-3 sm:p-4">
-              <SlackMessageFeed 
-                channel-id="C09HBDKSUGH"
-                :limit="10"
-              />
+              <SlackMessageFeed :limit="10" />
             </div>
           </div>
           

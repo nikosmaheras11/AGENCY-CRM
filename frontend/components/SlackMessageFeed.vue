@@ -7,13 +7,13 @@ interface SlackMessage {
   text: string
   thread_ts?: string
   ts: string
+  channel_name: string
+  channel_id: string
   attachments?: any[]
   timestamp: string
 }
 
 const props = defineProps<{
-  channelId: string
-  channelName?: string
   limit?: number
 }>()
 
@@ -21,15 +21,14 @@ const messages = ref<SlackMessage[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// Fetch messages from Slack API via our server endpoint
+// Fetch messages from all Slack channels via our server endpoint
 async function fetchMessages() {
   loading.value = true
   error.value = null
   
   try {
-    const data = await $fetch('/api/slack/messages', {
+    const data = await $fetch('/api/slack/feed', {
       query: {
-        channel: props.channelId,
         limit: props.limit || 50
       }
     })
@@ -127,6 +126,9 @@ onUnmounted(() => {
             <div class="flex items-center justify-between">
               <div class="font-medium text-sm truncate text-white">{{ message.user_name }}</div>
               <div class="text-xs text-slate-400">{{ formatTimestamp(message.ts) }}</div>
+            </div>
+            <div class="text-xs text-slate-400 mt-0.5">
+              {{ message.channel_name }}
             </div>
             <div :class="`mt-1 text-sm line-clamp-2 ${index === 0 ? 'font-medium text-white' : 'text-slate-300'}`">
               {{ message.text }}
