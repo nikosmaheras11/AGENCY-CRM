@@ -276,7 +276,7 @@ const columns = computed(() => [
     badgeClass: 'bg-green-100 text-green-700 border border-green-200',
     assets: requestsByStatus.value['done'].map(requestToAsset)
   }
-)
+])
 
 const totalAssets = computed(() => {
   return columns.value.reduce((sum, col) => sum + col.assets.length, 0)
@@ -335,7 +335,7 @@ function handleAssetClick(asset: any) {
   }
 }
 
-function openAssetDetail(asset: Asset) {
+function openAssetDetail(asset: any) {
   selectedAssetId.value = asset.id
 }
 
