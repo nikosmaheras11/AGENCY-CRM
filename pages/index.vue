@@ -1,209 +1,345 @@
 <template>
-  <div class="h-full bg-[#F5F5F0] overflow-auto">
+  <div class="min-h-screen bg-[#131925] text-white overflow-auto">
     <div class="p-8">
-      <!-- Header with Brand Focus -->
-      <div class="mb-8 flex items-center justify-between">
+      <!-- Dashboard Header -->
+      <div class="flex justify-between mb-8">
         <div>
-          <h1 class="text-4xl font-bold text-slate-900 mb-2">
-            Overview
-          </h1>
-          <p class="text-slate-600">
-            {{currentDate}}
-          </p>
+          <h1 class="text-3xl font-semibold m-0">{{ currentTime }}</h1>
+          <div class="mt-1">
+            <p class="text-slate-400 m-0">Good {{ timeOfDay }},</p>
+            <h2 class="text-xl font-medium mt-1 mb-0">Marketing Team</h2>
+          </div>
         </div>
-        <div class="flex items-center gap-4">
-          <button class="p-2 hover:bg-white/60 rounded-lg transition-colors">
-            <span class="material-icons text-slate-600">search</span>
+        
+        <div class="flex items-center gap-6">
+          <!-- Client selector -->
+          <div class="relative">
+            <select class="bg-[#1E2532] border border-slate-700 rounded-md py-2 px-4 text-sm appearance-none pr-8 cursor-pointer">
+              <option>All Clients</option>
+              <option>Acme Corporation</option>
+              <option>Globex Industries</option>
+              <option>Initech</option>
+            </select>
+            <span class="material-icons absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">expand_more</span>
+          </div>
+          
+          <!-- Notification icon -->
+          <button class="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#1E2532] transition-colors">
+            <span class="material-icons">notifications</span>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
-          <button class="p-2 hover:bg-white/60 rounded-lg transition-colors">
-            <span class="material-icons text-slate-600">notifications</span>
-          </button>
-          <button class="p-2 hover:bg-white/60 rounded-lg transition-colors">
-            <span class="material-icons text-slate-600">settings</span>
-          </button>
+          
+          <!-- User profile -->
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-200 to-orange-300 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+            <span class="text-xs font-bold text-slate-900">AD</span>
+          </div>
         </div>
       </div>
 
-      <!-- Modular Dashboard Grid (matches screenshot layout) -->
-      <div class="grid grid-cols-12 gap-4 mb-4">
-        <!-- Large Primary Card - Ongoing Projects -->
-        <div class="col-span-12 md:col-span-6 lg:col-span-4">
-          <div class="bg-[#E8E3F5] shadow-md rounded-2xl p-8 h-full hover:shadow-lg transition-all">
-            <div class="text-sm text-slate-600 font-light mb-4">Ongoing Projects</div>
-            <div class="text-8xl font-display font-bold text-slate-900 mb-2 tracking-tighter">{{ stats.activeProjects }}</div>
-            <div class="text-base text-slate-600 font-light">Active today</div>
+      <!-- Overview Section -->
+      <div class="mb-8">
+        <div class="flex items-center mb-6">
+          <h2 class="text-2xl font-medium m-0">Overview</h2>
+          <div class="flex items-center ml-4 text-slate-400">
+            <span class="material-icons text-green-500 mr-1" style="font-size: 20px;">check_circle</span>
+            <span class="text-sm">All campaigns active</span>
           </div>
         </div>
-
-        <!-- Medium Card - Completed with trend -->
-        <div class="col-span-6 md:col-span-3 lg:col-span-4">
-          <div class="bg-[#E8F5E3] shadow-md rounded-2xl p-8 h-full hover:shadow-lg transition-all">
-            <div class="text-sm text-slate-600 font-light mb-4">Completed</div>
-            <div class="text-7xl font-display font-bold text-slate-900 mb-2 tracking-tighter">{{stats.completedThisWeek}}</div>
-            <div class="flex items-center gap-2 mt-2">
-              <span class="text-emerald-600 text-sm font-medium">+12%</span>
-              <span class="text-sm text-slate-600 font-light">This week</span>
+        
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-4 gap-6">
+          <!-- Alerts Card (1x2) -->
+          <div class="bg-[#1E2532] rounded-xl overflow-hidden col-span-1 row-span-2">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+              <div class="flex items-center">
+                <span class="material-icons text-orange-500 mr-2" style="font-size: 20px;">notifications_active</span>
+                <h3 class="font-medium text-base m-0">Alerts</h3>
+                <span class="ml-2 text-sm text-slate-400">{{ alerts.length }}</span>
+              </div>
+              <button class="text-xs text-slate-400 uppercase tracking-wider hover:text-white transition-colors">All</button>
             </div>
-          </div>
-        </div>
-
-        <!-- Tall Card - Campaign Performance -->
-        <div class="col-span-6 md:col-span-3 lg:col-span-4 row-span-2">
-          <div class="bg-gradient-to-b from-amber-900 to-amber-700 shadow-md rounded-2xl p-8 h-full hover:shadow-lg transition-all flex flex-col">
-            <div class="text-sm text-amber-100 font-light mb-4">Active Campaigns</div>
-            <div class="text-7xl font-display font-bold text-white mb-2 tracking-tighter">{{stats.activeCampaigns}}</div>
-            <div class="text-sm text-amber-100 font-light mb-6">Running now</div>
             
-            <!-- Mini chart placeholder -->
-            <div class="flex-1 flex items-end gap-1 mt-auto">
-              <div class="flex-1 bg-white/20 rounded-t h-12"></div>
-              <div class="flex-1 bg-white/30 rounded-t h-20"></div>
-              <div class="flex-1 bg-white/40 rounded-t h-16"></div>
-              <div class="flex-1 bg-white/50 rounded-t h-24"></div>
-              <div class="flex-1 bg-white/60 rounded-t h-28"></div>
-              <div class="flex-1 bg-white/80 rounded-t h-32"></div>
+            <div class="p-4">
+              <div 
+                v-for="alert in alerts" 
+                :key="alert.id"
+                class="flex items-start py-3 border-b border-slate-700/50 last:border-0"
+              >
+                <div class="flex-shrink-0 w-2 h-2 rounded-full mt-1.5 mr-3" :class="getAlertColor(alert.type)"></div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium m-0 mb-1">{{ alert.title }}</p>
+                  <p class="text-xs text-slate-400 m-0">{{ alert.description }}</p>
+                </div>
+                <button class="flex-shrink-0 ml-2 text-slate-500 hover:text-white transition-colors">
+                  <span class="material-icons" style="font-size: 16px;">chevron_right</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Wide Card - Pending Review -->
-        <div class="col-span-12 lg:col-span-8">
-          <div class="bg-[#F0EDE8] shadow-md rounded-2xl p-8 hover:shadow-lg transition-all">
-            <div class="flex items-center justify-between mb-4">
-              <div class="text-sm text-slate-600 font-light">Pending Review</div>
-              <div class="text-xs text-slate-500 font-light">Last 30 days</div>
+          <!-- Client Health Score (1x1) -->
+          <div class="bg-[#1E2532] rounded-xl overflow-hidden col-span-1 row-span-1">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+              <h3 class="font-medium text-base m-0">Client Health</h3>
+              <span class="text-xs text-slate-400">Last 30 days</span>
             </div>
-            <div class="flex items-end gap-8">
-              <div class="text-7xl font-display font-bold text-slate-900 tracking-tighter">{{stats.pendingReview}}</div>
-              <div class="flex items-center gap-2 mb-4">
-                <span class="text-amber-600 text-sm font-medium">↑ 5</span>
-                <span class="text-sm text-slate-600 font-light">Since yesterday</span>
+            
+            <div class="p-6">
+              <div class="flex items-baseline mb-6">
+                <span class="text-5xl font-bold">{{ clientHealth.score }}</span>
+                <span class="text-2xl ml-1 text-slate-400">°</span>
+              </div>
+              
+              <div class="space-y-3">
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Engagement</span>
+                  <span class="font-medium">{{ clientHealth.engagement }}%</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">Satisfaction</span>
+                  <span class="font-medium">{{ clientHealth.satisfaction }}%</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-400">ROI</span>
+                  <span class="font-medium">{{ clientHealth.roi }}x</span>
+                </div>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-slate-700 flex items-center text-xs text-slate-400">
+                <span class="material-icons text-green-500 mr-1" style="font-size: 16px;">trending_up</span>
+                <span>Improving trend</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campaign Performance (2x1) -->
+          <div class="bg-[#1E2532] rounded-xl overflow-hidden col-span-2 row-span-1">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+              <h3 class="font-medium text-base m-0">Campaign Performance</h3>
+              <div class="flex overflow-hidden rounded-md bg-slate-900">
+                <button 
+                  v-for="period in ['DAY', 'WK', 'MO']" 
+                  :key="period"
+                  class="py-1 px-3 text-xs transition-colors"
+                  :class="performancePeriod === period ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'"
+                  @click="performancePeriod = period"
+                >
+                  {{ period }}
+                </button>
+              </div>
+            </div>
+            
+            <div class="p-6">
+              <div class="flex items-baseline mb-6">
+                <span class="text-4xl font-bold">{{ performance.impressions }}</span>
+                <span class="text-xl ml-1 text-slate-400">K</span>
+                <span class="ml-4 text-sm text-slate-400">Impressions</span>
+                <div class="ml-auto px-2 py-1 rounded-md text-xs font-medium" :class="performance.trend >= 0 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'">
+                  {{ performance.trend >= 0 ? '+' : '' }}{{ performance.trend }}%
+                </div>
+              </div>
+              
+              <!-- Mini bar chart -->
+              <div class="relative h-32 flex items-end gap-1 mb-2">
+                <div 
+                  v-for="(bar, i) in performance.chartData" 
+                  :key="i"
+                  class="flex-1 bg-gradient-to-t from-blue-500/50 to-blue-500/20 rounded-t"
+                  :style="{ height: bar + '%' }"
+                ></div>
+              </div>
+              
+              <div class="flex justify-between text-xs text-slate-400">
+                <span v-for="day in ['M', 'T', 'W', 'TH', 'F', 'S', 'SU']" :key="day">{{ day }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Creative Assets (2x1) -->
+          <div class="bg-[#1E2532] rounded-xl overflow-hidden col-span-2 row-span-1">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+              <h3 class="font-medium text-base m-0">Creative Assets</h3>
+              <button class="text-xs text-slate-400 uppercase tracking-wider hover:text-white transition-colors">Configure</button>
+            </div>
+            
+            <div class="p-6">
+              <div class="flex items-baseline mb-6">
+                <span class="text-4xl font-bold">{{ creativeAssets.active }}</span>
+                <span class="ml-4 text-sm text-slate-400">Active Assets</span>
+              </div>
+              
+              <div class="mb-4">
+                <div class="flex justify-between text-sm mb-2">
+                  <span class="text-slate-400">Next review cycle:</span>
+                  <span class="text-white">{{ creativeAssets.nextReview }}</span>
+                </div>
+              </div>
+              
+              <!-- Progress bar -->
+              <div class="relative">
+                <div class="h-3 bg-slate-700 rounded-full overflow-hidden flex">
+                  <div class="bg-orange-500" :style="{ width: creativeAssets.distribution.inProgress + '%' }"></div>
+                  <div class="bg-blue-500" :style="{ width: creativeAssets.distribution.review + '%' }"></div>
+                  <div class="bg-green-500" :style="{ width: creativeAssets.distribution.approved + '%' }"></div>
+                </div>
+                
+                <div class="flex justify-between mt-3 text-xs">
+                  <div class="flex items-center">
+                    <div class="w-2 h-2 rounded-full bg-orange-500 mr-1"></div>
+                    <span class="text-slate-400">In Progress</span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
+                    <span class="text-slate-400">In Review</span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                    <span class="text-slate-400">Approved</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Budget Utilization (1x1) -->
+          <div class="bg-[#1E2532] rounded-xl overflow-hidden col-span-1 row-span-1">
+            <div class="flex items-center justify-between p-4 border-b border-slate-700">
+              <h3 class="font-medium text-base m-0">Budget</h3>
+              <div class="flex overflow-hidden rounded-md bg-slate-900">
+                <button 
+                  v-for="period in ['DAY', 'WK', 'MO']" 
+                  :key="period"
+                  class="py-1 px-3 text-xs transition-colors"
+                  :class="budgetPeriod === period ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'"
+                  @click="budgetPeriod = period"
+                >
+                  {{ period }}
+                </button>
+              </div>
+            </div>
+            
+            <div class="p-6">
+              <div class="flex items-baseline mb-6">
+                <span class="text-4xl font-bold">{{ budget.total }}</span>
+                <span class="text-xl ml-1 text-slate-400">K</span>
+                <div class="ml-auto px-2 py-1 rounded-md bg-slate-700 text-xs font-medium">
+                  {{ budget.utilized }}%
+                </div>
+              </div>
+              
+              <div class="space-y-3">
+                <div 
+                  v-for="item in budget.breakdown" 
+                  :key="item.label"
+                  class="space-y-1"
+                >
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">{{ item.label }}</span>
+                    <span class="font-medium">${{ item.value }}K</span>
+                  </div>
+                  <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full" :style="{ width: item.percent + '%' }"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Bottom Grid -->
-      <div class="grid grid-cols-12 gap-4">
-        <!-- Recent Updates -->
-        <div class="col-span-12 lg:col-span-8">
-          <div class="bg-white shadow-md rounded-2xl p-8">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-xl font-display font-semibold text-slate-900">Recent Updates</h2>
-              <button class="text-sm text-slate-600 hover:text-slate-900 transition-colors font-light">View All</button>
-            </div>
-            <ActivityFeed :activities="activities" />
-          </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-span-12 lg:col-span-4 space-y-4">
-          <!-- Performance Card -->
-          <div class="bg-white shadow-md rounded-2xl p-8">
-            <h2 class="text-lg font-display font-semibold text-slate-900 mb-6">Performance</h2>
-            <div class="space-y-6">
-              <div>
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm text-slate-600 font-light">Approval Rate</span>
-                  <span class="text-lg font-display font-semibold text-slate-900">87%</span>
-                </div>
-                <div class="w-full bg-slate-200 rounded-full h-1.5">
-                  <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 87%"></div>
-                </div>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-600 font-light">Avg. Review Time</span>
-                <span class="text-base font-display font-semibold text-slate-900">2.3d</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-600 font-light">Assets This Month</span>
-                <span class="text-base font-display font-semibold text-slate-900">142</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Actions -->
-          <div class="bg-white shadow-md rounded-2xl p-8">
-            <h2 class="text-lg font-display font-semibold text-slate-900 mb-6">Quick Actions</h2>
-            <div class="space-y-3">
-              <button class="w-full flex items-center gap-3 p-4 bg-slate-100 text-slate-900 rounded-2xl hover:bg-slate-200 transition-all group">
-                <span class="material-icons text-slate-600 group-hover:text-slate-900">add_circle</span>
-                <span class="text-sm font-medium">New Project</span>
-              </button>
-              <button class="w-full flex items-center gap-3 p-4 bg-slate-100 text-slate-900 rounded-2xl hover:bg-slate-200 transition-all group">
-                <span class="material-icons text-slate-600 group-hover:text-slate-900">upload_file</span>
-                <span class="text-sm font-medium">Upload Asset</span>
-              </button>
-              <button class="w-full flex items-center gap-3 p-4 bg-slate-100 text-slate-900 rounded-2xl hover:bg-slate-200 transition-all group">
-                <span class="material-icons text-slate-600 group-hover:text-slate-900">campaign</span>
-                <span class="text-sm font-medium">New Campaign</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const currentDate = computed(() => {
+const currentTime = computed(() => {
   const now = new Date()
-  return now.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'short', 
-    day: 'numeric' 
+  return now.toLocaleTimeString('en-US', { 
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
   })
 })
 
-const activities = ref([
+const timeOfDay = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'morning'
+  if (hour < 18) return 'afternoon'
+  return 'evening'
+})
+
+const performancePeriod = ref('DAY')
+const budgetPeriod = ref('DAY')
+
+const alerts = ref([
   {
     id: 1,
-    action: 'created',
-    collection: 'creative_assets',
-    description: 'Hero banner V3 uploaded for Project Alpha',
-    user: 'Sarah Johnson',
-    timestamp: '2 hours ago'
+    type: 'warning',
+    title: 'Campaign budget threshold',
+    description: 'Summer campaign reaching 85% of budget'
   },
   {
     id: 2,
-    action: 'approved',
-    collection: 'creative_assets',
-    description: 'Product video approved for Q4 Campaign',
-    user: 'Mike Chen',
-    timestamp: '4 hours ago'
+    type: 'info',
+    title: 'Creative review required',
+    description: '5 assets awaiting approval'
   },
   {
     id: 3,
-    action: 'updated',
-    collection: 'performance_campaigns',
-    description: 'Google Ads campaign budget increased to $15K',
-    user: 'Emma Davis',
-    timestamp: '5 hours ago'
+    type: 'success',
+    title: 'Campaign milestone reached',
+    description: 'Product launch +200% impressions'
   },
   {
     id: 4,
-    action: 'created',
-    collection: 'projects',
-    description: 'New project "Brand Refresh 2024" initiated',
-    user: 'John Smith',
-    timestamp: '1 day ago'
-  },
-  {
-    id: 5,
-    action: 'updated',
-    collection: 'design_components',
-    description: 'Button component updated in design system',
-    user: 'Sarah Johnson',
-    timestamp: '1 day ago'
+    type: 'error',
+    title: 'Deadline approaching',
+    description: 'Q4 campaign assets due in 2 days'
   }
 ])
 
-const stats = ref({
-  activeProjects: 8,
-  completedThisWeek: 12,
-  pendingReview: 3,
-  activeCampaigns: 4
+const clientHealth = ref({
+  score: 64,
+  engagement: 78,
+  satisfaction: 82,
+  roi: 2.4
 })
+
+const performance = ref({
+  impressions: 840,
+  trend: 16,
+  chartData: [45, 62, 58, 73, 65, 88, 92]
+})
+
+const creativeAssets = ref({
+  active: 72,
+  nextReview: 'Nov 15 at 10:00 AM',
+  distribution: {
+    inProgress: 35,
+    review: 25,
+    approved: 40
+  }
+})
+
+const budget = ref({
+  total: 360,
+  utilized: 65,
+  breakdown: [
+    { label: 'Social Media', value: 85, percent: 85 },
+    { label: 'Display Ads', value: 60, percent: 60 },
+    { label: 'Video', value: 75, percent: 75 },
+    { label: 'Search', value: 45, percent: 45 },
+    { label: 'Email', value: 25, percent: 25 }
+  ]
+})
+
+function getAlertColor(type: string) {
+  const colors: Record<string, string> = {
+    warning: 'bg-orange-500',
+    info: 'bg-blue-500',
+    success: 'bg-green-500',
+    error: 'bg-red-500'
+  }
+  return colors[type] || 'bg-slate-500'
+}
 </script>
