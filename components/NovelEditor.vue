@@ -79,6 +79,15 @@ const emit = defineEmits<{
   'toggle-complete': [id: string, completed: boolean]
 }>()
 
+// Provide callbacks for objective blocks
+provide('onClickObjective', (id: string) => {
+  emit('click-objective', id)
+})
+
+provide('onToggleComplete', (id: string, completed: boolean) => {
+  emit('toggle-complete', id, completed)
+})
+
 const editor = useEditor({
   extensions: [
     StarterKit,

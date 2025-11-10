@@ -51,9 +51,18 @@
           </div>
         </div>
         
-        <!-- Drag Handle -->
-        <div class="flex-shrink-0 text-slate-400 hover:text-white cursor-grab active:cursor-grabbing">
-          <span class="material-icons">drag_indicator</span>
+        <!-- Actions -->
+        <div class="flex items-center gap-1 flex-shrink-0">
+          <button
+            @click.stop="deleteBlock"
+            class="p-1.5 text-slate-400 hover:text-error hover:bg-error/20 rounded transition-colors"
+            title="Delete"
+          >
+            <span class="material-icons text-base">delete</span>
+          </button>
+          <div class="text-slate-400 hover:text-white cursor-grab active:cursor-grabbing" data-drag-handle>
+            <span class="material-icons">drag_indicator</span>
+          </div>
         </div>
       </div>
     </div>
@@ -65,13 +74,12 @@ import { NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 
 const props = defineProps(nodeViewProps)
 
-const emit = defineEmits<{
-  'click-objective': [id: string]
-  'toggle-complete': [id: string, completed: boolean]
-}>()
+// Inject callbacks from NovelEditor
+const onClickObjective = inject<(id: string) => void>('onClickObjective', () => {})
+const onToggleComplete = inject<(id: string, completed: boolean) => void>('onToggleComplete', () => {})
 
 function handleClick() {
-  emit('click-objective', props.node.attrs.id)
+  onClickObjective(props.node.attrs.id)
 }
 
 function toggleComplete() {
@@ -82,7 +90,14 @@ function toggleComplete() {
     completed: newCompleted
   })
   
-  emit('toggle-complete', props.node.attrs.id, newCompleted)
+  onToggleComplete(props.node.attrs.id, newCompleted)
+}
+
+function deleteBlock() {
+  // Delete this node from the editor
+  if (props.deleteNode) {
+    props.deleteNode()
+  }
 }
 </script>
 
