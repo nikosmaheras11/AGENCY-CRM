@@ -359,11 +359,9 @@ function getStatusText(status: string) {
 const router = useRouter()
 
 function handleAssetClick(asset: any) {
-  if (asset.figmaUrl) {
-    window.open(asset.figmaUrl, '_blank')
-  } else {
-    selectedAssetId.value = asset.id
-  }
+  // Always open AssetViewer modal
+  selectedAssetId.value = asset.id
+  console.log('👁️ Opening AssetViewer for:', asset.id, asset.title)
 }
 
 function openAssetDetail(asset: any) {
