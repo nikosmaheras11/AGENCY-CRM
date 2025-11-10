@@ -1,5 +1,8 @@
 <template>
   <div class="h-full bg-[#F5F5F0] overflow-auto">
+    <!-- Campaign Detail Panel -->
+    <CampaignDetailPanel v-model="showCampaignDetail" :campaign="selectedCampaign" />
+    
     <div class="p-8">
       <!-- Header -->
       <div class="mb-8 flex items-center justify-between">
@@ -97,7 +100,8 @@
         <div 
           v-for="campaign in campaigns" 
           :key="campaign.id"
-          class="p-6 hover:bg-slate-50 transition-colors"
+          @click="openCampaignDetail(campaign)"
+          class="p-6 hover:bg-slate-50 transition-colors cursor-pointer"
         >
           <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
@@ -166,6 +170,14 @@
 </template>
 
 <script setup lang="ts">
+const showCampaignDetail = ref(false)
+const selectedCampaign = ref<any>(null)
+
+function openCampaignDetail(campaign: any) {
+  selectedCampaign.value = campaign
+  showCampaignDetail.value = true
+}
+
 const liveCreatives = ref([
   {
     id: 1,
