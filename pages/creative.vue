@@ -251,7 +251,10 @@ const { fetchRequests, getRequestsByTypeAndStatus, requestToAsset } = useRequest
 
 // Fetch requests on mount
 onMounted(async () => {
+  console.log('🔄 Fetching requests...')
   await fetchRequests()
+  console.log('✅ Requests fetched!')
+  console.log('📊 Creative requests by status:', requestsByStatus.value)
 })
 
 // Get creative requests grouped by status
