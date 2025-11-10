@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-screen bg-gradient-dark overflow-hidden">
-    <!-- Elevated Glass Sidebar -->
-    <aside class="w-20 backdrop-blur-xl border-r-0 flex flex-col items-center py-6 gap-6 flex-shrink-0 relative" style="background: linear-gradient(111.84deg, rgba(6, 11, 38, 0.94) 59.3%, rgba(26, 31, 55, 0) 100%); box-shadow: inset -1px 0px 2px rgba(26, 50, 130, 0.5), 20px 0px 40px rgba(0, 0, 0, 0.3);">
+    <!-- Elevated Glass Sidebar (hidden for fullscreen routes) -->
+    <aside v-if="!isFullscreenRoute" class="w-20 backdrop-blur-xl border-r-0 flex flex-col items-center py-6 gap-6 flex-shrink-0 relative" style="background: linear-gradient(111.84deg, rgba(6, 11, 38, 0.94) 59.3%, rgba(26, 31, 55, 0) 100%); box-shadow: inset -1px 0px 2px rgba(26, 50, 130, 0.5), 20px 0px 40px rgba(0, 0, 0, 0.3);">
       <!-- Logo -->
       <div class="relative group cursor-pointer">
         <img v-if="logoExists" src="/logo.svg" alt="Polymarket Logo" class="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110" @error="logoExists = false" />
@@ -48,7 +48,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 overflow-auto">
+    <main :class="isFullscreenRoute ? 'w-full' : 'flex-1'" class="overflow-auto">
       <NuxtPage />
     </main>
   </div>
@@ -61,6 +61,8 @@ interface NavItem {
   label: string
 }
 
+const route = useRoute()
+
 const navItems: NavItem[] = [
   { path: '/', icon: 'home', label: 'Overview' },
   { path: '/creative', icon: 'palette', label: 'Creative Hub' },
@@ -70,6 +72,11 @@ const navItems: NavItem[] = [
 
 const logoExists = ref(true)
 const logoPngExists = ref(true)
+
+// Hide sidebar for fullscreen routes (asset viewer)
+const isFullscreenRoute = computed(() => {
+  return route.path.startsWith('/creative/asset/')
+})
 
 // Head configuration for fonts
 useHead({
