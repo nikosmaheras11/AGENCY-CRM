@@ -38,9 +38,9 @@
     <!-- Dashboard Content -->
     <main class="flex-1 overflow-y-auto p-6 relative z-10">
       <div class="grid grid-cols-12 gap-6">
-
-        <!-- Items Needing Review Section -->
-        <div class="col-span-12 lg:col-span-7 xl:col-span-8">
+        
+        <!-- Left Column: Items Needing Review -->
+        <div class="col-span-12 lg:col-span-7 xl:col-span-8 space-y-6">
           <div class="card-glass card-elevated">
             <div class="p-4 sm:p-5 border-b border-white/10">
               <div class="flex items-center justify-between">
@@ -114,8 +114,9 @@
           </div>
         </div>
         
-        <!-- Slack Messages Section -->
-        <div class="col-span-12 md:col-span-6 lg:col-span-5 xl:col-span-4">
+        <!-- Right Column: Slack Messages + This Week's Objectives -->
+        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-6">
+          <!-- Slack Messages Section -->
           <div class="card-glass card-elevated">
             <div class="p-4 sm:p-5 border-b border-white/10">
               <div class="flex items-center justify-between">
@@ -163,10 +164,8 @@
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- This Week's Objectives Section -->
-        <div class="col-span-12 md:col-span-6 lg:col-span-5 xl:col-span-4">
+          
+          <!-- This Week's Objectives Section -->
           <div class="card-glass card-elevated">
             <div class="p-4 sm:p-5 border-b border-white/10">
               <div class="flex items-center justify-between">
