@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen bg-gradient-dark text-white overflow-hidden relative flex flex-col">
+  <div class="min-h-screen bg-gradient-dark text-white relative flex flex-col">
     <!-- Background pattern overlay -->
     <div class="absolute inset-0 bg-pattern opacity-[0.015] pointer-events-none"></div>
     
