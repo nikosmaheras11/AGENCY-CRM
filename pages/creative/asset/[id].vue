@@ -321,18 +321,55 @@ const currentChapter = ref(2)
 const activeTab = ref<'info' | 'comments'>('comments')
 const newComment = ref('')
 
-// Mock asset data - replace with actual API call
-const asset = ref<Asset>({
-  id: assetId,
-  title: 'Glute Burner Circuit',
-  type: 'video',
-  format: 'MOV',
-  size: '47 MB',
-  dimensions: '1080 × 1920',
-  duration: '0:36',
-  aspectRatio: '9/16',
-  videoUrl: '/demo-video.mp4',
-  reviewCount: 33
+// Fetch actual asset data from Supabase
+const { getRequestById, fetchRequests, allRequests } = useRequests()
+
+// Fetch requests if not already loaded
+const videoPlayerSetup = () => {
+  if (videoPlayer.value) {
+    videoPlayer.value.addEventListener('play', () => isPlaying.value = true)
+    videoPlayer.value.addEventListener('pause', () => isPlaying.value = false)
+  }
+}
+
+onMounted(async () => {
+  console.log('📬 [Asset Page] Checking if requests need to be fetched...')
+  if (allRequests.value.length === 0) {
+    console.log('🔄 [Asset Page] Fetching requests from Supabase...')
+    await fetchRequests()
+    console.log('✅ [Asset Page] Requests loaded:', allRequests.value.length)
+  } else {
+    console.log('✅ [Asset Page] Requests already loaded:', allRequests.value.length)
+  }
+  
+  // Setup video player
+  videoPlayerSetup()
+})
+
+const requestData = getRequestById(assetId as string)
+
+const asset = computed<Asset | null>(() => {
+  const req = requestData.value
+  console.log('🎬 [Asset Page] Request data:', req)
+  
+  if (!req) {
+    console.log('⚠️ [Asset Page] No request found for ID:', assetId)
+    return null
+  }
+  
+  return {
+    id: req.id,
+    title: req.title,
+    type: req.videoUrl ? 'video' : 'image',
+    format: req.format || 'Unknown',
+    size: req.size || '0 MB',
+    dimensions: req.dimensions || 'Unknown',
+    duration: req.duration || '0:00',
+    aspectRatio: '16/9',
+    videoUrl: req.videoUrl,
+    imageUrl: req.thumbnail,
+    reviewCount: req.comments?.length || 0
+  }
 })
 
 const comments = ref<Comment[]>([
@@ -413,14 +450,6 @@ function addComment() {
   comments.value.push(newCommentObj)
   newComment.value = ''
 }
-
-// Listen for video player events
-onMounted(() => {
-  if (videoPlayer.value) {
-    videoPlayer.value.addEventListener('play', () => isPlaying.value = true)
-    videoPlayer.value.addEventListener('pause', () => isPlaying.value = false)
-  }
-})
 </script>
 
 <style scoped>
