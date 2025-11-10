@@ -1,16 +1,18 @@
 <script setup lang="ts">
 interface SlackMessage {
-  id: string
-  user_id: string
-  user_name: string
-  user_avatar?: string
-  text: string
-  thread_ts?: string
-  ts: string
-  channel_name: string
-  channel_id: string
+  id: any
+  user_id: any
+  user_name: any
+  user_avatar?: any
+  text: any
+  thread_ts?: any
+  ts: any
+  channel_name: any
+  channel_id: any
   attachments?: any[]
-  timestamp: string
+  timestamp: any
+  permalink?: any
+  reactions?: any
 }
 
 const props = defineProps<{
@@ -34,7 +36,7 @@ async function fetchMessages() {
     })
     
     if (data.ok) {
-      messages.value = data.messages as unknown as SlackMessage[]
+      messages.value = data.messages as SlackMessage[]
     }
   } catch (e: any) {
     error.value = e.message || 'Failed to fetch messages'
