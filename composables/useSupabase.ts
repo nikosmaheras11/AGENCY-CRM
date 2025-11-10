@@ -1,0 +1,98 @@
+import { createClient } from '@supabase/supabase-js'
+
+export const useSupabase = () => {
+  const config = useRuntimeConfig()
+  
+  const supabase = createClient(
+    config.public.supabaseUrl,
+    config.public.supabaseAnonKey
+  )
+
+  /**
+   * Upload file to Supabase Storage
+   */
+  const uploadFile = async (bucket: string, path: string, file: File) => {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (error) throw error
+    return data
+  }
+
+  /**
+   * Get public URL for a file
+   */
+  const getPublicUrl = (bucket: string, path: string) => {
+    const { data } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(path)
+    
+    return data.publicUrl
+  }
+
+  /**
+   * Upload video and get streaming URL
+   */
+  const uploadVideo = async (file: File, folder: string = 'videos') => {
+    const fileName = `${folder}/${Date.now()}-${file.name}`
+    await uploadFile('creative-assets', fileName, file)
+    return getPublicUrl('creative-assets', fileName)
+  }
+
+  /**
+   * Upload image and get URL
+   */
+  const uploadImage = async (file: File, folder: string = 'images') => {
+    const fileName = `${folder}/${Date.now()}-${file.name}`
+    await uploadFile('creative-assets', fileName, file)
+    return getPublicUrl('creative-assets', fileName)
+  }
+
+  /**
+   * Generate thumbnail from video (client-side)
+   */
+  const generateVideoThumbnail = (videoFile: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video')
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      
+      video.preload = 'metadata'
+      video.src = URL.createObjectURL(videoFile)
+      
+      video.onloadedmetadata = () => {
+        video.currentTime = 1 // Get frame at 1 second
+      }
+      
+      video.onseeked = () => {
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob)
+          } else {
+            reject(new Error('Failed to generate thumbnail'))
+          }
+          URL.revokeObjectURL(video.src)
+        }, 'image/jpeg', 0.8)
+      }
+      
+      video.onerror = reject
+    })
+  }
+
+  return {
+    supabase,
+    uploadFile,
+    getPublicUrl,
+    uploadVideo,
+    uploadImage,
+    generateVideoThumbnail
+  }
+}

@@ -14,11 +14,14 @@ export default defineNuxtConfig({
     directusServerToken: process.env.DIRECTUS_SERVER_TOKEN,
     slackBotToken: process.env.SLACK_BOT_TOKEN,
     slackSigningSecret: process.env.SLACK_SIGNING_SECRET,
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
     
     // Public keys (exposed to client)
     public: {
       directusUrl: process.env.DIRECTUS_URL || 'http://localhost:8055',
-      siteUrl: process.env.SITE_URL || 'http://localhost:3000'
+      siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+      supabaseUrl: process.env.SUPABASE_URL || '',
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || ''
     }
   },
 
