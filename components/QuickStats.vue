@@ -31,14 +31,14 @@ defineProps<{
   stats: Stats
 }>()
 
-const getStatIcon = (key: string) => {
+const getStatIcon = (key: string | number): string => {
   const icons: Record<string, string> = {
     activeProjects: 'folder_open',
     totalClients: 'business',
     teamMembers: 'group',
     assetsManaged: 'inventory_2'
   }
-  return icons[key] || 'analytics'
+  return icons[String(key)] || 'analytics'
 }
 
 const formatKey = (key: string | number): string => {
