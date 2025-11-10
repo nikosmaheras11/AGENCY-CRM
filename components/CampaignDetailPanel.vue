@@ -8,38 +8,40 @@
       />
       
       <!-- Panel -->
-      <div class="relative w-full max-w-2xl h-full bg-[#1d1d1f] text-white shadow-2xl overflow-y-auto">
+      <div class="relative w-full max-w-2xl h-full bg-gradient-dark text-white shadow-2xl overflow-y-auto">
+        <!-- Background pattern overlay -->
+        <div class="absolute inset-0 bg-pattern opacity-[0.015] pointer-events-none"></div>
         <!-- Header -->
-        <div class="sticky top-0 z-10 bg-[#1d1d1f] border-b border-gray-800 px-6 py-4">
+        <div class="sticky top-0 z-10 bg-white/5 backdrop-blur-xl border-b border-white/10 px-6 py-4 relative">
           <div class="flex items-center justify-between mb-4">
             <button
-              class="px-4 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2"
+              class="px-4 py-2 text-sm card-glass hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
             >
               <span class="material-icons text-lg">check</span>
               Mark complete
             </button>
             
             <div class="flex items-center gap-2">
-              <button class="w-9 h-9 hover:bg-gray-800 rounded-lg flex items-center justify-center transition-colors">
-                <span class="material-icons text-gray-400">thumb_up</span>
+              <button class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors">
+                <span class="material-icons text-slate-400">thumb_up</span>
               </button>
-              <button class="w-9 h-9 hover:bg-gray-800 rounded-lg flex items-center justify-center transition-colors">
-                <span class="material-icons text-gray-400">content_copy</span>
+              <button class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors">
+                <span class="material-icons text-slate-400">content_copy</span>
               </button>
-              <button class="w-9 h-9 hover:bg-gray-800 rounded-lg flex items-center justify-center transition-colors">
-                <span class="material-icons text-gray-400">link</span>
+              <button class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors">
+                <span class="material-icons text-slate-400">link</span>
               </button>
-              <button class="w-9 h-9 hover:bg-gray-800 rounded-lg flex items-center justify-center transition-colors">
-                <span class="material-icons text-gray-400">open_in_full</span>
+              <button class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors">
+                <span class="material-icons text-slate-400">open_in_full</span>
               </button>
-              <button class="w-9 h-9 hover:bg-gray-800 rounded-lg flex items-center justify-center transition-colors">
-                <span class="material-icons text-gray-400">more_horiz</span>
+              <button class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors">
+                <span class="material-icons text-slate-400">more_horiz</span>
               </button>
               <button 
                 @click="$emit('update:modelValue', false)"
-                class="w-9 h-9 hover:bg-gray-800 rounded-lg flex items-center justify-center transition-colors"
+                class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors"
               >
-                <span class="material-icons text-gray-400">close</span>
+                <span class="material-icons text-slate-400">close</span>
               </button>
             </div>
           </div>
@@ -55,12 +57,12 @@
         </div>
 
         <!-- Content -->
-        <div class="px-6 py-6">
+        <div class="px-6 py-6 relative">
           <!-- Title -->
           <h1 class="text-2xl font-semibold mb-6">{{ campaign?.name || 'Campaign Details' }}</h1>
 
           <!-- Tabs -->
-          <div class="mb-6 border-b border-gray-800">
+          <div class="mb-6 border-b border-white/10">
             <div class="flex gap-6">
               <button
                 v-for="tab in tabs"
