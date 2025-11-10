@@ -44,11 +44,11 @@
       </div>
       
       <!-- Main Content Grid -->
-      <div class="grid grid-cols-12 gap-4 mb-6">
+      <div class="grid grid-cols-12 gap-4 h-[calc(100vh-13rem)] mb-6">
         
         <!-- Left Column: Items Needing Review -->
         <div class="col-span-12 lg:col-span-7 xl:col-span-8">
-          <div class="card-glass card-elevated flex flex-col h-[calc(100vh-12rem)]">
+          <div class="card-glass card-elevated flex flex-col h-full">
             <div class="p-3 sm:p-4 border-b border-white/10 flex-shrink-0">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
@@ -122,7 +122,7 @@
         </div>
         
         <!-- Right Column: Slack Messages + This Week's Objectives -->
-        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-4 h-[calc(100vh-12rem)] flex flex-col">
+        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-4 h-full flex flex-col">
           <!-- Slack Messages Section -->
           <div class="card-glass card-elevated flex-shrink-0">
             <div class="p-3 sm:p-4 border-b border-white/10">
