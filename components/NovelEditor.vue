@@ -62,6 +62,7 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import { ObjectiveBlock } from './tiptap/ObjectiveBlockExtension'
+import { SlashCommand, getSuggestionItems, renderSuggestion } from './tiptap/SlashCommandExtension'
 
 interface Props {
   modelValue?: string
@@ -94,7 +95,13 @@ const editor = useEditor({
     Placeholder.configure({
       placeholder: 'Start writing your notes here... Type "/" for commands or drag objective blocks'
     }),
-    ObjectiveBlock
+    ObjectiveBlock,
+    SlashCommand.configure({
+      suggestion: {
+        items: getSuggestionItems,
+        render: renderSuggestion,
+      },
+    }),
   ],
   content: props.modelValue,
   editorProps: {

@@ -28,11 +28,13 @@
     "@tiptap/core": "^3.10.5",
     "@tiptap/extension-placeholder": "^3.10.5",
     "@tiptap/starter-kit": "^3.10.5",
+    "@tiptap/suggestion": "^3.10.5",
     "@tiptap/vue-3": "^3.10.5",
     "@vueuse/core": "^11.0.0",
     "@vueuse/motion": "^2.2.0",
     "chart.js": "^4.4.0",
     "nuxt": "^3.13.0",
+    "tippy.js": "^6.3.7",
     "vue": "^3.4.0",
     "vue-chartjs": "^5.3.0"
   },
