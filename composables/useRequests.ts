@@ -38,20 +38,47 @@ export const useRequests = () => {
   const error = ref<Error | null>(null)
 
   /**
-   * Fetch all requests from JSON file
+   * Fetch all requests from Supabase database
    */
   const fetchRequests = async () => {
     try {
       loading.value = true
-      // In production, this will fetch from the static file
-      const response = await fetch('/data/requests/requests.json')
+      const { supabase } = useSupabase()
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch requests')
+      const { data, error: fetchError } = await supabase
+        .from('requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (fetchError) {
+        throw fetchError
       }
       
-      const data: RequestsData = await response.json()
-      allRequests.value = data.requests
+      // Transform database format to Request format
+      allRequests.value = (data || []).map(item => ({
+        id: item.id,
+        projectType: item.project_type,
+        status: item.status,
+        title: item.title,
+        format: item.format,
+        size: item.size,
+        dimensions: item.dimensions,
+        duration: item.duration,
+        thumbnail: item.thumbnail_url,
+        figmaUrl: item.figma_url,
+        videoUrl: item.video_url,
+        metadata: {
+          assignee: item.assignee,
+          dueDate: item.due_date,
+          tags: item.tags,
+          priority: item.priority,
+          client: item.client,
+          campaign: item.campaign
+        },
+        comments: [],
+        createdAt: item.created_at,
+        updatedAt: item.updated_at
+      }))
       error.value = null
     } catch (e) {
       error.value = e as Error
