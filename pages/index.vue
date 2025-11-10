@@ -38,16 +38,17 @@
     <!-- Dashboard Content -->
     <main class="flex-1 overflow-y-auto p-6 relative z-10">
       <!-- Welcome Section -->
-      <div class="mb-6">
+      <div class="mb-4">
         <h2 class="text-3xl font-bold text-white mb-1">Welcome back, Polymarket</h2>
         <p class="text-slate-400 text-sm">{{ currentTime }} • {{ currentDate }}</p>
       </div>
       
-      <div class="grid grid-cols-12 gap-4">
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-12 gap-4 mb-6">
         
         <!-- Left Column: Items Needing Review -->
-        <div class="col-span-12 lg:col-span-7 xl:col-span-8 space-y-4">
-          <div class="card-glass card-elevated flex flex-col h-[calc(100vh-10rem)]">
+        <div class="col-span-12 lg:col-span-7 xl:col-span-8">
+          <div class="card-glass card-elevated flex flex-col h-[calc(100vh-12rem)]">
             <div class="p-3 sm:p-4 border-b border-white/10 flex-shrink-0">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
@@ -121,7 +122,7 @@
         </div>
         
         <!-- Right Column: Slack Messages + This Week's Objectives -->
-        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-4 h-[calc(100vh-10rem)] flex flex-col">
+        <div class="col-span-12 lg:col-span-5 xl:col-span-4 space-y-4 h-[calc(100vh-12rem)] flex flex-col">
           <!-- Slack Messages Section -->
           <div class="card-glass card-elevated flex-shrink-0">
             <div class="p-3 sm:p-4 border-b border-white/10">
@@ -241,11 +242,11 @@
             </div>
           </div>
         </div>
-        
-        <!-- Performance Snapshot Section -->
-        <div class="col-span-12">
-          <div class="card-glass card-elevated">
-            <div class="p-4 sm:p-5 border-b border-white/10">
+      </div>
+      
+      <!-- Performance Snapshot Section (below main grid) -->
+      <div class="card-glass card-elevated">
+        <div class="p-3 sm:p-4 border-b border-white/10">
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <h2 class="text-lg font-semibold text-white">Performance Snapshot</h2>
@@ -263,10 +264,10 @@
                 </div>
               </div>
             </div>
-            
-            <div class="p-4 sm:p-5">
-              <!-- Key Metrics -->
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        
+        <div class="p-3 sm:p-4">
+          <!-- Key Metrics -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div 
                   v-for="metric in performanceMetrics" 
                   :key="metric.label"
@@ -284,8 +285,6 @@
                       <div class="h-full bg-gradient-teal" :style="{width: metric.progress + '%'}"></div>
                     </div>
                   </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
