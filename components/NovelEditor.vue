@@ -61,6 +61,7 @@
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import { ObjectiveBlock } from './tiptap/ObjectiveBlockExtension'
 
 interface Props {
   modelValue?: string
@@ -74,14 +75,17 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  'click-objective': [id: string]
+  'toggle-complete': [id: string, completed: boolean]
 }>()
 
 const editor = useEditor({
   extensions: [
     StarterKit,
     Placeholder.configure({
-      placeholder: 'Start writing your notes here... Type "/" for commands'
-    })
+      placeholder: 'Start writing your notes here... Type "/" for commands or drag objective blocks'
+    }),
+    ObjectiveBlock
   ],
   content: props.modelValue,
   editorProps: {
@@ -92,6 +96,11 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     emit('update:modelValue', editor.getHTML())
   }
+})
+
+// Expose editor instance to parent
+defineExpose({
+  editor
 })
 
 watch(() => props.modelValue, (newValue) => {

@@ -37,79 +37,15 @@
             </div>
           </div>
           
-          <!-- Novel Editor for free-form notes -->
+          <!-- TipTap Editor with embedded objective blocks -->
           <div class="mb-6">
             <NovelEditor
+              ref="editorRef"
               v-model="documentContent"
               storage-key="weekly-objectives-doc"
+              @click-objective="openObjectivePanel"
+              @toggle-complete="handleToggleComplete"
             />
-          </div>
-          
-          <!-- Objectives Blocks (insertable into document) -->
-          <div class="space-y-4 mt-8">
-            <div
-              v-for="objective in objectives"
-              :key="objective.id"
-              class="card-glass rounded-lg overflow-hidden transition-all hover:shadow-lg cursor-pointer"
-              @click="openObjectivePanel(objective)"
-            >
-              <div class="flex items-start gap-3 p-4">
-                <!-- Checkbox -->
-                <button
-                  @click.stop="toggleComplete(objective)"
-                  :class="[
-                    'w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors mt-0.5',
-                    objective.completed
-                      ? 'bg-success border-success'
-                      : 'border-white/30 hover:border-white/50'
-                  ]"
-                >
-                  <span v-if="objective.completed" class="material-icons text-white text-sm">check</span>
-                </button>
-                
-                <!-- Content -->
-                <div class="flex-1 min-w-0">
-                  <h3 :class="[
-                    'font-medium text-base mb-2',
-                    objective.completed ? 'text-slate-400 line-through' : 'text-white'
-                  ]">
-                    {{ objective.title || 'Untitled Objective' }}
-                  </h3>
-                  
-                  <!-- Metadata -->
-                  <div class="flex items-center gap-3 text-xs text-slate-400">
-                    <span v-if="objective.category" class="flex items-center gap-1">
-                      <span class="material-icons text-sm">folder</span>
-                      {{ objective.category }}
-                    </span>
-                    <span v-if="objective.dueDate" class="flex items-center gap-1">
-                      <span class="material-icons text-sm">calendar_today</span>
-                      {{ objective.dueDate }}
-                    </span>
-                    <span :class="[
-                      'px-2 py-0.5 rounded-full font-medium',
-                      objective.priority === 'high' ? 'bg-error/20 text-error' :
-                      objective.priority === 'medium' ? 'bg-orange-300/20 text-orange-300' :
-                      'bg-teal-400/20 text-teal-300'
-                    ]">
-                      {{ objective.priority }}
-                    </span>
-                  </div>
-                </div>
-                
-                <!-- Arrow Icon -->
-                <div class="flex-shrink-0 text-slate-400">
-                  <span class="material-icons">chevron_right</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Empty State -->
-          <div v-if="objectives.length === 0" class="text-center py-12">
-            <div class="text-6xl mb-4">📋</div>
-            <h3 class="text-xl font-semibold text-white mb-2">No objectives yet</h3>
-            <p class="text-slate-400 mb-4">Start planning your week by adding objectives</p>
           </div>
         </div>
       </main>
@@ -256,6 +192,7 @@ const pageTitle = ref('This Week\'s Priorities')
 const documentContent = ref('')
 const sidePanelOpen = ref(false)
 const selectedObjective = ref<Objective | null>(null)
+const editorRef = ref<any>(null)
 
 const objectives = ref<Objective[]>([
   {
@@ -323,7 +260,7 @@ const formattedDate = computed(() => {
 function insertObjectiveBlock() {
   const newObjective: Objective = {
     id: Date.now().toString(),
-    title: '',
+    title: 'New Objective',
     category: '',
     priority: 'medium',
     dueDate: '',
@@ -331,13 +268,38 @@ function insertObjectiveBlock() {
     notes: '',
     createdAt: new Date().toISOString()
   }
-  objectives.value.unshift(newObjective)
-  openObjectivePanel(newObjective)
+  objectives.value.push(newObjective)
+  
+  // Insert objective block into editor
+  if (editorRef.value?.editor) {
+    editorRef.value.editor.chain().focus().setObjectiveBlock({
+      id: newObjective.id,
+      title: newObjective.title,
+      category: newObjective.category,
+      priority: newObjective.priority,
+      dueDate: newObjective.dueDate,
+      completed: newObjective.completed
+    }).run()
+  }
+  
+  // Open panel to edit details
+  openObjectivePanel(newObjective.id)
 }
 
-function openObjectivePanel(objective: Objective) {
-  selectedObjective.value = objective
-  sidePanelOpen.value = true
+function openObjectivePanel(objectiveId: string) {
+  const objective = objectives.value.find(obj => obj.id === objectiveId)
+  if (objective) {
+    selectedObjective.value = objective
+    sidePanelOpen.value = true
+  }
+}
+
+function handleToggleComplete(objectiveId: string, completed: boolean) {
+  const objective = objectives.value.find(obj => obj.id === objectiveId)
+  if (objective) {
+    objective.completed = completed
+    saveToLocalStorage()
+  }
 }
 
 function closeSidePanel() {

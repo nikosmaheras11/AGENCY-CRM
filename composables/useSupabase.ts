@@ -1,5 +1,27 @@
 import { createClient } from '@supabase/supabase-js'
 
+// Database types
+export interface SlackMessage {
+  id: string
+  channel_id: string
+  channel_name: string
+  user_id: string
+  user_name: string
+  text: string
+  timestamp: string
+  permalink: string | null
+  thread_ts: string | null
+  is_thread_reply: boolean
+  parent_message_id: string | null
+  created_at: string
+  reactions: Array<{
+    name: string
+    user: string
+    timestamp: number
+  }>
+  mentions: any[]
+}
+
 export const useSupabase = () => {
   const config = useRuntimeConfig()
   
