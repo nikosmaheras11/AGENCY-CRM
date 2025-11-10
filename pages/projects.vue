@@ -113,10 +113,10 @@
             <!-- Progress -->
             <div class="col-span-1 flex items-center">
               <div class="flex-1">
-                <div class="flex justify-between text-xs text-slate-600 mb-1">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
                   <span>{{ campaign.progress }}%</span>
                 </div>
-                <div class="w-full bg-slate-200 rounded-full h-2">
+                <div class="w-full bg-white/10 rounded-full h-2">
                   <div 
                     class="h-2 rounded-full transition-all"
                     :class="campaign.progress >= 75 ? 'bg-green-500' : campaign.progress >= 50 ? 'bg-blue-500' : 'bg-orange-500'"
@@ -139,12 +139,12 @@
       <div v-else class="flex gap-6 overflow-x-auto pb-6">
         <!-- Planning Column -->
         <div class="flex-shrink-0 w-80">
-          <div class="bg-[#F0EDE8] shadow-md rounded-2xl overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
+          <div class="card-glass card-elevated overflow-hidden">
+            <div class="p-4 border-b border-white/10">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                <h3 class="font-display font-semibold text-slate-900">Planning</h3>
-                <span class="text-sm text-slate-600">({{ planningCampaigns.length }})</span>
+                <h3 class="font-display font-semibold text-white">Planning</h3>
+                <span class="text-sm text-slate-400">({{ planningCampaigns.length }})</span>
               </div>
             </div>
             <div class="p-4 space-y-3 max-h-[calc(100vh-350px)] overflow-y-auto">
@@ -159,12 +159,12 @@
 
         <!-- In Progress Column -->
         <div class="flex-shrink-0 w-80">
-          <div class="bg-[#E8E3F5] shadow-md rounded-2xl overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
+          <div class="card-glass card-elevated overflow-hidden">
+            <div class="p-4 border-b border-white/10">
               <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                <h3 class="font-display font-semibold text-slate-900">In Progress</h3>
-                <span class="text-sm text-slate-600">({{ inProgressCampaigns.length }})</span>
+                <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                <h3 class="font-display font-semibold text-white">In Progress</h3>
+                <span class="text-sm text-slate-400">({{ inProgressCampaigns.length }})</span>
               </div>
             </div>
             <div class="p-4 space-y-3 max-h-[calc(100vh-350px)] overflow-y-auto">
@@ -179,12 +179,12 @@
 
         <!-- Review Column -->
         <div class="flex-shrink-0 w-80">
-          <div class="bg-white shadow-md rounded-2xl overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
+          <div class="card-glass card-elevated overflow-hidden">
+            <div class="p-4 border-b border-white/10">
               <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                <h3 class="font-display font-semibold text-slate-900">Review</h3>
-                <span class="text-sm text-slate-600">({{ reviewCampaigns.length }})</span>
+                <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                <h3 class="font-display font-semibold text-white">Review</h3>
+                <span class="text-sm text-slate-400">({{ reviewCampaigns.length }})</span>
               </div>
             </div>
             <div class="p-4 space-y-3 max-h-[calc(100vh-350px)] overflow-y-auto">
@@ -199,12 +199,12 @@
 
         <!-- Completed Column -->
         <div class="flex-shrink-0 w-80">
-          <div class="bg-[#E8F5E3] shadow-md rounded-2xl overflow-hidden">
-            <div class="p-4 border-b border-slate-200">
+          <div class="card-glass card-elevated overflow-hidden">
+            <div class="p-4 border-b border-white/10">
               <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                <h3 class="font-display font-semibold text-slate-900">Completed</h3>
-                <span class="text-sm text-slate-600">({{ completedCampaigns.length }})</span>
+                <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                <h3 class="font-display font-semibold text-white">Completed</h3>
+                <span class="text-sm text-slate-400">({{ completedCampaigns.length }})</span>
               </div>
             </div>
             <div class="p-4 space-y-3 max-h-[calc(100vh-350px)] overflow-y-auto">
@@ -251,12 +251,12 @@ const completedCampaigns = computed(() => campaigns.value.filter(c => c.status =
 
 const getStatusBadge = (status: string) => {
   const badges: Record<string, string> = {
-    'Planning': 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
-    'In Progress': 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
-    'Review': 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400',
-    'Completed': 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+    'Planning': 'bg-slate-500/20 text-slate-300',
+    'In Progress': 'bg-blue-500/20 text-blue-300',
+    'Review': 'bg-purple-500/20 text-purple-300',
+    'Completed': 'bg-green-500/20 text-green-300'
   }
-  return badges[status] || 'bg-gray-100 text-gray-700'
+  return badges[status] || 'bg-white/10 text-slate-300'
 }
 
 const getStatusDot = (status: string) => {
@@ -271,12 +271,12 @@ const getStatusDot = (status: string) => {
 
 const getPriorityBadge = (priority: string) => {
   const badges: Record<string, string> = {
-    'Critical': 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
-    'High': 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400',
-    'Medium': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400',
-    'Low': 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+    'Critical': 'bg-red-500/20 text-red-300',
+    'High': 'bg-orange-500/20 text-orange-300',
+    'Medium': 'bg-yellow-500/20 text-yellow-300',
+    'Low': 'bg-green-500/20 text-green-300'
   }
-  return badges[priority] || 'bg-gray-100 text-gray-700'
+  return badges[priority] || 'bg-white/10 text-slate-300'
 }
 
 const getPriorityIcon = (priority: string) => {

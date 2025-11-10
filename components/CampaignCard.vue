@@ -1,12 +1,12 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer">
+  <div class="card-glass border border-white/10 rounded-xl p-4 hover:bg-white/10 hover:shadow-primary/20 transition-all cursor-pointer">
     <!-- Campaign Header -->
     <div class="flex items-start gap-3 mb-3">
       <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-bold flex-shrink-0">
         {{ campaign.name.charAt(0) }}
       </div>
       <div class="flex-1 min-w-0">
-        <h3 class="font-display font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
+        <h3 class="font-display font-semibold text-white text-sm mb-1 line-clamp-2">
           {{ campaign.name }}
         </h3>
         <span 
@@ -21,11 +21,11 @@
 
     <!-- Progress Bar -->
     <div class="mb-3">
-      <div class="flex justify-between text-xs text-slate-600 mb-1.5">
+      <div class="flex justify-between text-xs text-slate-400 mb-1.5">
         <span>Progress</span>
         <span class="font-medium">{{ campaign.progress }}%</span>
       </div>
-      <div class="w-full bg-slate-200 rounded-full h-2">
+      <div class="w-full bg-white/10 rounded-full h-2">
         <div 
           class="h-2 rounded-full transition-all"
           :class="campaign.progress >= 75 ? 'bg-green-500' : campaign.progress >= 50 ? 'bg-blue-500' : 'bg-orange-500'"
@@ -41,11 +41,11 @@
         <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs">
           {{ campaign.owner.split(' ').map(n => n[0]).join('') }}
         </div>
-        <span class="text-xs text-slate-600">{{ campaign.owner.split(' ')[0] }}</span>
+        <span class="text-xs text-slate-300">{{ campaign.owner.split(' ')[0] }}</span>
       </div>
 
       <!-- Due Date -->
-      <div class="flex items-center gap-1 text-xs text-slate-600">
+      <div class="flex items-center gap-1 text-xs text-slate-400">
         <span class="material-icons text-sm">calendar_today</span>
         <span>{{ formatDate(campaign.dueDate) }}</span>
       </div>
@@ -70,12 +70,12 @@ defineProps<{
 
 const getPriorityBadge = (priority: string) => {
   const badges: Record<string, string> = {
-    'Critical': 'bg-red-100 text-red-700',
-    'High': 'bg-orange-100 text-orange-700',
-    'Medium': 'bg-yellow-100 text-yellow-700',
-    'Low': 'bg-green-100 text-green-700'
+    'Critical': 'bg-red-500/20 text-red-300',
+    'High': 'bg-orange-500/20 text-orange-300',
+    'Medium': 'bg-yellow-500/20 text-yellow-300',
+    'Low': 'bg-green-500/20 text-green-300'
   }
-  return badges[priority] || 'bg-slate-100 text-slate-700'
+  return badges[priority] || 'bg-white/10 text-slate-300'
 }
 
 const getPriorityIcon = (priority: string) => {
