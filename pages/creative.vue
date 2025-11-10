@@ -1,6 +1,10 @@
 <template>
   <!-- v3.0 GRADIENTS ENABLED {{ Date.now() }} -->
-  <div class="h-full bg-[#F9FAFB] flex flex-col overflow-hidden">
+  <div class="h-full bg-[#F9FAFB] flex flex-col overflow-hidden relative">
+    <!-- Asset Viewer Modal Overlay -->
+    <div v-if="selectedAssetId" class="absolute inset-0 z-50">
+      <AssetViewer :asset-id="selectedAssetId" @close="selectedAssetId = null" />
+    </div>
     <!-- Breadcrumb Navigation -->
     <div class="bg-white border-b border-gray-200 px-6 py-3">
       <div class="flex items-center gap-2 text-xs font-medium text-gray-600">
@@ -93,11 +97,10 @@
 
             <!-- Cards Container -->
             <div class="flex-1 overflow-y-auto space-y-3 pr-1">
-              <NuxtLink
+              <div
                 v-for="asset in column.assets"
                 :key="asset.id"
-                :to="`/creative/asset/${asset.id}`"
-                @click="() => console.log('🎯 Clicked asset:', asset.id, 'Target URL:', `/creative/asset/${asset.id}`)"
+                @click="selectedAssetId = asset.id"
                 class="block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
               >
                 <!-- Thumbnail with actual gradient background -->
@@ -185,7 +188,7 @@
                     </span>
                   </div>
                 </div>
-              </NuxtLink>
+              </div>
 
               <!-- Empty state -->
               <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
@@ -218,6 +221,8 @@
 </template>
 
 <script setup lang="ts">
+const selectedAssetId = ref<string | null>(null)
+
 interface Asset {
   id: string
   thumbnail: string
