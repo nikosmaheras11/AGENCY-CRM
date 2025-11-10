@@ -113,8 +113,8 @@
                   <!-- Figma embed iframe -->
                   <iframe
                     v-if="asset.figmaUrl"
-                    :src="`https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(asset.figmaUrl)}`"
-                    class="absolute inset-0 w-full h-full pointer-events-none"
+                    :src="convertToFigmaEmbedUrl(asset.figmaUrl)"
+                    class="absolute inset-0 w-full h-full border-0 pointer-events-none"
                     allowfullscreen
                   />
                   <!-- Colorful gradient background layer for non-Figma items -->
@@ -234,6 +234,8 @@
 </template>
 
 <script setup lang="ts">
+import { convertToFigmaEmbedUrl } from '~/utils/figma'
+
 const selectedAssetId = ref<string | null>(null)
 
 // Use unified request system
