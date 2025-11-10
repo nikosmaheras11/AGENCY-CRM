@@ -140,35 +140,10 @@
             </div>
             
             <div class="p-3 sm:p-4">
-              <div class="space-y-2 max-h-64 overflow-y-auto">
-                <div 
-                  v-for="(message, index) in slackMessages" 
-                  :key="index"
-                  :class="`p-3 ${index === 0 ? 'bg-primary-400/10 border-l-2 border-primary-400' : 'bg-white/5 border border-white/10'} rounded-lg hover:bg-primary-400/20 transition-colors cursor-pointer`"
-                >
-                  <div class="flex">
-                    <div class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-xl flex-shrink-0 flex items-center justify-center text-xs font-medium text-white">
-                      {{ message.initials }}
-                    </div>
-                    <div class="ml-3 flex-1 min-w-0">
-                      <div class="flex items-center justify-between">
-                        <div class="font-medium text-sm truncate text-white">{{ message.author }}</div>
-                        <div class="text-xs text-slate-400">{{ message.time }}</div>
-                      </div>
-                      <div class="text-xs text-slate-400 mt-0.5">
-                        {{ message.channel }}
-                      </div>
-                      <div :class="`mt-1 text-sm line-clamp-2 ${index === 0 ? 'font-medium text-white' : 'text-slate-300'}`">
-                        {{ message.text }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="mt-4">
-                <button class="text-sm text-primary-400 font-medium hover:text-primary-300 transition-colors">Open in Slack</button>
-              </div>
+              <SlackMessageFeed 
+                channel-id="C09HBDKSUGH"
+                :limit="10"
+              />
             </div>
           </div>
           
@@ -348,29 +323,7 @@ const alerts = ref([
   }
 ])
 
-const slackMessages = ref([
-  {
-    author: 'Alex Johnson',
-    initials: 'AJ',
-    time: '11:42 AM',
-    channel: '#campaign-summer',
-    text: 'Can you review the latest creative assets for the summer campaign? We need feedback by EOD.'
-  },
-  {
-    author: 'Taylor Wong',
-    initials: 'TW',
-    time: 'Yesterday',
-    channel: '#direct-message',
-    text: 'Just wanted to confirm our meeting tomorrow at 10am to discuss the Q3 strategy.'
-  },
-  {
-    author: 'Marketing Team',
-    initials: 'MT',
-    time: 'Yesterday',
-    channel: '#team-marketing',
-    text: "We've updated the performance reports with the latest data. Take a look when you get a chance."
-  }
-])
+// Slack messages now loaded dynamically via SlackMessageFeed component
 
 const weeklyObjectives = ref([
   {

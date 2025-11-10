@@ -59,9 +59,19 @@ function formatTimestamp(ts: string): string {
   if (diffHours < 24) return `${diffHours}h ago`
   
   const diffDays = Math.floor(diffHours / 24)
+  if (diffDays === 1) return 'Yesterday'
   if (diffDays < 7) return `${diffDays}d ago`
   
   return date.toLocaleDateString()
+}
+
+// Get user initials from name
+function getInitials(name: string): string {
+  const parts = name.split(' ')
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  }
+  return name.substring(0, 2).toUpperCase()
 }
 
 // Auto-refresh every 30 seconds
@@ -81,92 +91,55 @@ onUnmounted(() => {
 
 <template>
   <div class="slack-message-feed">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-semibold">
-        {{ channelName || 'Slack Feed' }}
-      </h3>
-      <UButton 
-        icon="i-heroicons-arrow-path" 
-        size="sm" 
-        variant="ghost"
-        :loading="loading"
-        @click="fetchMessages"
-      >
-        Refresh
-      </UButton>
-    </div>
-
     <!-- Loading State -->
-    <div v-if="loading && messages.length === 0" class="space-y-4">
-      <USkeleton v-for="i in 3" :key="i" class="h-24" />
+    <div v-if="loading && messages.length === 0" class="space-y-2">
+      <div v-for="i in 3" :key="i" class="bg-white/5 border border-white/10 rounded-lg p-3 animate-pulse">
+        <div class="h-16"></div>
+      </div>
     </div>
 
     <!-- Error State -->
-    <UAlert 
-      v-else-if="error" 
-      color="red" 
-      variant="soft"
-      title="Error loading messages"
-      :description="error"
-    />
+    <div v-else-if="error" class="p-3 bg-error/20 border border-error rounded-lg">
+      <p class="text-sm text-error">{{ error }}</p>
+    </div>
 
     <!-- Messages List -->
-    <div v-else-if="messages.length > 0" class="space-y-3">
-      <UCard 
-        v-for="message in messages" 
+    <div v-else-if="messages.length > 0" class="space-y-2 max-h-64 overflow-y-auto">
+      <div 
+        v-for="(message, index) in messages" 
         :key="message.id"
-        class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        :class="`p-3 ${index === 0 ? 'bg-primary-400/10 border-l-2 border-primary-400' : 'bg-white/5 border border-white/10'} rounded-lg hover:bg-primary-400/20 transition-colors cursor-pointer`"
       >
-        <div class="flex gap-3">
-          <!-- Avatar -->
-          <UAvatar 
-            :src="message.user_avatar"
-            :alt="message.user_name" 
-            size="sm"
-          />
-          
-          <!-- Content -->
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-medium text-sm">{{ message.user_name }}</span>
-              <span class="text-xs text-gray-500">
-                {{ formatTimestamp(message.ts) }}
-              </span>
+        <div class="flex">
+          <div 
+            v-if="message.user_avatar"
+            class="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden"
+          >
+            <img :src="message.user_avatar" :alt="message.user_name" class="w-full h-full object-cover" />
+          </div>
+          <div 
+            v-else
+            class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-xl flex-shrink-0 flex items-center justify-center text-xs font-medium text-white"
+          >
+            {{ getInitials(message.user_name) }}
+          </div>
+          <div class="ml-3 flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <div class="font-medium text-sm truncate text-white">{{ message.user_name }}</div>
+              <div class="text-xs text-slate-400">{{ formatTimestamp(message.ts) }}</div>
             </div>
-            
-            <!-- Message Text -->
-            <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+            <div :class="`mt-1 text-sm line-clamp-2 ${index === 0 ? 'font-medium text-white' : 'text-slate-300'}`">
               {{ message.text }}
-            </p>
-            
-            <!-- Attachments -->
-            <div v-if="message.attachments && message.attachments.length > 0" class="mt-2 space-y-2">
-              <a
-                v-for="attachment in message.attachments"
-                :key="attachment.id"
-                :href="attachment.permalink"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800"
-              >
-                <UIcon name="i-heroicons-paper-clip" />
-                {{ attachment.name }}
-              </a>
             </div>
           </div>
         </div>
-      </UCard>
+      </div>
     </div>
 
     <!-- Empty State -->
-    <UCard v-else>
-      <div class="text-center py-8 text-gray-500">
-        <UIcon name="i-heroicons-chat-bubble-left-right" class="w-12 h-12 mx-auto mb-2" />
-        <p>No messages yet</p>
-        <p class="text-sm mt-1">Messages will appear here when posted in your Slack channels</p>
-      </div>
-    </UCard>
+    <div v-else class="p-6 text-center text-slate-400">
+      <p class="text-sm">No messages yet</p>
+    </div>
   </div>
 </template>
 
