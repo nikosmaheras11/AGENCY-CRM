@@ -14,6 +14,7 @@ export interface Request {
   duration?: string | null
   thumbnail?: string
   figmaUrl?: string
+  videoUrl?: string
   metadata: {
     assignee?: string | null
     dueDate?: string | null
@@ -140,6 +141,7 @@ export const useRequests = () => {
       commentCount: request.comments?.length || 0,
       status: request.status,
       figmaUrl: request.figmaUrl,
+      videoUrl: request.videoUrl,
       metadata: {
         assignee: request.metadata.assignee || null,
         dueDate: request.metadata.dueDate || null,

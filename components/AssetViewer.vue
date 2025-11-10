@@ -41,22 +41,34 @@
           <div class="relative max-w-full max-h-full" :style="{ aspectRatio: asset?.aspectRatio || '9/16' }">
             <!-- Video/Image Display -->
             <div v-if="asset?.type === 'video'" class="relative w-full h-full bg-black rounded-lg overflow-hidden">
-              <video 
-                ref="videoPlayer"
-                class="w-full h-full object-contain"
-                :src="asset?.videoUrl || '/placeholder-video.mp4'"
-                @loadedmetadata="onVideoLoaded"
-                @timeupdate="onTimeUpdate"
-              >
-                Your browser does not support video playback.
-              </video>
+              <!-- Google Drive embed -->
+              <iframe
+                v-if="asset?.videoUrl?.includes('drive.google.com')"
+                :src="asset.videoUrl"
+                class="w-full h-full"
+                allowfullscreen
+                allow="autoplay"
+              />
               
-              <!-- Play Overlay -->
-              <div v-if="!isPlaying" class="absolute inset-0 flex items-center justify-center bg-black/30">
-                <button @click="togglePlay" class="w-20 h-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full flex items-center justify-center transition-all">
-                  <span class="material-icons text-white text-5xl">play_arrow</span>
-                </button>
-              </div>
+              <!-- Regular video player -->
+              <template v-else>
+                <video 
+                  ref="videoPlayer"
+                  class="w-full h-full object-contain"
+                  :src="asset?.videoUrl || '/placeholder-video.mp4'"
+                  @loadedmetadata="onVideoLoaded"
+                  @timeupdate="onTimeUpdate"
+                >
+                  Your browser does not support video playback.
+                </video>
+                
+                <!-- Play Overlay -->
+                <div v-if="!isPlaying" class="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <button @click="togglePlay" class="w-20 h-20 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full flex items-center justify-center transition-all">
+                    <span class="material-icons text-white text-5xl">play_arrow</span>
+                  </button>
+                </div>
+              </template>
             </div>
 
             <!-- Image Display -->
@@ -308,18 +320,38 @@ const currentChapter = ref(2)
 const activeTab = ref<'info' | 'comments'>('comments')
 const newComment = ref('')
 
-// Mock asset data - replace with actual API call
-const asset = ref<Asset>({
-  id: props.assetId,
-  title: 'LA Fitness - Spring Campaign Hero Video',
-  type: 'video',
-  format: 'MOV',
-  size: '47 MB',
-  dimensions: '1080 × 1920',
-  duration: '0:15',
-  aspectRatio: '9/16',
-  videoUrl: '/demo-video.mp4',
-  reviewCount: 33
+// Fetch real asset data
+const { getRequestById } = useRequests()
+const requestData = getRequestById(props.assetId)
+
+// Convert Google Drive share URL to embed URL
+function convertGoogleDriveUrl(url: string): string {
+  if (!url) return ''
+  const match = url.match(/\/d\/(.*?)(?:\/|$)/)
+  if (match && match[1]) {
+    return `https://drive.google.com/file/d/${match[1]}/preview`
+  }
+  return url
+}
+
+// Map request to asset format
+const asset = computed<Asset | null>(() => {
+  const req = requestData.value
+  if (!req) return null
+  
+  return {
+    id: req.id,
+    title: req.title,
+    type: req.videoUrl ? 'video' : 'image',
+    format: req.format || 'Unknown',
+    size: req.size || '0 MB',
+    dimensions: req.dimensions || 'Unknown',
+    duration: req.duration || '0:00',
+    aspectRatio: '16/9',
+    videoUrl: req.videoUrl ? convertGoogleDriveUrl(req.videoUrl) : undefined,
+    imageUrl: req.thumbnail,
+    reviewCount: req.comments?.length || 0
+  }
 })
 
 const comments = ref<Comment[]>([
