@@ -43,14 +43,19 @@ export const useRequests = () => {
   const fetchRequests = async () => {
     try {
       loading.value = true
+      console.log('🔌 useRequests: Connecting to Supabase...')
       const { supabase } = useSupabase()
       
+      console.log('📡 useRequests: Fetching from requests table...')
       const { data, error: fetchError } = await supabase
         .from('requests')
         .select('*')
         .order('created_at', { ascending: false })
       
+      console.log('📥 useRequests: Supabase response:', { data, error: fetchError })
+      
       if (fetchError) {
+        console.error('❌ useRequests: Supabase error:', fetchError)
         throw fetchError
       }
       
@@ -79,6 +84,8 @@ export const useRequests = () => {
         createdAt: item.created_at,
         updatedAt: item.updated_at
       }))
+      console.log('✅ useRequests: Transformed', allRequests.value.length, 'requests')
+      console.log('🎨 useRequests: Creative requests:', allRequests.value.filter(r => r.projectType === 'creative').length)
       error.value = null
     } catch (e) {
       error.value = e as Error
