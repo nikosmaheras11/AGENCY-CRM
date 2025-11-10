@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { Editor } from 'novel'
+import Editor from 'novel'
 import 'novel/styles.css'
 
 interface Props {
