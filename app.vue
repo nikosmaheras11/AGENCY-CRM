@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-screen bg-gradient-dark overflow-hidden">
     <!-- Elevated Glass Sidebar -->
-    <aside class="w-20 bg-white/[0.05] backdrop-blur-xl border-r border-white/10 flex flex-col items-center py-6 gap-6 flex-shrink-0">
+    <aside class="w-20 backdrop-blur-xl border-r border-white/[0.06] flex flex-col items-center py-6 gap-6 flex-shrink-0" style="background: linear-gradient(127deg, rgba(6, 11, 40, 0.7) 28.26%, rgba(10, 14, 35, 0.3) 91.2%);">
       <!-- Logo with gradient glow -->
       <div class="relative group cursor-pointer">
         <div class="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-primary transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(67,24,255,0.5)]">

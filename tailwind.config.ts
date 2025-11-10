@@ -36,11 +36,11 @@ export default {
           500: '#718096',
           700: '#2D3748',
         },
-        // Dark mode backgrounds
+        // Dark mode backgrounds - Deep navy/blue from Figma
         dark: {
-          primary: '#0F1535',
-          secondary: '#1A1F37',
-          tertiary: '#242B4B',
+          primary: '#0B1437',    // Main background
+          secondary: '#0F1B3F',  // Card background
+          tertiary: '#1A2849',   // Elevated card
         },
         // Legacy colors for backward compatibility
         surface: {
@@ -68,8 +68,9 @@ export default {
       },
       backgroundImage: {
         'gradient-primary': 'linear-gradient(135deg, #4318FF, #7551FF)',
-        'gradient-dark': 'linear-gradient(to bottom, #0F1535, #1A1F37)',
+        'gradient-dark': 'linear-gradient(159deg, #0B1437 0%, #10163A 100%)',
         'gradient-teal': 'linear-gradient(90deg, #4318FF, #4FD1C5)',
+        'gradient-card': 'linear-gradient(127deg, rgba(6, 11, 40, 0.94) 28.26%, rgba(10, 14, 35, 0.49) 91.2%)',
       },
       backdropBlur: {
         'xl': '40px',
