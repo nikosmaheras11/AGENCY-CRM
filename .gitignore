@@ -28,3 +28,4 @@ directus/database/*
 directus/uploads/*
 !directus/database/.gitkeep
 !directus/uploads/.gitkeep
+.vercel

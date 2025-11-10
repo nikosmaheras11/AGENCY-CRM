@@ -41,8 +41,8 @@ const getStatIcon = (key: string) => {
   return icons[key] || 'analytics'
 }
 
-const formatKey = (key: string) => {
-  return key.replace(/([A-Z])/g, ' $1').trim()
+const formatKey = (key: string | number): string => {
+  return String(key).replace(/([A-Z])/g, ' $1').trim()
 }
 
 const formatValue = (value: number | string) => {

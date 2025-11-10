@@ -478,7 +478,7 @@ const totalSize = computed(() => {
 })
 
 function getStatusBadgeClass(status: string) {
-  const classes = {
+  const classes: Record<string, string> = {
     'needs-review': 'bg-blue-100 text-blue-700 border border-blue-200',
     'needs-edit': 'bg-orange-100 text-orange-700 border border-orange-200',
     'done': 'bg-green-100 text-green-700 border border-green-200',
@@ -488,7 +488,7 @@ function getStatusBadgeClass(status: string) {
 }
 
 function getStatusEmoji(status: string) {
-  const emojis = {
+  const emojis: Record<string, string> = {
     'needs-review': '👀',
     'needs-edit': '✏️',
     'done': '✅',
@@ -498,7 +498,7 @@ function getStatusEmoji(status: string) {
 }
 
 function getStatusText(status: string) {
-  const text = {
+  const text: Record<string, string> = {
     'needs-review': 'Needs Review',
     'needs-edit': 'Needs Edit',
     'done': 'Done',
