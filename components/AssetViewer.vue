@@ -348,10 +348,10 @@ const asset = computed<Asset | null>(() => {
     ? (req.videoUrl.includes('drive.google.com') ? convertGoogleDriveUrl(req.videoUrl) : req.videoUrl)
     : undefined
   
-  const assetData = {
+  const assetData: Asset = {
     id: req.id,
     title: req.title,
-    type: req.videoUrl ? 'video' : 'image',
+    type: (req.videoUrl ? 'video' : 'image') as 'video' | 'image',
     format: req.format || 'Unknown',
     size: req.size || '0 MB',
     dimensions: req.dimensions || 'Unknown',
