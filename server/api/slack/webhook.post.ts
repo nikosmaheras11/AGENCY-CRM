@@ -123,14 +123,14 @@ const CHANNEL_MAPPING: Record<string, string> = {
 async function storeSlackMessageInDirectus(event: SlackEvent): Promise<void> {
   const config = useRuntimeConfig()
   const directusUrl = config.directusUrl || process.env.DIRECTUS_URL || 'http://localhost:8055'
-  const directusToken = config.directusServerToken || process.env.DIRECTUS_SERVER_TOKEN
+  const directusToken = config.directusServerToken || process.env.DIRECTUS_SERVER_TOKEN || ''
   
   if (!directusToken) {
     throw new Error('DIRECTUS_SERVER_TOKEN not configured')
   }
   
   // Initialize Directus client with authentication
-  const client = createDirectus(directusUrl).with(rest()).with(staticToken(directusToken as string))
+  const client = createDirectus(directusUrl).with(rest()).with(staticToken(directusToken))
   
   // Get channel name from environment or mapping
   const channelId = event.channel
