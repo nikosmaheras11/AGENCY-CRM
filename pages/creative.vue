@@ -508,8 +508,7 @@ function getStatusText(status: string) {
 }
 
 function openAssetDetail(asset: Asset) {
-  console.log('Opening asset:', asset.id)
-  // Implement modal or detail view here
+  navigateTo(`/creative/asset/${asset.id}`)
 }
 
 function getAssetGradient(id: string): string {
