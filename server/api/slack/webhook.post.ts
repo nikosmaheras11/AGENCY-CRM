@@ -130,7 +130,7 @@ async function storeSlackMessageInDirectus(event: SlackEvent): Promise<void> {
   }
   
   // Initialize Directus client with authentication
-  const client = createDirectus(directusUrl).with(rest()).with(staticToken(directusToken))
+  const client = createDirectus(directusUrl).with(rest()).with(staticToken(directusToken as string))
   
   // Get channel name from environment or mapping
   const channelId = event.channel
