@@ -266,10 +266,6 @@ onMounted(async () => {
   } catch (e) {
     console.error('❌ Error fetching requests:', e)
   }
-})
-
-// Watch for changes
-watch([loading, error], () => {
   console.log('⏳ Loading:', loading.value)
   console.log('⚠️ Error:', error.value)
 })
