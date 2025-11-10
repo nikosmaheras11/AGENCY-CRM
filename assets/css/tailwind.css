@@ -1,3 +1,51 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Elevated dark mode base */
+  body {
+    @apply bg-gradient-dark text-white;
+  }
+  
+  /* Improved font rendering */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Glass-morphism card */
+  .card-glass {
+    @apply bg-white/[0.08] backdrop-blur-xl rounded-2xl border border-white/10 shadow-elevated;
+  }
+  
+  /* Elevated card hover effect */
+  .card-elevated {
+    @apply transition-all duration-300;
+  }
+  
+  .card-elevated:hover {
+    @apply -translate-y-1 shadow-glass;
+  }
+  
+  /* Primary gradient button */
+  .btn-primary {
+    @apply bg-gradient-primary text-white border-none rounded-xl px-6 py-3 font-semibold text-sm shadow-primary transition-all duration-300;
+  }
+  
+  .btn-primary:hover {
+    @apply -translate-y-0.5 shadow-[0_6px_20px_rgba(67,24,255,0.4)];
+  }
+  
+  /* Icon container */
+  .icon-container {
+    @apply w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-primary shadow-primary;
+  }
+  
+  /* Progress bar with gradient */
+  .progress-gradient {
+    @apply bg-gradient-teal;
+  }
+}

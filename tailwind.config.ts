@@ -14,6 +14,35 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Elevated Design System Colors
+        primary: {
+          500: '#4318FF',
+          400: '#7551FF',
+        },
+        success: '#01B574',
+        error: '#E31A1A',
+        teal: {
+          300: '#4FD1C5',
+        },
+        blue: {
+          400: '#4299E1',
+        },
+        orange: {
+          300: '#F6AD55',
+        },
+        gray: {
+          300: '#CBD5E0',
+          400: '#A0AEC0',
+          500: '#718096',
+          700: '#2D3748',
+        },
+        // Dark mode backgrounds
+        dark: {
+          primary: '#0F1535',
+          secondary: '#1A1F37',
+          tertiary: '#242B4B',
+        },
+        // Legacy colors for backward compatibility
         surface: {
           cream: '#F5F5F0',
           mint: '#E8F5E3',
@@ -27,28 +56,38 @@ export default {
           periwinkle: '#C5B8E8',
         },
         text: {
-          primary: '#0A0A0A',
-          secondary: '#4A4A4A',
-          tertiary: '#8A8A8A',
+          primary: '#FFFFFF',
+          secondary: '#A0AEC0',
+          tertiary: '#718096',
           disabled: '#BCBCBC',
         },
-        // Legacy colors for backward compatibility
         creative: '#8B5CF6',
         performance: '#10B981',
         design: '#F59E0B',
         resources: '#3B82F6'
       },
+      backgroundImage: {
+        'gradient-primary': 'linear-gradient(135deg, #4318FF, #7551FF)',
+        'gradient-dark': 'linear-gradient(to bottom, #0F1535, #1A1F37)',
+        'gradient-teal': 'linear-gradient(90deg, #4318FF, #4FD1C5)',
+      },
+      backdropBlur: {
+        'xl': '40px',
+      },
       boxShadow: {
+        'elevated': '0 20px 27px rgba(0, 0, 0, 0.05)',
+        'primary': '0 4px 12px rgba(67, 24, 255, 0.3)',
         'card': '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
         'card-hover': '0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05)',
         'focus-lime': '0 0 0 3px rgba(232, 255, 0, 0.3)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.1)',
       },
       transitionTimingFunction: {
         'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
       fontFamily: {
-        display: ['Inter Tight', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        body: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['Helvetica Neue', 'Inter Tight', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        body: ['Helvetica Neue', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
     }
   },

@@ -1,18 +1,18 @@
 <template>
-  <div class="flex h-screen bg-[#F9FAFB] overflow-hidden">
-    <!-- Premium Sidebar -->
-    <aside class="w-20 bg-[#F9FAFB] border-r border-gray-200 flex flex-col items-center py-6 gap-6 flex-shrink-0">
-      <!-- Logo with hover effect -->
+  <div class="flex h-screen bg-gradient-dark overflow-hidden">
+    <!-- Elevated Glass Sidebar -->
+    <aside class="w-20 bg-white/[0.05] backdrop-blur-xl border-r border-white/10 flex flex-col items-center py-6 gap-6 flex-shrink-0">
+      <!-- Logo with gradient glow -->
       <div class="relative group cursor-pointer">
-        <div class="w-12 h-12 bg-black rounded-[14px] flex items-center justify-center shadow-card transition-all duration-300 group-hover:scale-105 group-hover:shadow-card-hover">
+        <div class="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-primary transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(67,24,255,0.5)]">
           <span class="text-white font-bold text-xl tracking-tight">A</span>
         </div>
-        <!-- Subtle glow on hover -->
-        <div class="absolute inset-0 bg-black/10 rounded-[14px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+        <!-- Purple glow on hover -->
+        <div class="absolute inset-0 bg-primary-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
       </div>
 
       <!-- Divider -->
-      <div class="w-8 h-px bg-black/[0.06]" />
+      <div class="w-8 h-px bg-white/10" />
 
       <!-- Navigation Icons -->
       <nav class="flex-1 flex flex-col gap-3" role="navigation" aria-label="Main navigation">
@@ -20,8 +20,8 @@
           v-for="item in navItems"
           :key="item.path"
           :to="item.path"
-          class="relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-lime focus-visible:ring-offset-2"
-          :class="$route.path === item.path ? 'bg-black text-white shadow-md' : 'text-text-secondary hover:bg-black/5'"
+          class="relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+          :class="$route.path === item.path ? 'bg-gradient-primary text-white shadow-primary' : 'text-gray-400 hover:bg-white/5'"
           :aria-label="item.label"
           :aria-current="$route.path === item.path ? 'page' : undefined"
         >
@@ -35,17 +35,17 @@
             {{ item.icon }}
           </span>
           
-          <!-- Elegant Tooltip -->
-          <div class="absolute left-full ml-3 px-3 py-2 bg-black text-white text-xs font-medium rounded-lg whitespace-nowrap pointer-events-none transition-all duration-200 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
+          <!-- Glass Tooltip -->
+          <div class="absolute left-full ml-3 px-3 py-2 bg-white/10 backdrop-blur-xl border border-white/20 text-white text-xs font-medium rounded-lg whitespace-nowrap pointer-events-none transition-all duration-200 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
             {{ item.label }}
-            <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-black" />
+            <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-white/10" />
           </div>
         </NuxtLink>
       </nav>
 
       <!-- User Avatar -->
-      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-200 to-orange-300 shadow-card cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-card-hover flex items-center justify-center">
-        <span class="text-xs font-bold text-text-primary">AD</span>
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-300 to-primary-400 shadow-primary cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-[0_6px_16px_rgba(67,24,255,0.4)] flex items-center justify-center">
+        <span class="text-xs font-bold text-white">AD</span>
       </div>
     </aside>
 
