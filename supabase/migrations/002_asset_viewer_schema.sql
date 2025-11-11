@@ -1,3 +1,12 @@
+-- Teams (create first, referenced by users)
+CREATE TABLE IF NOT EXISTS teams (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  slug VARCHAR(100) UNIQUE,
+  settings JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Users & Teams
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -8,14 +17,6 @@ CREATE TABLE IF NOT EXISTS users (
   team_id UUID REFERENCES teams(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   last_active_at TIMESTAMPTZ
-);
-
-CREATE TABLE IF NOT EXISTS teams (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  slug VARCHAR(100) UNIQUE,
-  settings JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Asset Versions
