@@ -49,6 +49,16 @@
             Custom sort
           </button>
           <button 
+            @click="toggleSelectionMode"
+            :class="[
+              'w-9 h-9 rounded-lg flex items-center justify-center transition-colors',
+              selectionMode ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-500'
+            ]" 
+            aria-label="Toggle selection mode"
+          >
+            <span class="material-icons text-xl">checklist</span>
+          </button>
+          <button 
             @click="showFilters = !showFilters"
             :class="[
               'w-9 h-9 rounded-lg flex items-center justify-center transition-colors',
@@ -107,7 +117,9 @@
             :assets="filteredAssets"
             density="cozy"
             columns="auto"
+            :selection-enabled="selectionMode"
             @asset-click="handleAssetClick"
+            @selection-change="handleSelectionChange"
           />
         </div>
         
@@ -268,8 +280,21 @@
       </div>
       </div>
     </div>
+    
+    <!-- Bulk Actions Bar -->
+    <BulkActionsBar 
+      :selected-assets="selectedAssets"
+      @clear-selection="clearSelection"
+      @bulk-change-status="handleBulkChangeStatus"
+      @bulk-assign="handleBulkAssign"
+      @bulk-tag="handleBulkTag"
+      @bulk-download="handleBulkDownload"
+      @bulk-delete="handleBulkDelete"
+    />
 
     <!-- Bottom Status Bar -->
+    <div v-if="selectedAssets.length === 0" class="bg-white border-t border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between">
     <div class="bg-white border-t border-gray-200 px-6 py-4">
       <div class="flex items-center justify-between">
         <div class="text-sm text-gray-600">
@@ -286,6 +311,7 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
@@ -293,12 +319,17 @@
 import { convertToFigmaEmbedUrl } from '~/utils/figma'
 import GridView from './components/GridView.vue'
 import FilterPanel from './components/FilterPanel.vue'
+import BulkActionsBar from './components/BulkActionsBar.vue'
 
 const selectedAssetId = ref<string | null>(null)
 
 // Layout toggle state
 type LayoutMode = 'board' | 'grid'
 const currentLayout = ref<LayoutMode>('board')
+
+// Selection state
+const selectedAssets = ref<string[]>([])
+const selectionMode = ref(false)
 
 // Filter panel state
 const showFilters = ref(false)
@@ -557,6 +588,54 @@ function handleAssetClick(asset: any) {
 
 function openAssetDetail(asset: any) {
   selectedAssetId.value = asset.id
+}
+
+// Selection handlers
+const toggleSelectionMode = () => {
+  selectionMode.value = !selectionMode.value
+  if (!selectionMode.value) {
+    selectedAssets.value = []
+  }
+}
+
+const handleSelectionChange = (assetIds: string[]) => {
+  selectedAssets.value = assetIds
+}
+
+const clearSelection = () => {
+  selectedAssets.value = []
+}
+
+// Bulk action handlers
+const handleBulkChangeStatus = async (assetIds: string[], status: string) => {
+  console.log('Bulk change status:', assetIds, 'to', status)
+  // TODO: Implement bulk status update to Supabase
+  alert(`Would update ${assetIds.length} assets to status: ${status}`)
+}
+
+const handleBulkAssign = (assetIds: string[]) => {
+  console.log('Bulk assign:', assetIds)
+  // TODO: Implement bulk assignment modal
+  alert(`Would show assignment modal for ${assetIds.length} assets`)
+}
+
+const handleBulkTag = (assetIds: string[]) => {
+  console.log('Bulk tag:', assetIds)
+  // TODO: Implement bulk tagging modal
+  alert(`Would show tagging modal for ${assetIds.length} assets`)
+}
+
+const handleBulkDownload = (assetIds: string[]) => {
+  console.log('Bulk download:', assetIds)
+  // TODO: Implement bulk download
+  alert(`Would download ${assetIds.length} assets`)
+}
+
+const handleBulkDelete = async (assetIds: string[]) => {
+  console.log('Bulk delete:', assetIds)
+  // TODO: Implement bulk delete from Supabase
+  alert(`Would delete ${assetIds.length} assets`)
+  selectedAssets.value = []
 }
 
 function getAssetGradient(id: string): string {
