@@ -91,54 +91,13 @@
       <div class="media-container">
         <!-- Video Player -->
         <div v-if="currentAsset?.videoUrl" class="video-wrapper">
-          <video
-            ref="videoRef"
+          <VideoPlayer
             :src="currentAsset.videoUrl"
-            class="media-element"
-            @loadedmetadata="handleVideoMetadata"
-            @timeupdate="handleTimeUpdate"
-            @play="isPlaying = true"
-            @pause="isPlaying = false"
+            :asset-id="assetId"
+            :comments="videoComments"
+            @add-comment="handleAddComment"
+            @time-update="handleTimeUpdate"
           />
-          
-          <!-- Play overlay -->
-          <div v-if="!isPlaying" class="play-overlay" @click="togglePlay">
-            <div class="play-button">
-              <span class="material-icons">play_arrow</span>
-            </div>
-          </div>
-          
-          <!-- Video controls -->
-          <div class="video-controls">
-            <div class="timeline-container" @click="seekTimeline">
-              <div class="timeline-track">
-                <div class="progress-bar" :style="{ width: `${progress}%` }"></div>
-                <div class="playhead" :style="{ left: `${progress}%` }"></div>
-              </div>
-            </div>
-            
-            <div class="controls-row">
-              <button @click="togglePlay" class="control-btn play-btn">
-                <span class="material-icons">{{ isPlaying ? 'pause' : 'play_arrow' }}</span>
-              </button>
-              
-              <div class="time-display">
-                <span>{{ formatTime(currentTime) }}</span>
-                <span>/</span>
-                <span>{{ formatTime(duration) }}</span>
-              </div>
-              
-              <div class="spacer"></div>
-              
-              <button class="control-btn">
-                <span class="material-icons">settings</span>
-              </button>
-              
-              <button @click="toggleFullscreen" class="control-btn">
-                <span class="material-icons">{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</span>
-              </button>
-            </div>
-          </div>
         </div>
         
         <!-- Figma Viewer -->
@@ -285,18 +244,31 @@ onMounted(async () => {
       await fetchFigmaThumbnail(asset.figmaUrl)
     }
   }
+  
+  // Fetch comments for video player
+  await fetchVideoComments()
 })
 
 // Video player state
-const videoRef = ref<HTMLVideoElement>()
-const isPlaying = ref(false)
 const currentTime = ref(0)
-const duration = ref(0)
-const isFullscreen = ref(false)
+const videoComments = ref<any[]>([])
 
-const progress = computed(() => {
-  return duration.value > 0 ? (currentTime.value / duration.value) * 100 : 0
-})
+// Fetch comments for video overlay
+const fetchVideoComments = async () => {
+  try {
+    const { supabase } = useSupabase()
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('request_id', assetId)
+      .not('timecode', 'is', null)
+    
+    if (error) throw error
+    videoComments.value = data || []
+  } catch (e) {
+    console.error('Error fetching video comments:', e)
+  }
+}
 
 // UI state
 const activeTab = ref<'details' | 'comments' | 'versions' | 'activity'>('details')
@@ -314,48 +286,16 @@ const tabs = [
   { id: 'activity' as const, label: 'Activity', icon: 'notifications', badge: null }
 ]
 
-// Video player functions
-const handleVideoMetadata = () => {
-  if (videoRef.value) {
-    duration.value = videoRef.value.duration
-  }
+// Video player event handlers
+const handleTimeUpdate = (time: number) => {
+  currentTime.value = time
 }
 
-const handleTimeUpdate = () => {
-  if (videoRef.value) {
-    currentTime.value = videoRef.value.currentTime
-  }
-}
-
-const togglePlay = () => {
-  if (!videoRef.value) return
-  
-  if (isPlaying.value) {
-    videoRef.value.pause()
-  } else {
-    videoRef.value.play()
-  }
-}
-
-const seekTimeline = (e: MouseEvent) => {
-  if (!videoRef.value) return
-  
-  const timeline = e.currentTarget as HTMLElement
-  const rect = timeline.getBoundingClientRect()
-  const percent = (e.clientX - rect.left) / rect.width
-  videoRef.value.currentTime = percent * duration.value
-}
-
-const toggleFullscreen = () => {
-  if (!videoRef.value) return
-  
-  if (document.fullscreenElement) {
-    document.exitFullscreen()
-    isFullscreen.value = false
-  } else {
-    videoRef.value.requestFullscreen()
-    isFullscreen.value = true
-  }
+const handleAddComment = (time: number) => {
+  // Switch to comments tab and set the timecode
+  activeTab.value = 'comments'
+  currentTime.value = time
+  // The CommentThread component will pick up the currentTime prop
 }
 
 // Navigation
