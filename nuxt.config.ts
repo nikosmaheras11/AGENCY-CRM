@@ -13,6 +13,7 @@ export default defineNuxtConfig({
     // Private keys (server-side only)
     directusServerToken: process.env.DIRECTUS_SERVER_TOKEN,
     slackBotToken: process.env.SLACK_BOT_TOKEN,
+    slackClientSecret: process.env.SLACK_CLIENT_SECRET,
     slackSigningSecret: process.env.SLACK_SIGNING_SECRET,
     slackChannelCreative: process.env.SLACK_CHANNEL_CREATIVE,
     slackChannelPerformance: process.env.SLACK_CHANNEL_PERFORMANCE,
@@ -25,7 +26,8 @@ export default defineNuxtConfig({
       directusUrl: process.env.DIRECTUS_URL || 'http://localhost:8055',
       siteUrl: process.env.SITE_URL || 'http://localhost:3000',
       supabaseUrl: process.env.SUPABASE_URL || '',
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || ''
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+      slackClientId: process.env.SLACK_CLIENT_ID || ''
     }
   },
 
