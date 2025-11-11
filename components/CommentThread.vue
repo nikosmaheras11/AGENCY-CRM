@@ -65,7 +65,7 @@
         </div>
         
         <!-- Timecode badge (for video comments) -->
-        <div v-if="comment.timecode !== null" class="comment-timecode">
+        <div v-if="comment.timecode !== null && comment.timecode !== undefined" class="comment-timecode">
           <span class="material-icons">play_circle</span>
           <span>{{ formatTime(comment.timecode) }}</span>
         </div>
@@ -101,7 +101,7 @@
     <div class="new-comment-input">
       <div class="input-header">
         <span>Add comment</span>
-        <span v-if="currentTime !== null" class="timecode-display">
+        <span v-if="currentTime !== null && currentTime !== undefined" class="timecode-display">
           at {{ formatTime(currentTime) }}
         </span>
       </div>
