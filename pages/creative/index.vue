@@ -48,8 +48,15 @@
           <button class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 font-medium bg-white hover:bg-gray-50 transition-colors">
             Custom sort
           </button>
-          <button class="w-9 h-9 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors" aria-label="Settings">
-            <span class="material-icons text-gray-500 text-xl">settings</span>
+          <button 
+            @click="showFilters = !showFilters"
+            :class="[
+              'w-9 h-9 rounded-lg flex items-center justify-center transition-colors',
+              showFilters ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-500'
+            ]" 
+            aria-label="Toggle filters"
+          >
+            <span class="material-icons text-xl">filter_list</span>
           </button>
           <div class="flex border border-gray-200 rounded-lg overflow-hidden">
             <button 
@@ -83,20 +90,29 @@
       </div>
     </div>
 
-    <!-- Board or Grid View -->
-    <div class="flex-1 overflow-hidden">
-      <!-- Grid View -->
-      <div v-if="currentLayout === 'grid'" class="h-full overflow-y-auto">
-        <GridView 
-          :assets="allAssets"
-          density="cozy"
-          columns="auto"
-          @asset-click="handleAssetClick"
-        />
-      </div>
+    <!-- Board or Grid View with Filter Panel -->
+    <div class="flex-1 overflow-hidden flex">
+      <!-- Filter Panel -->
+      <FilterPanel 
+        v-if="showFilters"
+        :assets="allAssets"
+        @update:filters="handleFiltersUpdate"
+      />
       
-      <!-- Board View (Kanban) -->
-      <div v-else class="h-full overflow-x-auto overflow-y-hidden px-6 py-6">
+      <!-- Main Content Area -->
+      <div class="flex-1 overflow-hidden">
+        <!-- Grid View -->
+        <div v-if="currentLayout === 'grid'" class="h-full overflow-y-auto">
+          <GridView 
+            :assets="filteredAssets"
+            density="cozy"
+            columns="auto"
+            @asset-click="handleAssetClick"
+          />
+        </div>
+        
+        <!-- Board View (Kanban) -->
+        <div v-else class="h-full overflow-x-auto overflow-y-hidden px-6 py-6">
         <div class="flex gap-4 h-full pb-4">
           <!-- Column Component for each status -->
           <div
@@ -250,6 +266,7 @@
           </div>
         </div>
       </div>
+      </div>
     </div>
 
     <!-- Bottom Status Bar -->
@@ -275,12 +292,38 @@
 <script setup lang="ts">
 import { convertToFigmaEmbedUrl } from '~/utils/figma'
 import GridView from './components/GridView.vue'
+import FilterPanel from './components/FilterPanel.vue'
 
 const selectedAssetId = ref<string | null>(null)
 
 // Layout toggle state
 type LayoutMode = 'board' | 'grid'
 const currentLayout = ref<LayoutMode>('board')
+
+// Filter panel state
+const showFilters = ref(false)
+
+interface Filters {
+  search: string
+  status: string[]
+  fileTypes: string[]
+  hasComments: boolean
+  hasAssignee: boolean
+  priority: string[]
+}
+
+const activeFilters = ref<Filters>({
+  search: '',
+  status: [],
+  fileTypes: [],
+  hasComments: false,
+  hasAssignee: false,
+  priority: []
+})
+
+const handleFiltersUpdate = (filters: Filters) => {
+  activeFilters.value = filters
+}
 
 // Use unified request system
 const { fetchRequests, getRequestsByTypeAndStatus, requestToAsset, allRequests, loading, error } = useRequests()
@@ -306,15 +349,105 @@ onMounted(async () => {
   console.log('⚠️ Error:', error.value)
 })
 
-// Get all assets flattened for grid view
+// Get all assets flattened for grid view (unfiltered - for filter panel counts)
 const allAssets = computed(() => {
   return Object.values(requestsByStatus.value)
     .flat()
     .map(requestToAsset)
 })
 
-// Convert to column format for existing UI
+// Apply filters to assets
+const filteredAssets = computed(() => {
+  let assets = allAssets.value
+  
+  // Search filter
+  if (activeFilters.value.search) {
+    const searchLower = activeFilters.value.search.toLowerCase()
+    assets = assets.filter(asset => 
+      asset.title.toLowerCase().includes(searchLower) ||
+      asset.format.toLowerCase().includes(searchLower) ||
+      asset.metadata.tags?.toLowerCase().includes(searchLower)
+    )
+  }
+  
+  // Status filter
+  if (activeFilters.value.status.length > 0) {
+    assets = assets.filter(asset => 
+      activeFilters.value.status.includes(asset.status)
+    )
+  }
+  
+  // File type filter
+  if (activeFilters.value.fileTypes.length > 0) {
+    assets = assets.filter(asset => {
+      if (activeFilters.value.fileTypes.includes('video') && asset.videoUrl) return true
+      if (activeFilters.value.fileTypes.includes('figma') && asset.figmaUrl) return true
+      if (activeFilters.value.fileTypes.includes('other') && !asset.videoUrl && !asset.figmaUrl) return true
+      return false
+    })
+  }
+  
+  // Has comments filter
+  if (activeFilters.value.hasComments) {
+    assets = assets.filter(asset => asset.commentCount > 0)
+  }
+  
+  // Has assignee filter
+  if (activeFilters.value.hasAssignee) {
+    assets = assets.filter(asset => asset.metadata.assignee)
+  }
+  
+  // Priority filter
+  if (activeFilters.value.priority.length > 0) {
+    assets = assets.filter(asset => 
+      asset.metadata.priority && activeFilters.value.priority.includes(asset.metadata.priority)
+    )
+  }
+  
+  return assets
+})
+
+// Convert filtered assets to column format for board view
 const columns = computed(() => [
+  {
+    id: 'new-request',
+    title: 'New Request',
+    emoji: '📬',
+    badgeClass: 'bg-purple-100 text-purple-700 border border-purple-200',
+    assets: filteredAssets.value.filter(asset => asset.status === 'new-request')
+  },
+  {
+    id: 'in-progress',
+    title: 'In Progress',
+    emoji: '🔄',
+    badgeClass: 'bg-amber-100 text-amber-700 border border-amber-200',
+    assets: filteredAssets.value.filter(asset => asset.status === 'in-progress')
+  },
+  {
+    id: 'needs-review',
+    title: 'Needs Review',
+    emoji: '👀',
+    badgeClass: 'bg-blue-100 text-blue-700 border border-blue-200',
+    assets: filteredAssets.value.filter(asset => asset.status === 'needs-review')
+  },
+  {
+    id: 'needs-edit',
+    title: 'Needs Edit',
+    emoji: '✏️',
+    badgeClass: 'bg-orange-100 text-orange-700 border border-orange-200',
+    assets: filteredAssets.value.filter(asset => asset.status === 'needs-edit')
+  },
+  {
+    id: 'done',
+    title: 'Done',
+    emoji: '✅',
+    badgeClass: 'bg-green-100 text-green-700 border border-green-200',
+    assets: filteredAssets.value.filter(asset => asset.status === 'done')
+  }
+])
+
+// Original columns (for backward compatibility)
+const originalColumns = computed(() => [
   {
     id: 'new-request',
     title: 'New Request',
