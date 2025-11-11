@@ -150,13 +150,22 @@ export default defineEventHandler(async (event) => {
       type: 'magiclink'
     })
     
-    if (verifyError) {
+    if (verifyError || !sessionData?.session) {
       console.error('Failed to verify OTP:', verifyError)
       return sendRedirect(event, '/?error=verification_failed')
     }
     
-    // Redirect with token in URL for client-side session establishment
-    return sendRedirect(event, `/auth/callback?access_token=${sessionData.session.access_token}&refresh_token=${sessionData.session.refresh_token}&type=slack`)
+    // Extract session tokens with null safety
+    const accessToken = sessionData.session.access_token
+    const refreshToken = sessionData.session.refresh_token
+    
+    if (!accessToken || !refreshToken) {
+      console.error('Missing session tokens')
+      return sendRedirect(event, '/?error=missing_tokens')
+    }
+    
+    // Redirect with tokens in URL for client-side session establishment
+    return sendRedirect(event, `/auth/callback?access_token=${accessToken}&refresh_token=${refreshToken}&type=slack`)
     
   } catch (error) {
     console.error('Slack OAuth callback error:', error)
