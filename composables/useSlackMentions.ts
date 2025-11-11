@@ -1,19 +1,5 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-export interface SlackMessage {
-  id: string;
-  channel_id: string;
-  channel_name: string;
-  user_id: string;
-  user_name: string;
-  text: string;
-  timestamp: string;
-  permalink: string;
-  thread_ts: string | null;
-  is_thread_reply: boolean;
-  reactions: readonly any[];
-}
-
 export interface UserMention {
   mention_id: string;
   user_slack_id: string;
@@ -38,7 +24,7 @@ export interface UserMention {
 }
 
 export const useSlackMentions = () => {
-  const supabase = useSupabaseClient();
+  const supabaseClient = useSupabaseClient();
   const user = useSupabaseUser();
   
   const mentions = ref<UserMention[]>([]);
@@ -61,7 +47,7 @@ export const useSlackMentions = () => {
       isLoading.value = true;
       error.value = null;
 
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError } = await supabaseClient
         .from('user_mention_details')
         .select('*')
         .eq('profile_id', user.value.id)
@@ -88,7 +74,7 @@ export const useSlackMentions = () => {
     if (!user.value) return;
 
     try {
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError } = await supabaseClient
         .from('user_mention_details')
         .select('*')
         .eq('profile_id', user.value.id)
@@ -112,7 +98,7 @@ export const useSlackMentions = () => {
     if (!user.value) return 0;
 
     try {
-      const { data, error: countError } = await supabase
+      const { data, error: countError } = await supabaseClient
         .rpc('get_unread_mention_count', { user_id: user.value.id });
 
       if (countError) throw countError;
@@ -131,7 +117,7 @@ export const useSlackMentions = () => {
    */
   const markAsRead = async (mentionId: string) => {
     try {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseClient
         .from('user_mentions')
         .update({ is_read: true })
         .eq('id', mentionId);
@@ -159,7 +145,7 @@ export const useSlackMentions = () => {
     if (!user.value) return;
 
     try {
-      const { data, error: updateError } = await supabase
+      const { data, error: updateError } = await supabaseClient
         .rpc('mark_all_mentions_read', { user_id: user.value.id });
 
       if (updateError) throw updateError;
@@ -188,7 +174,7 @@ export const useSlackMentions = () => {
 
     // Clean up existing subscription
     if (realtimeChannel) {
-      supabase.removeChannel(realtimeChannel);
+      supabaseClient.removeChannel(realtimeChannel);
     }
 
     // Get user's Slack ID from metadata
@@ -198,7 +184,7 @@ export const useSlackMentions = () => {
       return;
     }
 
-    realtimeChannel = supabase
+    realtimeChannel = supabaseClient
       .channel('mention-changes')
       .on(
         'postgres_changes',
@@ -212,7 +198,7 @@ export const useSlackMentions = () => {
           console.log('New mention received:', payload);
           
           // Fetch the full mention details
-          const { data, error: fetchError } = await supabase
+          const { data, error: fetchError} = await supabaseClient
             .from('user_mention_details')
             .select('*')
             .eq('mention_id', payload.new.id)
@@ -259,7 +245,7 @@ export const useSlackMentions = () => {
    */
   const unsubscribe = () => {
     if (realtimeChannel) {
-      supabase.removeChannel(realtimeChannel);
+      supabaseClient.removeChannel(realtimeChannel);
       realtimeChannel = null;
     }
   };

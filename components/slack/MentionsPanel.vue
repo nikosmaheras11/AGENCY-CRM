@@ -54,7 +54,7 @@
           :key="mention.mention_id"
           class="mention-item"
           :class="{ 'unread': !mention.is_read }"
-          @click="handleMentionClick(mention as any)"
+          @click="handleMentionClick(mention)"
         >
           <!-- Unread Indicator -->
           <div v-if="!mention.is_read" class="unread-indicator" />
