@@ -178,12 +178,36 @@ const generateRandomState = () => {
 }
 
 // Redirect if already logged in
-const { user } = useSupabase()
+const { user, signIn, signUp } = useAuth()
 watchEffect(() => {
   if (user.value?.id) {
-    navigateTo('/dashboard')
+    navigateTo('/creative')
   }
 })
+
+// Add quick email auth for development
+const showEmailAuth = ref(false)
+const email = ref('')
+const password = ref('')
+
+const handleEmailAuth = async () => {
+  try {
+    isLoading.value = true
+    errorMessage.value = ''
+    
+    const { data, error } = await signIn(email.value, password.value)
+    
+    if (error) {
+      errorMessage.value = error.message
+    } else {
+      navigateTo('/creative')
+    }
+  } catch (e: any) {
+    errorMessage.value = e.message || 'Sign in failed'
+  } finally {
+    isLoading.value = false
+  }
+}
 
 definePageMeta({
   layout: 'auth'

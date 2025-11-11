@@ -153,6 +153,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
+// Auth
+const { user, profile, getDisplayName } = useAuth()
+
 // State
 const allComments = ref<Comment[]>([])
 const loading = ref(true)
@@ -207,8 +210,10 @@ const submitComment = async () => {
     
     const commentData = {
       request_id: props.assetId,
+      author_id: user.value?.id || null,
+      author_name: getDisplayName.value,
+      author_email: user.value?.email || null,
       content: newCommentContent.value.trim(),
-      author_name: 'Current User', // TODO: Get from auth
       timecode: props.currentTime || null,
       resolved: false,
       edited: false,
