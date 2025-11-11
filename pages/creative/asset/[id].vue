@@ -19,8 +19,17 @@
           @click="navigateToAsset(boardAsset.id)"
         >
           <div class="strip-thumbnail">
-            <img v-if="boardAsset.thumbnail" :src="boardAsset.thumbnail" alt="" />
-            <div v-else class="thumbnail-placeholder" :style="{ backgroundImage: getAssetGradient(boardAsset.id) }" />
+            <img 
+              v-if="getThumbnail(boardAsset)" 
+              :src="getThumbnail(boardAsset)" 
+              alt=""
+              @error="(e) => (e.target as HTMLImageElement).style.display = 'none'"
+            />
+            <div 
+              v-if="!getThumbnail(boardAsset)" 
+              class="thumbnail-placeholder" 
+              :style="{ backgroundImage: getAssetGradient(boardAsset.id) }" 
+            />
           </div>
           <div class="strip-info">
             <p class="strip-title">{{ boardAsset.title }}</p>
@@ -245,11 +254,8 @@ const assetId = route.params.id as string
 // Fetch current asset and board assets
 const { getRequestById, fetchRequests, allRequests } = useRequests()
 
-onMounted(async () => {
-  if (allRequests.value.length === 0) {
-    await fetchRequests()
-  }
-})
+// Figma thumbnail support
+const { fetchFigmaThumbnail, getThumbnail } = useFigmaThumbnails()
 
 const requestData = getRequestById(assetId)
 const currentAsset = computed(() => requestData.value)
@@ -262,8 +268,23 @@ const boardAssets = computed(() => {
       id: req.id,
       title: req.title,
       thumbnail: req.thumbnail,
+      figmaUrl: req.figmaUrl,
       current_version: 1
     }))
+})
+
+// Fetch requests and Figma thumbnails
+onMounted(async () => {
+  if (allRequests.value.length === 0) {
+    await fetchRequests()
+  }
+  
+  // Fetch thumbnails for Figma assets
+  for (const asset of boardAssets.value) {
+    if (asset.figmaUrl && !asset.thumbnail) {
+      await fetchFigmaThumbnail(asset.figmaUrl)
+    }
+  }
 })
 
 // Video player state
