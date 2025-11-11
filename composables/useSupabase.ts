@@ -30,6 +30,15 @@ export const useSupabase = () => {
     config.public.supabaseAnonKey
   )
 
+  // Get current user
+  const user = useState('supabase-user', () => null)
+  
+  // Fetch user on mount
+  onMounted(async () => {
+    const { data } = await supabase.auth.getUser()
+    user.value = data.user
+  })
+
   /**
    * Upload file to Supabase Storage
    */
@@ -111,6 +120,8 @@ export const useSupabase = () => {
 
   return {
     supabase,
+    client: supabase,
+    user,
     uploadFile,
     getPublicUrl,
     uploadVideo,

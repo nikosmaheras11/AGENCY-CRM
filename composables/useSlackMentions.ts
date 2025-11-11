@@ -24,8 +24,7 @@ export interface UserMention {
 }
 
 export const useSlackMentions = () => {
-  const supabaseClient = useSupabaseClient();
-  const user = useSupabaseUser();
+  const { client: supabaseClient, user } = useSupabase();
   
   const mentions = ref<UserMention[]>([]);
   const unreadCount = ref(0);
