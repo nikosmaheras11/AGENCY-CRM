@@ -10,24 +10,24 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
-    // Private keys (server-side only)
+    // Private keys (server-side only - never exposed to client)
     directusServerToken: process.env.DIRECTUS_SERVER_TOKEN,
     slackBotToken: process.env.SLACK_BOT_TOKEN,
-    slackClientSecret: process.env.SLACK_CLIENT_SECRET,
+    slackClientSecret: process.env.SLACK_CLIENT_SECRET, // Required for OAuth token exchange
     slackSigningSecret: process.env.SLACK_SIGNING_SECRET,
     slackChannelCreative: process.env.SLACK_CHANNEL_CREATIVE,
     slackChannelPerformance: process.env.SLACK_CHANNEL_PERFORMANCE,
     slackChannelRequests: process.env.SLACK_CHANNEL_REQUESTS,
     slackChannelUgc: process.env.SLACK_CHANNEL_UGC,
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY, // Admin access for server-side ops
     
-    // Public keys (exposed to client)
+    // Public keys (exposed to client - safe for browser)
     public: {
       directusUrl: process.env.DIRECTUS_URL || 'http://localhost:8055',
-      siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+      siteUrl: process.env.SITE_URL || 'http://localhost:3000', // Required for OAuth redirects
       supabaseUrl: process.env.SUPABASE_URL || '',
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
-      slackClientId: process.env.SLACK_CLIENT_ID || ''
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '', // Public anon key (safe to expose)
+      slackClientId: process.env.SLACK_CLIENT_ID || '' // Required for Slack OAuth (public)
     }
   },
 

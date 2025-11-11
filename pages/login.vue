@@ -133,23 +133,35 @@ const signInWithSlack = () => {
   // Debug: Check if client_id is available
   if (!config.public.slackClientId) {
     console.error('Slack Client ID is missing!')
+    console.error('Available config:', config.public)
     errorMessage.value = 'Slack integration is not properly configured. Please contact support.'
     isLoading.value = false
     return
   }
   
+  // Generate state for CSRF protection
+  const state = generateRandomState()
+  
+  // Store state in localStorage for validation (security measure)
+  if (process.client) {
+    localStorage.setItem('slack_auth_state', state)
+  }
+  
+  // Create the authorization URL
+  const redirectUri = `${config.public.siteUrl}/api/auth/slack/callback`
   const slackAuthUrl = new URL('https://slack.com/oauth/v2/authorize')
   
   slackAuthUrl.searchParams.append('client_id', config.public.slackClientId)
   slackAuthUrl.searchParams.append('scope', '')
   slackAuthUrl.searchParams.append('user_scope', 'identity.basic,identity.email,identity.avatar')
-  slackAuthUrl.searchParams.append('redirect_uri', `${config.public.siteUrl}/api/auth/slack/callback`)
-  slackAuthUrl.searchParams.append('state', generateRandomState())
+  slackAuthUrl.searchParams.append('redirect_uri', redirectUri)
+  slackAuthUrl.searchParams.append('state', state)
   
-  // Store state in session storage for validation (optional security measure)
-  if (process.client) {
-    sessionStorage.setItem('slack_oauth_state', slackAuthUrl.searchParams.get('state') || '')
-  }
+  // Log for debugging (helps diagnose production issues)
+  console.log('Slack OAuth Configuration:')
+  console.log('  Client ID:', config.public.slackClientId)
+  console.log('  Redirect URI:', redirectUri)
+  console.log('  Auth URL:', slackAuthUrl.toString())
   
   // Redirect to Slack
   window.location.href = slackAuthUrl.toString()
