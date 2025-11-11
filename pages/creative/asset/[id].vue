@@ -72,7 +72,7 @@
         <div class="breadcrumb">
           <span>Board</span>
           <span class="material-icons">chevron_right</span>
-          <span>{{ currentAsset?.campaign || 'Campaign' }}</span>
+          <span>{{ currentAsset?.metadata?.campaign || 'Campaign' }}</span>
           <span class="material-icons">chevron_right</span>
           <span class="current">{{ currentAsset?.title || 'Asset' }}</span>
         </div>
@@ -297,10 +297,10 @@ const localAsset = ref({
 })
 
 const tabs = [
-  { id: 'details', label: 'Details', icon: 'info', badge: null },
-  { id: 'comments', label: 'Comments', icon: 'comment', badge: 0 },
-  { id: 'versions', label: 'Versions', icon: 'history', badge: 1 },
-  { id: 'activity', label: 'Activity', icon: 'notifications', badge: null }
+  { id: 'details' as const, label: 'Details', icon: 'info', badge: null },
+  { id: 'comments' as const, label: 'Comments', icon: 'comment', badge: 0 },
+  { id: 'versions' as const, label: 'Versions', icon: 'history', badge: 1 },
+  { id: 'activity' as const, label: 'Activity', icon: 'notifications', badge: null }
 ]
 
 // Video player functions
@@ -368,7 +368,8 @@ const saveTitle = () => {
 
 const updateField = (field: string) => {
   // TODO: Auto-save to database
-  console.log('Update field:', field, localAsset.value[field])
+  const value = (localAsset.value as any)[field]
+  console.log('Update field:', field, value)
 }
 
 const handleShare = () => {
