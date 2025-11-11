@@ -21,7 +21,7 @@
           <div class="strip-thumbnail">
             <img 
               v-if="getThumbnail(boardAsset)" 
-              :src="getThumbnail(boardAsset)" 
+              :src="getThumbnail(boardAsset) || ''" 
               alt=""
               @error="(e) => (e.target as HTMLImageElement).style.display = 'none'"
             />
