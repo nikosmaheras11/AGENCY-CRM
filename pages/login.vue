@@ -147,8 +147,14 @@ const signInWithSlack = () => {
     localStorage.setItem('slack_auth_state', state)
   }
   
-  // Create the authorization URL
-  const redirectUri = `${config.public.siteUrl}/api/auth/slack/callback`
+  // Get the current origin (works in production automatically)
+  // Falls back to config if window is not available (SSR)
+  const origin = process.client && typeof window !== 'undefined'
+    ? window.location.origin
+    : config.public.siteUrl
+  
+  // Create the authorization URL with dynamic origin
+  const redirectUri = `${origin}/api/auth/slack/callback`
   const slackAuthUrl = new URL('https://slack.com/oauth/v2/authorize')
   
   slackAuthUrl.searchParams.append('client_id', config.public.slackClientId)
