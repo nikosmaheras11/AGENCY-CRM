@@ -224,9 +224,12 @@
         </div>
         
         <!-- Versions Tab -->
-        <div v-if="activeTab === 'versions'" class="tab-panel versions-panel">
-          <h3>Version History</h3>
-          <p class="empty-state">Version history coming soon</p>
+        <div v-if="activeTab === 'versions'" class="tab-panel versions-panel no-padding">
+          <VersionHistory 
+            :asset-id="assetId"
+            @version-selected="handleVersionSelected"
+            @version-restored="handleVersionRestored"
+          />
         </div>
         
         <!-- Activity Tab -->
@@ -388,6 +391,17 @@ const submitComment = () => {
   // TODO: Save comment to database
   console.log('New comment:', newComment.value)
   newComment.value = ''
+}
+
+// Version handlers
+const handleVersionSelected = (version: any) => {
+  console.log('Version selected:', version)
+  // TODO: Switch media player to this version
+}
+
+const handleVersionRestored = (version: any) => {
+  console.log('Version restored:', version)
+  // TODO: Refresh asset data
 }
 
 // Utility
@@ -791,6 +805,10 @@ const getAssetGradient = (id: string) => {
 
 .tab-panel {
   padding: 20px;
+}
+
+.tab-panel.no-padding {
+  padding: 0;
 }
 
 .tab-panel h3 {
