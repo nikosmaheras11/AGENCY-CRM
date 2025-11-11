@@ -16,7 +16,7 @@ export interface UserMention {
   permalink: string;
   thread_ts: string | null;
   is_thread_reply: boolean;
-  reactions: any[];
+  reactions: readonly any[] | any[];
   profile_id: string;
   first_name: string | null;
   last_name: string | null;
@@ -37,7 +37,7 @@ export const useSlackMentions = () => {
    * Fetch mentions for the current user
    */
   const fetchMentions = async (limit = 50) => {
-    if (!user.value) {
+    if (!user.value?.id) {
       error.value = 'User not authenticated';
       return;
     }
@@ -70,7 +70,7 @@ export const useSlackMentions = () => {
    * Fetch only unread mentions
    */
   const fetchUnreadMentions = async () => {
-    if (!user.value) return;
+    if (!user.value?.id) return;
 
     try {
       const { data, error: fetchError } = await supabaseClient
@@ -94,7 +94,7 @@ export const useSlackMentions = () => {
    * Get unread count
    */
   const getUnreadCount = async () => {
-    if (!user.value) return 0;
+    if (!user.value?.id) return 0;
 
     try {
       const { data, error: countError } = await supabaseClient
@@ -141,7 +141,7 @@ export const useSlackMentions = () => {
    * Mark all mentions as read
    */
   const markAllAsRead = async () => {
-    if (!user.value) return;
+    if (!user.value?.id) return;
 
     try {
       const { data, error: updateError } = await supabaseClient
@@ -169,7 +169,7 @@ export const useSlackMentions = () => {
    * Set up real-time subscription for new mentions
    */
   const subscribeToMentions = () => {
-    if (!user.value) return;
+    if (!user.value?.user_metadata) return;
 
     // Clean up existing subscription
     if (realtimeChannel) {
@@ -177,7 +177,7 @@ export const useSlackMentions = () => {
     }
 
     // Get user's Slack ID from metadata
-    const slackId = user.value.user_metadata?.slack_id;
+    const slackId = user.value.user_metadata.slack_id as string | undefined;
     if (!slackId) {
       console.warn('No Slack ID found for user');
       return;
@@ -270,7 +270,7 @@ export const useSlackMentions = () => {
 
   // Auto-fetch mentions on mount and set up subscription
   onMounted(() => {
-    if (user.value) {
+    if (user.value?.id) {
       fetchMentions();
       subscribeToMentions();
     }
@@ -283,7 +283,7 @@ export const useSlackMentions = () => {
 
   // Watch for user changes
   watch(user, (newUser) => {
-    if (newUser) {
+    if (newUser?.id) {
       fetchMentions();
       subscribeToMentions();
     } else {

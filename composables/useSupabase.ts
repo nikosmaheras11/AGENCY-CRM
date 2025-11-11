@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 
 // Database types
 export interface SlackMessage {
@@ -30,14 +31,19 @@ export const useSupabase = () => {
     config.public.supabaseAnonKey
   )
 
-  // Get current user
-  const user = useState('supabase-user', () => null)
+  // Get current user state
+  const user = useState<User | null>('supabase-user', () => null)
   
-  // Fetch user on mount
-  onMounted(async () => {
+  // Initialize user
+  const initUser = async () => {
     const { data } = await supabase.auth.getUser()
     user.value = data.user
-  })
+  }
+  
+  // Only run on client side
+  if (process.client && !user.value) {
+    initUser()
+  }
 
   /**
    * Upload file to Supabase Storage
