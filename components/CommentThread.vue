@@ -202,6 +202,7 @@ const submitComment = async () => {
   if (!newCommentContent.value.trim()) return
   
   try {
+    console.log('Submitting comment to assetId:', props.assetId)
     const { supabase } = useSupabase()
     
     const commentData = {
@@ -214,24 +215,29 @@ const submitComment = async () => {
       thread_depth: 0
     }
     
+    console.log('Comment data:', commentData)
+    
     const { data, error: insertError } = await supabase
       .from('comments')
       .insert(commentData)
       .select()
       .single()
     
-    if (insertError) throw insertError
+    if (insertError) {
+      console.error('Supabase insert error:', insertError)
+      throw insertError
+    }
+    
+    console.log('Comment posted successfully:', data)
     
     // Add to local state
     allComments.value.unshift(data)
     
     // Clear input
     newCommentContent.value = ''
-    
-    console.log('Comment posted:', data)
-  } catch (e) {
+  } catch (e: any) {
     console.error('Error posting comment:', e)
-    alert('Failed to post comment')
+    alert(`Failed to post comment: ${e.message || 'Unknown error'}\n\nPlease check the browser console for details.`)
   }
 }
 
