@@ -295,8 +295,6 @@
     <!-- Bottom Status Bar -->
     <div v-if="selectedAssets.length === 0" class="bg-white border-t border-gray-200 px-6 py-4">
       <div class="flex items-center justify-between">
-    <div class="bg-white border-t border-gray-200 px-6 py-4">
-      <div class="flex items-center justify-between">
         <div class="text-sm text-gray-600">
           <span class="font-medium">{{ totalAssets }}</span> assets · 
           <span class="font-medium">{{ totalSize }}</span>
@@ -310,7 +308,6 @@
           </button>
         </div>
       </div>
-    </div>
     </div>
   </div>
 </template>
