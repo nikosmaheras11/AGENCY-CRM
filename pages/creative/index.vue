@@ -52,20 +52,51 @@
             <span class="material-icons text-gray-500 text-xl">settings</span>
           </button>
           <div class="flex border border-gray-200 rounded-lg overflow-hidden">
-            <button class="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition-colors" aria-label="Grid view">
-              <span class="material-icons text-gray-700 text-lg">grid_view</span>
+            <button 
+              @click="currentLayout = 'grid'"
+              :class="[
+                'px-3 py-2 transition-colors',
+                currentLayout === 'grid' ? 'bg-gray-100' : 'hover:bg-gray-100'
+              ]" 
+              aria-label="Grid view"
+            >
+              <span 
+                class="material-icons text-lg"
+                :class="currentLayout === 'grid' ? 'text-gray-700' : 'text-gray-500'"
+              >grid_view</span>
             </button>
-            <button class="px-3 py-2 hover:bg-gray-100 transition-colors" aria-label="List view">
-              <span class="material-icons text-gray-500 text-lg">view_list</span>
+            <button 
+              @click="currentLayout = 'board'"
+              :class="[
+                'px-3 py-2 transition-colors',
+                currentLayout === 'board' ? 'bg-gray-100' : 'hover:bg-gray-100'
+              ]" 
+              aria-label="Board view"
+            >
+              <span 
+                class="material-icons text-lg"
+                :class="currentLayout === 'board' ? 'text-gray-700' : 'text-gray-500'"
+              >view_list</span>
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Kanban Board -->
+    <!-- Board or Grid View -->
     <div class="flex-1 overflow-hidden">
-      <div class="h-full overflow-x-auto overflow-y-hidden px-6 py-6">
+      <!-- Grid View -->
+      <div v-if="currentLayout === 'grid'" class="h-full overflow-y-auto">
+        <GridView 
+          :assets="allAssets"
+          density="cozy"
+          columns="auto"
+          @asset-click="handleAssetClick"
+        />
+      </div>
+      
+      <!-- Board View (Kanban) -->
+      <div v-else class="h-full overflow-x-auto overflow-y-hidden px-6 py-6">
         <div class="flex gap-4 h-full pb-4">
           <!-- Column Component for each status -->
           <div
@@ -243,8 +274,13 @@
 
 <script setup lang="ts">
 import { convertToFigmaEmbedUrl } from '~/utils/figma'
+import GridView from './components/GridView.vue'
 
 const selectedAssetId = ref<string | null>(null)
+
+// Layout toggle state
+type LayoutMode = 'board' | 'grid'
+const currentLayout = ref<LayoutMode>('board')
 
 // Use unified request system
 const { fetchRequests, getRequestsByTypeAndStatus, requestToAsset, allRequests, loading, error } = useRequests()
@@ -268,6 +304,13 @@ onMounted(async () => {
   }
   console.log('⏳ Loading:', loading.value)
   console.log('⚠️ Error:', error.value)
+})
+
+// Get all assets flattened for grid view
+const allAssets = computed(() => {
+  return Object.values(requestsByStatus.value)
+    .flat()
+    .map(requestToAsset)
 })
 
 // Convert to column format for existing UI
