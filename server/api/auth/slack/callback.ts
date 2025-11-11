@@ -120,35 +120,43 @@ export default defineEventHandler(async (event) => {
         })
     }
     
-    // Create session for the user
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-      user_id: userId
+    // Generate auth link for the user (works with latest Supabase)
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: slackUser.profile.email,
+      options: {
+        redirectTo: `${config.public.siteUrl}/dashboard`
+      }
     })
     
-    if (sessionError) {
-      console.error('Failed to create session:', sessionError)
+    if (linkError) {
+      console.error('Failed to generate auth link:', linkError)
       return sendRedirect(event, '/?error=session_creation_failed')
     }
     
-    // Set auth cookie
-    setCookie(event, 'sb-access-token', sessionData.session.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/'
+    // Extract the token from the generated link
+    const url = new URL(linkData.properties.action_link)
+    const token = url.searchParams.get('token')
+    const tokenHash = url.searchParams.get('token_hash')
+    
+    if (!token || !tokenHash) {
+      console.error('No token in generated link')
+      return sendRedirect(event, '/?error=no_token')
+    }
+    
+    // Verify the token and create session
+    const { data: sessionData, error: verifyError } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'magiclink'
     })
     
-    setCookie(event, 'sb-refresh-token', sessionData.session.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: '/'
-    })
+    if (verifyError) {
+      console.error('Failed to verify OTP:', verifyError)
+      return sendRedirect(event, '/?error=verification_failed')
+    }
     
-    // Redirect to dashboard
-    return sendRedirect(event, '/dashboard')
+    // Redirect with token in URL for client-side session establishment
+    return sendRedirect(event, `/auth/callback?access_token=${sessionData.session.access_token}&refresh_token=${sessionData.session.refresh_token}&type=slack`)
     
   } catch (error) {
     console.error('Slack OAuth callback error:', error)
