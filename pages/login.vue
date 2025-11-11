@@ -130,6 +130,14 @@ onMounted(() => {
 const signInWithSlack = () => {
   isLoading.value = true
   
+  // Debug: Check if client_id is available
+  if (!config.public.slackClientId) {
+    console.error('Slack Client ID is missing!')
+    errorMessage.value = 'Slack integration is not properly configured. Please contact support.'
+    isLoading.value = false
+    return
+  }
+  
   const slackAuthUrl = new URL('https://slack.com/oauth/v2/authorize')
   
   slackAuthUrl.searchParams.append('client_id', config.public.slackClientId)
