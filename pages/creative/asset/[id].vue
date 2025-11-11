@@ -205,22 +205,11 @@
         </div>
         
         <!-- Comments Tab -->
-        <div v-if="activeTab === 'comments'" class="tab-panel comments-panel">
-          <div class="comments-header">
-            <h3>Comments</h3>
-            <button @click="addingComment = true" class="btn-primary">
-              <span class="material-icons">add_comment</span>
-            </button>
-          </div>
-          
-          <div class="comments-list">
-            <p class="empty-state">No comments yet</p>
-          </div>
-          
-          <div class="comment-input">
-            <textarea v-model="newComment" placeholder="Add a comment..."></textarea>
-            <button @click="submitComment" class="btn-primary">Post</button>
-          </div>
+        <div v-if="activeTab === 'comments'" class="tab-panel comments-panel no-padding">
+          <CommentThread 
+            :asset-id="assetId"
+            :current-time="currentTime"
+          />
         </div>
         
         <!-- Versions Tab -->
@@ -292,8 +281,6 @@ const progress = computed(() => {
 const activeTab = ref<'details' | 'comments' | 'versions' | 'activity'>('details')
 const editingTitle = ref(false)
 const isFavorite = ref(false)
-const newComment = ref('')
-const addingComment = ref(false)
 
 const localAsset = ref({
   status: currentAsset.value?.status || 'new-request'
@@ -383,14 +370,6 @@ const handleDownload = () => {
   if (currentAsset.value?.videoUrl) {
     window.open(currentAsset.value.videoUrl, '_blank')
   }
-}
-
-const submitComment = () => {
-  if (!newComment.value.trim()) return
-  
-  // TODO: Save comment to database
-  console.log('New comment:', newComment.value)
-  newComment.value = ''
 }
 
 // Version handlers
