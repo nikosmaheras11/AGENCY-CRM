@@ -11,7 +11,7 @@ export interface SlackMessage {
   permalink: string;
   thread_ts: string | null;
   is_thread_reply: boolean;
-  reactions: any[];
+  reactions: readonly any[];
 }
 
 export interface UserMention {
@@ -208,7 +208,7 @@ export const useSlackMentions = () => {
           table: 'user_mentions',
           filter: `user_slack_id=eq.${slackId}`
         },
-        async (payload) => {
+        async (payload: any) => {
           console.log('New mention received:', payload);
           
           // Fetch the full mention details
@@ -233,7 +233,7 @@ export const useSlackMentions = () => {
           table: 'user_mentions',
           filter: `user_slack_id=eq.${slackId}`
         },
-        (payload) => {
+        (payload: any) => {
           console.log('Mention updated:', payload);
           
           // Update local state

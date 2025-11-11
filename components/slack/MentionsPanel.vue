@@ -54,7 +54,7 @@
           :key="mention.mention_id"
           class="mention-item"
           :class="{ 'unread': !mention.is_read }"
-          @click="handleMentionClick(mention)"
+          @click="handleMentionClick(mention as any)"
         >
           <!-- Unread Indicator -->
           <div v-if="!mention.is_read" class="unread-indicator" />
@@ -117,7 +117,7 @@
               v-if="!mention.is_read"
               size="xs"
               variant="ghost"
-              @click.stop="handleMarkRead(mention.mention_id)"
+              @click.stop="markAsRead(mention.mention_id)"
             >
               Mark as read
             </UButton>
