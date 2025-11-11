@@ -1,8 +1,8 @@
 # Agency Dashboard OS
 
-> Operating system and client dashboard for agency management - built on Directus and Nuxt 3
+> Operating system and client dashboard for agency management - built on Supabase and Nuxt 3
 
-A high-level dashboard providing team and clients with real-time snapshots across all agency sectors: Creative, Performance, Design, and Resources.
+A comprehensive agency management platform providing unified dashboards across Creative, Performance, Design, and Resource management with integrated Slack notifications and automated workflows.
 
 ## 🎯 Core Features
 
@@ -38,36 +38,36 @@ A high-level dashboard providing team and clients with real-time snapshots acros
 
 ## 🏗️ Architecture
 
-Built on the foundation of [directus-labs/agency-os](https://github.com/directus-labs/agency-os), extended with:
-
 ```
 agency-dashboard-os/
-├── directus/              # Backend & CMS
-│   ├── extensions/        # Custom Directus extensions
-│   ├── templates/         # Collection templates
-│   └── snapshots/         # Schema snapshots
-├── frontend/              # Nuxt 3 application
-│   ├── components/
-│   │   ├── creative/      # Creative review components
-│   │   ├── performance/   # Analytics & reporting
-│   │   ├── design/        # Design system components
-│   │   └── resources/     # DAM & resource management
-│   ├── pages/             # Application routes
-│   ├── composables/       # Vue composables
-│   └── utils/             # Utility functions
-├── integrations/          # Third-party integrations
-│   ├── slack/             # Slack bot & webhooks
-│   ├── analytics/         # Analytics connectors
-│   └── dam/               # DAM utilities
+├── supabase/              # Database & Backend
+│   └── migrations/        # SQL schema migrations
+├── workers/               # Background services
+│   ├── notification-worker.js
+│   ├── metrics-sync-worker.js
+│   └── retention-worker.js
+├── components/            # Nuxt 3 components
+│   ├── creative/          # Creative review components
+│   ├── performance/       # Analytics & reporting
+│   ├── design/            # Design system components
+│   └── resources/         # DAM & resource management
+├── pages/                 # Application routes
+├── composables/           # Vue composables
+├── utils/                 # Utility functions
 └── docs/                  # Documentation
 ```
+
+### Key Technologies
+- **Frontend**: Nuxt 3, TypeScript, Tailwind CSS, Nuxt UI
+- **Backend**: Supabase (PostgreSQL, Auth, Storage, Real-time)
+- **Workers**: Node.js background services
+- **Integrations**: Slack Web API, Meta Ads API, Google Ads API
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+ (with pnpm)
-- Docker & Docker Compose
-- Directus Cloud account or local Directus instance
+- Supabase project (create at [supabase.com](https://supabase.com))
 - Slack workspace (for integrations)
 
 ### 1. Clone and Install
@@ -78,18 +78,18 @@ cd agency-dashboard-os
 pnpm install
 ```
 
-### 2. Set Up Directus
+### 2. Deploy Database Schema
 
-#### Option A: Using Docker (Recommended for Development)
+**Option A - Supabase Dashboard (Recommended):**
+1. Open your Supabase project dashboard
+2. Navigate to **SQL Editor**
+3. Copy contents of `supabase/migrations/20250110_complete_schema.sql`
+4. Paste and execute
+
+**Option B - Supabase CLI:**
 ```bash
-docker-compose up -d
+supabase db push
 ```
-
-Access Directus at `http://localhost:8055`
-
-#### Option B: Directus Cloud
-1. Create a new project at [directus.cloud](https://directus.cloud)
-2. Note your project URL and admin token
 
 ### 3. Configure Environment
 
@@ -99,18 +99,21 @@ cp .env.example .env
 
 Edit `.env` with your configuration:
 ```env
-DIRECTUS_URL=http://localhost:8055
-DIRECTUS_SERVER_TOKEN=your-admin-token
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 SLACK_BOT_TOKEN=xoxb-your-bot-token
-# ... other variables
+SLACK_SIGNING_SECRET=your_signing_secret
 ```
 
-### 4. Import Schema
+### 4. Start Worker Services
 
 ```bash
-# Import the agency dashboard schema
-cd directus
-npx directus-template-cli@latest apply
+# Terminal 1: Notification Worker
+node workers/notification-worker.js
+
+# Terminal 2: Metrics Sync Worker
+node workers/metrics-sync-worker.js
 ```
 
 ### 5. Run Development Server
@@ -121,23 +124,35 @@ pnpm dev
 
 Visit `http://localhost:3000`
 
+## 📚 Detailed Documentation
+
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete setup walkthrough
+- **[WORKER_SERVICES.md](./WORKER_SERVICES.md)** - Background worker implementation
+- **[WARP.md](./WARP.md)** - Development guidelines
+
 ## 📦 Tech Stack
 
 ### Frontend
-- **Nuxt 3**: Vue.js framework
+- **Nuxt 3**: Vue.js framework with TypeScript
 - **Nuxt UI**: Component library with Tailwind CSS
 - **VueUse**: Composition utilities
-- **Chart.js**: Data visualization
+- **Supabase JS**: Realtime database client
 
 ### Backend
-- **Directus**: Headless CMS and backend
-- **PostgreSQL**: Database
-- **Redis**: Caching (optional)
+- **Supabase**: PostgreSQL database, Auth, Storage, Real-time
+- **Row Level Security**: Database-level permissions
+- **PostgreSQL Triggers**: Automated workflows
+
+### Worker Services
+- **Node.js**: Background processing
+- **Slack Web API**: Team notifications
+- **Meta Ads API**: Performance metrics sync
 
 ### Integrations
-- **Slack Web API**: Team communication
+- **Slack**: Real-time notifications and bidirectional sync
+- **Meta Ads**: Automated campaign metrics
+- **Google Ads**: Performance tracking (ready for implementation)
 - **OpenAI API**: Smart tagging (optional)
-- **Directus SDK**: API client
 
 ## 🎨 Key Modules
 
@@ -182,18 +197,35 @@ Real-time team collaboration:
 2. Add to `.env` as `OPENAI_API_KEY`
 3. Configure tagging rules in Directus
 
-## 📊 Directus Collections
+## 🗄️ Database Schema
 
-Key collections created:
-- `projects`: All agency projects
+### Core Tables
+- `requests`: Multi-board request management
 - `clients`: Client management
-- `creative_assets`: Creative review items
-- `performance_campaigns`: Campaign tracking
-- `design_components`: Design system
-- `resources`: DAM entries
+- `assets`: Asset management with versioning
+- `comments`: Threaded comments with positioning
 - `tags`: Smart tagging taxonomy
-- `team_members`: Team directory
-- `sectors`: Creative, Performance, Design, Resources
+- `profiles`: Team member profiles
+- `project_tasks`: Task tracking
+
+### Automation & Integration
+- `automation_rules`: Configurable workflow automation
+- `automation_rule_templates`: Predefined automation patterns
+- `notification_queue`: Slack notification processing
+- `slack_connected_channels`: Slack channel mappings
+- `slack_comment_threads`: Bidirectional comment sync
+
+### Performance Tracking
+- `performance_metrics`: Campaign performance data
+- `platform_connections`: API integration credentials
+- `metric_sync_logs`: Sync history and error tracking
+
+### Data Management
+- `activity_log`: Audit trail
+- `archived_activity_log`: Historical data
+- `retention_policies`: Automated data archival
+
+See [complete schema](./supabase/migrations/20250110_complete_schema.sql) for full details.
 
 ## 🚢 Deployment
 
@@ -201,26 +233,45 @@ Key collections created:
 Deploy to Vercel, Netlify, or any Node.js host:
 ```bash
 pnpm build
-pnpm preview
+# Deploy .output directory
 ```
 
-### Backend (Directus)
-- Use Directus Cloud (recommended)
-- Self-host with Docker
-- Deploy to any Node.js host
+### Backend (Supabase)
+Already hosted! Just configure the schema.
+
+### Worker Services
+
+**PM2 (VPS/Server):**
+```bash
+pm2 start workers/notification-worker.js --name "notification-worker"
+pm2 start workers/metrics-sync-worker.js --name "metrics-worker"
+pm2 save && pm2 startup
+```
+
+**Docker/Cloud:** See [WORKER_SERVICES.md](./WORKER_SERVICES.md)
 
 ## 📝 Development
 
-### Add Custom Directus Extension
+### Create Database Migration
 ```bash
-cd directus/extensions
-npx create-directus-extension@latest
+supabase migration new your_migration_name
+# Edit the generated file in supabase/migrations/
+supabase db push
 ```
 
 ### Create New Module Component
 ```bash
 # Example: new performance widget
-touch frontend/components/performance/MetricsWidget.vue
+touch components/performance/MetricsWidget.vue
+```
+
+### Test Status Transitions
+```sql
+INSERT INTO requests (title, request_type, created_by)
+VALUES ('Test', 'creative', auth.uid());
+
+UPDATE requests SET status = 'in_progress' WHERE title = 'Test'; -- ✅
+UPDATE requests SET status = 'needs_edit' WHERE title = 'Test'; -- ❌ Invalid
 ```
 
 ## 🤝 Contributing
@@ -236,10 +287,10 @@ MIT License - see LICENSE file
 
 ## 🔗 Resources
 
-- [Directus Documentation](https://docs.directus.io)
+- [Supabase Documentation](https://supabase.com/docs)
 - [Nuxt 3 Documentation](https://nuxt.com/docs)
-- [Agency OS Base](https://github.com/directus-labs/agency-os)
-- [Project Documentation](./docs/)
+- [Slack API Documentation](https://api.slack.com)
+- [Project Documentation](./DEPLOYMENT_GUIDE.md)
 
 ## 🆘 Support
 

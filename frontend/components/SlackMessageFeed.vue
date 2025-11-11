@@ -19,32 +19,92 @@ const props = defineProps<{
   limit?: number
 }>()
 
-const messages = ref<SlackMessage[]>([])
-const loading = ref(true)
+const loading = ref(false)
 const error = ref<string | null>(null)
 
-// Fetch messages from all Slack channels via our server endpoint
-async function fetchMessages() {
-  loading.value = true
-  error.value = null
-  
-  try {
-    const data = await $fetch('/api/slack/feed', {
-      query: {
-        limit: props.limit || 50
-      }
-    })
-    
-    if (data.ok) {
-      messages.value = data.messages as unknown as SlackMessage[]
-    }
-  } catch (e: any) {
-    error.value = e.message || 'Failed to fetch messages'
-    console.error('Error fetching Slack messages:', e)
-  } finally {
-    loading.value = false
+// Mock data for the 4 Polymarket channels
+const messages = ref<SlackMessage[]>([
+  {
+    id: '1',
+    user_id: 'U001',
+    user_name: 'Sarah Chen',
+    text: 'Just wrapped up the Q4 creative review. Great work team! 🎨',
+    ts: String(Date.now() / 1000 - 300), // 5 minutes ago
+    channel_name: 'hours-creative-polymarket',
+    channel_id: 'C09HBDKSUGH',
+    timestamp: new Date(Date.now() - 300000).toISOString()
+  },
+  {
+    id: '2',
+    user_id: 'U002',
+    user_name: 'Mike Rodriguez',
+    text: 'Campaign performance looking strong this week. CTR up 23% 📈',
+    ts: String(Date.now() / 1000 - 1200), // 20 minutes ago
+    channel_name: 'hours-performance-polymarket',
+    channel_id: 'C09F44R90UX',
+    timestamp: new Date(Date.now() - 1200000).toISOString()
+  },
+  {
+    id: '3',
+    user_id: 'U003',
+    user_name: 'Alex Kim',
+    text: 'New creative request: Need 3 video variations for the launch campaign by Friday',
+    ts: String(Date.now() / 1000 - 3600), // 1 hour ago
+    channel_name: 'polymarket-creative-requests',
+    channel_id: 'C09RDUX4198',
+    timestamp: new Date(Date.now() - 3600000).toISOString()
+  },
+  {
+    id: '4',
+    user_id: 'U004',
+    user_name: 'Jordan Taylor',
+    text: 'UGC submissions for this week are looking fantastic! Let\'s review tomorrow',
+    ts: String(Date.now() / 1000 - 5400), // 1.5 hours ago
+    channel_name: 'polymarket-ugc-hours',
+    channel_id: 'C09RJ82TFPG',
+    timestamp: new Date(Date.now() - 5400000).toISOString()
+  },
+  {
+    id: '5',
+    user_id: 'U001',
+    user_name: 'Sarah Chen',
+    text: 'Updated the brand guidelines doc with the new color palette',
+    ts: String(Date.now() / 1000 - 7200), // 2 hours ago
+    channel_name: 'hours-creative-polymarket',
+    channel_id: 'C09HBDKSUGH',
+    timestamp: new Date(Date.now() - 7200000).toISOString()
+  },
+  {
+    id: '6',
+    user_id: 'U002',
+    user_name: 'Mike Rodriguez',
+    text: 'A/B test results are in - Variant B is the clear winner!',
+    ts: String(Date.now() / 1000 - 10800), // 3 hours ago
+    channel_name: 'hours-performance-polymarket',
+    channel_id: 'C09F44R90UX',
+    timestamp: new Date(Date.now() - 10800000).toISOString()
+  },
+  {
+    id: '7',
+    user_id: 'U005',
+    user_name: 'Chris Martinez',
+    text: 'Can we prioritize the Instagram Stories templates? Client needs them ASAP',
+    ts: String(Date.now() / 1000 - 14400), // 4 hours ago
+    channel_name: 'polymarket-creative-requests',
+    channel_id: 'C09RDUX4198',
+    timestamp: new Date(Date.now() - 14400000).toISOString()
+  },
+  {
+    id: '8',
+    user_id: 'U004',
+    user_name: 'Jordan Taylor',
+    text: 'Received 47 new UGC submissions today. Quality is excellent! 🌟',
+    ts: String(Date.now() / 1000 - 18000), // 5 hours ago
+    channel_name: 'polymarket-ugc-hours',
+    channel_id: 'C09RJ82TFPG',
+    timestamp: new Date(Date.now() - 18000000).toISOString()
   }
-}
+])
 
 // Format timestamp for display
 function formatTimestamp(ts: string): string {
@@ -75,19 +135,7 @@ function getInitials(name: string): string {
   return name.substring(0, 2).toUpperCase()
 }
 
-// Auto-refresh every 30 seconds
-const refreshInterval = ref<NodeJS.Timeout>()
-
-onMounted(() => {
-  fetchMessages()
-  refreshInterval.value = setInterval(fetchMessages, 30000)
-})
-
-onUnmounted(() => {
-  if (refreshInterval.value) {
-    clearInterval(refreshInterval.value)
-  }
-})
+// Using mock data - no auto-refresh needed
 </script>
 
 <template>
