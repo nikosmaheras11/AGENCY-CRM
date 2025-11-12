@@ -106,6 +106,7 @@
 <script setup lang="ts">
 const config = useRuntimeConfig()
 const route = useRoute()
+const { supabase } = useSupabase()
 const isLoading = ref(false)
 const errorMessage = ref('')
 
@@ -127,61 +128,29 @@ onMounted(() => {
   }
 })
 
-const signInWithSlack = () => {
-  console.log('=== Slack SSO Debug ====')
-  console.log('Config:', config.public)
-  console.log('Slack Client ID:', config.public.slackClientId)
-  console.log('Site URL:', config.public.siteUrl)
-  
+const signInWithSlack = async () => {
   isLoading.value = true
+  errorMessage.value = ''
   
-  // Debug: Check if client_id is available
-  if (!config.public.slackClientId) {
-    console.error('❌ Slack Client ID is missing!')
-    console.error('Available config:', config.public)
-    errorMessage.value = 'Slack integration is not properly configured. Check console for details.'
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'slack_oidc',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    })
+    
+    if (error) {
+      console.error('Slack OAuth error:', error)
+      errorMessage.value = error.message || 'Failed to initiate Slack sign in'
+      isLoading.value = false
+    }
+    // If successful, user will be redirected to Slack
+  } catch (error: any) {
+    console.error('Sign in error:', error)
+    errorMessage.value = error.message || 'An error occurred during sign in'
     isLoading.value = false
-    return
   }
-  
-  console.log('✅ Slack Client ID found, proceeding...')
-  
-  // Generate state for CSRF protection
-  const state = generateRandomState()
-  
-  // Store state in localStorage for validation (security measure)
-  if (process.client) {
-    localStorage.setItem('slack_auth_state', state)
-  }
-  
-  // Get the current origin (works in production automatically)
-  // Falls back to config if window is not available (SSR)
-  const origin = process.client && typeof window !== 'undefined'
-    ? window.location.origin
-    : config.public.siteUrl
-  
-  // Create the authorization URL with dynamic origin
-  const redirectUri = `${origin}/api/auth/slack/callback`
-  const slackAuthUrl = new URL('https://slack.com/oauth/v2/authorize')
-  
-  slackAuthUrl.searchParams.append('client_id', config.public.slackClientId)
-  slackAuthUrl.searchParams.append('scope', '')
-  slackAuthUrl.searchParams.append('user_scope', 'identity.basic,identity.email,identity.avatar')
-  slackAuthUrl.searchParams.append('redirect_uri', redirectUri)
-  slackAuthUrl.searchParams.append('state', state)
-  
-  // Log for debugging (helps diagnose production issues)
-  console.log('Slack OAuth Configuration:')
-  console.log('  Client ID:', config.public.slackClientId)
-  console.log('  Redirect URI:', redirectUri)
-  console.log('  Auth URL:', slackAuthUrl.toString())
-  
-  // Redirect to Slack
-  window.location.href = slackAuthUrl.toString()
-}
-
-const generateRandomState = () => {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
 // Guest middleware will handle redirect if already logged in
