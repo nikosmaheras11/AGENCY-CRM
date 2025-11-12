@@ -1,0 +1,51 @@
+name: Deploy Database Migrations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Apply migrations to Supabase
+        run: |
+          # Get list of migration files
+          for file in supabase/migrations/*.sql; do
+            if [ -f "$file" ]; then
+              echo "🔄 Applying migration: $(basename $file)"
+              
+              # Read SQL and escape for JSON
+              SQL=$(jq -Rs . < "$file")
+              
+              # Execute via exec_sql RPC
+              RESPONSE=$(curl -s -w "\n%{http_code}" \
+                "https://vzhthefdgumjkhnjpydt.supabase.co/rest/v1/rpc/exec_sql" \
+                -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+                -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+                -H "Content-Type: application/json" \
+                -H "Prefer: params=single-object" \
+                -d "{\"query\": $SQL}")
+              
+              HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+              
+              if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "204" ]; then
+                echo "✅ Success: $(basename $file)"
+              else
+                echo "❌ Failed: $(basename $file)"
+                echo "$RESPONSE"
+                exit 1
+              fi
+            fi
+          done
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      
+      - name: Notify completion
+        run: echo "✅ All migrations applied successfully"

@@ -76,8 +76,8 @@ export const useSupabase = () => {
    */
   const uploadVideo = async (file: File, folder: string = 'videos') => {
     const fileName = `${folder}/${Date.now()}-${file.name}`
-    await uploadFile('creative-assets', fileName, file)
-    return getPublicUrl('creative-assets', fileName)
+    await uploadFile('assets', fileName, file)
+    return getPublicUrl('assets', fileName)
   }
 
   /**
@@ -85,8 +85,8 @@ export const useSupabase = () => {
    */
   const uploadImage = async (file: File, folder: string = 'images') => {
     const fileName = `${folder}/${Date.now()}-${file.name}`
-    await uploadFile('creative-assets', fileName, file)
-    return getPublicUrl('creative-assets', fileName)
+    await uploadFile('assets', fileName, file)
+    return getPublicUrl('assets', fileName)
   }
 
   /**

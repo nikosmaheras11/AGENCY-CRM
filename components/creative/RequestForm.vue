@@ -174,9 +174,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import type { RequestFormData } from '~/composables/useRequestForm'
 
-const { supabase } = useSupabase()
+const { submitRequest, submitting, error: submitError } = useRequestForm()
 
 const emit = defineEmits<{
   close: []
@@ -217,49 +218,19 @@ async function handleSubmit(): Promise<void> {
   isSubmitting.value = true
   
   try {
-    // Insert request into database (using actual schema column names)
-    const { data: request, error: requestError } = await supabase
-      .from('requests')
-      .insert({
-        title: form.value.title,
-        description: form.value.description,
-        project_type: 'creative', // actual column is project_type not request_type
-        status: 'new_request',
-        priority: form.value.priority,
-        due_date: form.value.dueDate || null,
-        format: form.value.platform, // store platform in format field
-        size: form.value.adFormat, // store ad format in size field
-        figma_url: form.value.figmaLinks, // store first figma link
-        tags: form.value.inspiration ? [form.value.inspiration] : [] // store inspiration in tags
-      })
-      .select()
-      .single()
-
-    if (requestError) throw requestError
-
-    // Upload file if present
-    if (selectedFile.value && request) {
-      const fileExt = selectedFile.value.name.split('.').pop()
-      const fileName = `${request.id}/${Date.now()}.${fileExt}`
-      
-      const { error: uploadError } = await supabase.storage
-        .from('creative-assets')
-        .upload(fileName, selectedFile.value)
-
-      if (uploadError) {
-        console.error('File upload error:', uploadError)
-      } else {
-        // Create asset record
-        await supabase.from('assets').insert({
-          request_id: request.id,
-          name: selectedFile.value.name,
-          original_filename: selectedFile.value.name,
-          storage_path: fileName,
-          file_type: selectedFile.value.type.split('/')[0],
-          file_size: selectedFile.value.size
-        })
-      }
+    const payload: RequestFormData = {
+      creativeName: form.value.title,
+      platform: form.value.platform,
+      adSizeFormat: form.value.adFormat,
+      priority: form.value.priority as any,
+      dueDate: form.value.dueDate,
+      creativeDescription: form.value.description,
+      inspiration: form.value.inspiration,
+      figmaAssetLinks: form.value.figmaLinks,
+      assetFile: selectedFile.value
     }
+
+    const request = await submitRequest(payload)
 
     // Success!
     emit('submitted', request.id)
@@ -280,7 +251,7 @@ async function handleSubmit(): Promise<void> {
     
   } catch (error) {
     console.error('Error creating request:', error)
-    alert('Failed to create request. Please try again.')
+    alert(submitError.value || 'Failed to create request. Please try again.')
   } finally {
     isSubmitting.value = false
   }
