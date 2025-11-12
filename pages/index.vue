@@ -9,6 +9,15 @@
         <h1 class="text-xl font-semibold text-white">Client Dashboard</h1>
       </div>
       <div class="flex items-center space-x-4">
+        <!-- New Request Button -->
+        <button 
+          @click="openRequestForm"
+          class="flex items-center gap-2 px-4 py-2 bg-success hover:bg-success/90 rounded-lg font-medium transition-colors"
+        >
+          <span class="material-icons text-lg">add</span>
+          <span class="hidden sm:inline">New Request</span>
+        </button>
+        
         <div class="relative">
           <button class="w-10 h-10 rounded-full bg-white/5 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/10 transition-colors">
             <span class="material-icons text-xl">search</span>
@@ -216,10 +225,26 @@
         </div>
       </div>
     </main>
+    
+    <!-- Request Form Modal -->
+    <RequestFormModal ref="requestFormModal" @submitted="handleRequestSubmitted" />
   </div>
 </template>
 
 <script setup lang="ts">
+import RequestFormModal from '~/components/creative/RequestFormModal.vue'
+// Request form modal
+const requestFormModal = ref(null)
+
+function openRequestForm() {
+  requestFormModal.value?.open()
+}
+
+function handleRequestSubmitted(requestId) {
+  console.log('New request created:', requestId)
+  // Optionally refresh the alerts list or navigate to the request
+}
+
 // Current time and date
 const currentTime = ref('')
 const currentDate = ref('')
