@@ -210,7 +210,7 @@ const handleEmailAuth = async () => {
 }
 
 definePageMeta({
-  layout: 'auth'
+  layout: false // Don't use any layout for login page
 })
 </script>
 
