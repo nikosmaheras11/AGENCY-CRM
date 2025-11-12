@@ -1,5 +1,5 @@
 <template>
-  <NuxtLayout name="dashboard">
+  <DashboardLayout>
     <div class="p-6">
       <!-- Welcome Section -->
       <div class="mb-4">
@@ -180,7 +180,7 @@
         </div>
       </div>
     </div>
-  </NuxtLayout>
+  </DashboardLayout>
 </template>
 
 <script setup lang="ts">
