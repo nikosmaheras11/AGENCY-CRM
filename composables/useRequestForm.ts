@@ -90,16 +90,16 @@ export const useRequestForm = () => {
       
       console.log('[useRequestForm] Created by name:', createdByName)
       
-      // Prepare request data
+      // Prepare request data - match exact database schema
       const requestData = {
         title: formData.creativeName,
         description: formData.creativeDescription || null,
         project_type: 'creative' as const,
         status: 'new-request' as const,
         priority: formData.priority || 'medium',
-        platform: formData.platform || null,
-        format,
-        dimensions,
+        // Map form fields to database columns:
+        format: formData.platform || null,  // "Platform" → format column
+        dimensions,  // "Ad Size/Format" → dimensions column
         due_date: formData.dueDate || null,
         to_user: formData.toUser || null,
         inspiration: formData.inspiration || null,
@@ -107,7 +107,7 @@ export const useRequestForm = () => {
         asset_file_url: assetFileUrl,
         thumbnail_url: thumbnailUrl,
         created_by: user.value?.id || null,
-        created_by_name: createdByName  // Manually set instead of trigger
+        created_by_name: createdByName
       }
       
       console.log('[useRequestForm] Inserting request data:', requestData)
