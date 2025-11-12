@@ -73,9 +73,11 @@ const navItems: NavItem[] = [
 const logoExists = ref(true)
 const logoPngExists = ref(true)
 
-// Hide sidebar for fullscreen routes (asset viewer)
+// Hide sidebar for fullscreen routes (asset viewer, login, auth)
 const isFullscreenRoute = computed(() => {
-  return route.path.startsWith('/creative/asset/')
+  return route.path.startsWith('/creative/asset/') || 
+         route.path === '/login' || 
+         route.path.startsWith('/auth/')
 })
 
 // Head configuration for fonts
