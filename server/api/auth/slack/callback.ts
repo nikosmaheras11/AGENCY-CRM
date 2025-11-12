@@ -107,6 +107,35 @@ export default defineEventHandler(async (event) => {
       
       userId = authData.user.id
       
+      // Determine user role based on email domain
+      const email = slackUser.profile.email
+      const isPolymarketUser = email.endsWith('@polymarket.com')
+      const isInternalUser = email.endsWith('@agency.com')
+      
+      let role = 'user' // default
+      let clientId = null
+      let company = null
+      
+      if (isPolymarketUser) {
+        // Polymarket client guest
+        role = 'client_guest'
+        // Fetch Polymarket client ID
+        const { data: polymarketClient } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('name', 'Polymarket')
+          .single()
+        clientId = polymarketClient?.id
+        company = 'Polymarket'
+      } else if (isInternalUser) {
+        // Internal team member
+        role = 'user'
+        // Could set admin for specific emails
+        if (email === 'nikos@agency.com') {
+          role = 'admin'
+        }
+      }
+      
       // Create profile
       await supabase
         .from('profiles')
@@ -117,6 +146,9 @@ export default defineEventHandler(async (event) => {
           last_name: slackUser.profile.last_name || slackUser.real_name?.split(' ').slice(1).join(' '),
           avatar_url: slackUser.profile.image_192,
           slack_access_token: tokenData.authed_user.access_token,
+          role: role,
+          client_id: clientId,
+          company: company
         })
     }
     

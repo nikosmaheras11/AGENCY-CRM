@@ -1,4 +1,8 @@
 import { vi } from 'vitest'
+import { config } from 'dotenv'
+
+// Load environment variables from .env file
+config()
 
 // Mock global objects if needed
 global.ResizeObserver = vi.fn().mockImplementation(() => ({

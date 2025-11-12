@@ -16,6 +16,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:db": "vitest tests/supabase/db-functions.test.ts",
+    "validate-db": "tsx scripts/validate-db.ts",
     "slack-monitor": "node scripts/slack-monitor.cjs",
     "setup-supabase": "node scripts/setup-supabase.cjs"
   },

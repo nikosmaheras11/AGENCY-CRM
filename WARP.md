@@ -4,107 +4,131 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-Agency Dashboard OS is a comprehensive agency management platform built on **Directus** (headless CMS backend) and **Nuxt 3** (Vue.js frontend). It provides unified dashboards across four core modules: Creative, Performance, Design, and Resources (DAM).
+Agency Dashboard OS is a comprehensive agency management platform with a **cloud-first architecture**. The system uses **Supabase** (PostgreSQL database with real-time capabilities) and **Nuxt 3** (Vue.js frontend), deployed via **Vercel**.
 
 **Key Technologies:**
 - Frontend: Nuxt 3, TypeScript, Tailwind CSS, Nuxt UI, VueUse
-- Backend: Directus CMS, PostgreSQL, Redis
-- Integrations: Slack Web API, OpenAI (optional), Directus SDK
+- Database: Supabase PostgreSQL (Project ID: vzhthefdgumjkhnjpydt)
+- Deployment: Vercel (GitHub integration)
+- Integrations: Slack Web API, Supabase Real-time
 - Package Manager: **pnpm** (required)
 
-## Essential Commands
+**Architecture Philosophy:**
+- ✅ Cloud-first: GitHub → Vercel pipeline
+- ✅ Single database: Supabase (no local DB needed)
+- ✅ Minimal local development (staging environment preferred)
+- ✅ Real-time features via Supabase subscriptions
 
-### Development Setup
+## Development Workflow
+
+### Cloud-First Approach (Preferred)
+
+This project uses a **GitHub → Vercel** deployment pipeline. Local development is minimized to avoid conflicts.
+
+**Recommended Workflow:**
+1. Make changes in your editor
+2. Commit and push to GitHub
+3. Vercel automatically deploys to staging
+4. Test in staging environment
+5. Merge to main for production
+
+**Benefits:**
+- No local database setup required
+- Consistent environment (staging = production)
+- Automatic deployments
+- No Docker overhead
+
+### Quick Push Workflow
 
 ```bash
-# Install dependencies (always use pnpm)
+# Add and commit changes
+git add .
+git commit -m "feat: your change description"
+
+# Push to trigger Vercel deployment
+git push origin main
+
+# Check deployment status
+vercel --prod
+```
+
+### Local Development (When Needed)
+
+```bash
+# Install dependencies
 pnpm install
 
-# Start backend services (Directus + PostgreSQL + Redis)
-docker-compose up -d
-
-# Access Directus admin panel
-# URL: http://localhost:8055
-# Default credentials: admin@example.com / admin
-
-# Start Nuxt development server
+# Start development server (connects to cloud Supabase)
 pnpm dev
 
 # Frontend runs at: http://localhost:3000
+# Database: Cloud Supabase (no local DB needed)
 ```
 
-### Docker Services Management
+**Note:** Docker services are no longer required. See `docker-compose.yml.legacy` for historical reference.
+
+### Verification & Testing
 
 ```bash
-# Start all services
-docker-compose up -d
+# Verify database schema
+node scripts/verify-schema.js
 
-# View logs for all services
-docker-compose logs -f
-
-# View logs for specific service
-docker-compose logs -f directus
-docker-compose logs -f postgres
-
-# Stop all services
-docker-compose down
-
-# Stop and remove volumes (CAUTION: deletes database)
-docker-compose down -v
-
-# Restart a specific service
-docker-compose restart directus
-```
-
-### Build & Production
-
-```bash
-# Build for production
-pnpm build
-
-# Preview production build locally
-pnpm preview
-
-# Generate static site (if applicable)
-pnpm generate
-```
-
-### Code Quality
-
-```bash
-# Run ESLint
+# Run linting
 pnpm lint
 
-# Fix ESLint issues automatically
+# Fix lint issues
 pnpm lint:fix
+
+# Build for production (runs automatically on Vercel)
+pnpm build
+
+# Preview production build locally (optional)
+pnpm preview
 ```
 
-### Directus Schema Management
+### Vercel Deployment Commands
 
 ```bash
-# Import schema to Directus instance
-cd directus
-npx directus-template-cli@latest apply
+# Install Vercel CLI (if not installed)
+pnpm add -g vercel
 
-# Create new Directus extension
-cd directus/extensions
-npx create-directus-extension@latest
+# Link to Vercel project (first time only)
+vercel link
+
+# Deploy to preview
+vercel
+
+# Deploy to production
+vercel --prod
+
+# View deployment logs
+vercel logs
+
+# List deployments
+vercel ls
 ```
 
 ## Architecture & Code Organization
 
 ### High-Level Architecture
 
-The system follows a **three-tier architecture**:
+The system follows a **cloud-native architecture**:
 
-1. **Frontend Layer** (Nuxt 3): Four independent modules with shared composables
-2. **Backend Layer** (Directus): RESTful/GraphQL API, authentication, file storage
-3. **Integration Layer**: External services (Slack, AI tagging, analytics)
+1. **Frontend Layer** (Nuxt 3): Request-centric UI with real-time updates
+2. **Database Layer** (Supabase): PostgreSQL with built-in auth, storage, and real-time
+3. **Integration Layer**: Slack API, external services
 
 **Data Flow Pattern:**
 ```
-User Action → Frontend Component → Composable → Directus SDK → Directus API 
-→ PostgreSQL → Directus Flows (triggers) → Integrations (Slack/AI)
+User Action → Frontend Component → useSupabase Composable → Supabase Client
+→ PostgreSQL (RLS policies) → Database Triggers → Notifications/Integrations
+```
+
+**Deployment Pipeline:**
+```
+Git Push → GitHub → Vercel Build → Staging/Production
+                           ↓
+                    Supabase (Database)
 ```
 
 ### Module Structure
@@ -126,80 +150,109 @@ frontend/
 **When adding features:**
 - Place module-specific components in their respective directories
 - Shared logic goes in `composables/`
-- Directus API interactions use `useDirectus()` composable
+- **All database interactions use `useSupabase()` composable**
 
-### Directus Backend Architecture
+### Supabase Database Architecture
 
-**Core Collections:**
-- `sectors` - Four main modules (Creative, Performance, Design, Resources)
+**Core Tables:**
+- `requests` - Central table for all work items (creative, performance, project)
 - `clients` - Client management
-- `projects` - Project tracking with sector relationships
-- `creative_assets` - Creative files with approval workflows
-- `performance_campaigns` - Campaign metrics and analytics
-- `design_components` - Design system library
-- `resources` - DAM entries with AI-powered tagging
-- `tags` - Tagging taxonomy (manual + auto-generated)
-- `team_members` - Team directory with Slack integration
-- `activity_feed` - Real-time activity across sectors
+- `assets` - File attachments with automatic versioning
+- `comments` - Threaded feedback with positioned annotations
+- `video_versions` - Video uploads with timecode comments
+- `timecode_comments` - Frame-accurate video feedback
+- `slack_messages` - Slack integration with @mention tracking
+- `performance_metrics` - Campaign analytics with API sync
+- `automation_rules` - Workflow automation engine
+- `profiles` - User management (extends Supabase Auth)
 
-**Key Relationships:**
-- Projects belong to clients and sectors
-- All module records (creative_assets, performance_campaigns, etc.) link to projects
-- Team members are associated with sectors
-- Activity feed tracks changes across all collections
+**Key Features:**
+- **Request-Centric Model**: All work flows through the `requests` table
+- **Built-in Versioning**: Assets automatically version on file change
+- **Real-Time**: All critical tables support WebSocket subscriptions
+- **Status Workflow**: Enforced state machine with audit trail
+
+**See `DATABASE_SCHEMA.md` for complete documentation (30 tables).**
 
 ### Integration Patterns
 
-**Slack Integration** (`integrations/slack/`):
-- Uses Directus Flows to trigger notifications
-- Channel-specific routing by sector
-- Webhook endpoints for bidirectional communication
+**Slack Integration:**
+- Bidirectional sync between Slack and dashboard
+- @mentions tracked in `user_mentions` table
+- Messages stored in `slack_messages` for search/reference
+- Real-time updates via Supabase subscriptions
 
-**Smart Tagging** (`integrations/dam/`):
-- Triggered on file upload via Directus hooks
-- Uses OpenAI Vision API for image analysis
-- Stores results in `resources.auto_tags` (JSON field)
-
-**Analytics** (`integrations/analytics/`):
-- Aggregates campaign data from `performance_campaigns`
-- Provides report generation utilities
-- Export functionality for external analysis
+**Supabase Features Used:**
+- **Authentication**: Built-in user management and OAuth
+- **Storage**: File uploads for images, videos, documents
+- **Real-time**: WebSocket subscriptions for live updates
+- **Row Level Security**: Permission policies at database level
+- **Database Functions**: Automated workflows and triggers
 
 ## Environment Configuration
 
 **Required Variables:**
-- `DIRECTUS_URL` - Directus instance URL (default: http://localhost:8055)
-- `DIRECTUS_SERVER_TOKEN` - Admin token for server-side operations
+- `SUPABASE_URL` - Supabase project URL (https://vzhthefdgumjkhnjpydt.supabase.co)
+- `SUPABASE_ANON_KEY` - Public anon key (client-side safe)
+- `SUPABASE_SERVICE_KEY` - Service role key (server-side only)
 
 **Slack Integration:**
 - `SLACK_BOT_TOKEN` - Bot token (starts with xoxb-)
+- `SLACK_CLIENT_SECRET` - OAuth client secret
 - `SLACK_SIGNING_SECRET` - For webhook verification
-- `SLACK_CHANNEL_*` - Channel IDs for each sector
+- `SLACK_CHANNEL_CREATIVE` - Creative channel ID
+- `SLACK_CHANNEL_PERFORMANCE` - Performance channel ID
+- `SLACK_CHANNEL_REQUESTS` - Requests channel ID
+- `SLACK_CHANNEL_UGC` - UGC channel ID
 
-**Optional Features:**
-- `OPENAI_API_KEY` - For AI-powered smart tagging
-- `REDIS_HOST` / `REDIS_PORT` - For caching (recommended for production)
+**Vercel Environment Variables:**
+All environment variables must be set in Vercel dashboard for production/staging.
 
 **Important:**
-- Never commit `.env` file
+- Never commit `.env` file to Git
 - Use `.env.example` as template
-- Secrets should be managed via environment variables, not hardcoded
+- Vercel automatically injects environment variables during build
+- Secrets should be stored in Vercel dashboard, not hardcoded
 
 ## Development Patterns
 
-### Directus SDK Usage
+### Supabase Client Usage
 
-Always use the `useDirectus()` composable for API interactions:
+Always use the `useSupabase()` composable for database operations:
 
 ```typescript
-const { client } = useDirectus()
+import { useSupabase } from '~/composables/useSupabase'
 
-// Fetch data
-const projects = await client.request(
-  readItems('projects', {
-    filter: { status: { _eq: 'active' } }
+const { supabase } = useSupabase()
+
+// Fetch data with relationships
+const { data: requests } = await supabase
+  .from('requests')
+  .select('*, client:clients(*), assigned:profiles(*)')
+  .eq('status', 'in_progress')
+
+// Insert data
+const { data: newRequest } = await supabase
+  .from('requests')
+  .insert({
+    title: 'New Campaign',
+    request_type: 'creative',
+    status: 'new_request'
   })
-)
+  .select()
+  .single()
+
+// Real-time subscriptions
+supabase
+  .channel('requests')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'requests'
+  }, (payload) => {
+    console.log('Change:', payload)
+  })
+  .subscribe()
 ```
 
 ### Component Conventions

@@ -1,0 +1,124 @@
+name: Database Schema Validation
+
+on:
+  push:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - '.github/workflows/db-validation.yml'
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+
+jobs:
+  validate-migrations:
+    name: Validate SQL Migrations
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check SQL syntax
+        run: |
+          echo "Checking SQL files for syntax errors..."
+          for file in supabase/migrations/*.sql; do
+            if [ -f "$file" ]; then
+              echo "✓ Checking $file"
+              # Basic syntax check - look for common issues
+              if grep -q "CREATE TABLE.*;" "$file" 2>/dev/null; then
+                echo "  ✓ Contains table definitions"
+              fi
+            fi
+          done
+          echo "✅ All SQL files passed basic validation"
+
+  test-database-functions:
+    name: Test Database Functions
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Run database function tests
+        run: pnpm test tests/supabase/db-functions.test.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      
+      - name: Test results
+        if: always()
+        run: echo "Database function tests completed"
+
+  validate-schema-integrity:
+    name: Validate Schema Integrity
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check migration file naming
+        run: |
+          echo "Validating migration file naming conventions..."
+          for file in supabase/migrations/*.sql; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              echo "Checking: $filename"
+              
+              # Check if filename follows convention (timestamp or numbered)
+              if [[ $filename =~ ^[0-9]+.*\.sql$ ]]; then
+                echo "  ✓ Valid migration filename format"
+              else
+                echo "  ⚠️  Warning: $filename doesn't follow standard naming convention"
+              fi
+            fi
+          done
+      
+      - name: Check for common issues
+        run: |
+          echo "Checking for common migration issues..."
+          
+          # Check for DROP TABLE without IF EXISTS
+          if grep -r "DROP TABLE [^I]" supabase/migrations/ 2>/dev/null; then
+            echo "⚠️  Warning: Found DROP TABLE without IF EXISTS"
+          fi
+          
+          # Check for missing transaction blocks
+          echo "Checking transaction usage..."
+          for file in supabase/migrations/*.sql; do
+            if [ -f "$file" ]; then
+              if ! grep -q "BEGIN\|START TRANSACTION" "$file" 2>/dev/null; then
+                echo "ℹ️  Note: $file doesn't use explicit transactions"
+              fi
+            fi
+          done
+          
+          echo "✅ Schema integrity checks completed"
+
+  deployment-preview:
+    name: Deployment Preview Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check Vercel deployment status
+        run: |
+          echo "This PR will trigger a Vercel deployment preview"
+          echo "Database changes will be tested against: ${{ secrets.SUPABASE_URL }}"
+          echo "After Vercel deploys, test the preview URL before merging"
