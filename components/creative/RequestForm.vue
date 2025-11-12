@@ -217,22 +217,20 @@ async function handleSubmit(): Promise<void> {
   isSubmitting.value = true
   
   try {
-    // Insert request into database
+    // Insert request into database (using actual schema column names)
     const { data: request, error: requestError } = await supabase
       .from('requests')
       .insert({
         title: form.value.title,
         description: form.value.description,
-        request_type: 'creative',
+        project_type: 'creative', // actual column is project_type not request_type
         status: 'new_request',
         priority: form.value.priority,
         due_date: form.value.dueDate || null,
-        metadata: {
-          platform: form.value.platform,
-          ad_format: form.value.adFormat,
-          figma_links: form.value.figmaLinks.split('\n').filter(link => link.trim()),
-          inspiration: form.value.inspiration
-        }
+        format: form.value.platform, // store platform in format field
+        size: form.value.adFormat, // store ad format in size field
+        figma_url: form.value.figmaLinks, // store first figma link
+        tags: form.value.inspiration ? [form.value.inspiration] : [] // store inspiration in tags
       })
       .select()
       .single()
