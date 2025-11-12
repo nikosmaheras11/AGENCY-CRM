@@ -22,7 +22,7 @@ export default defineNuxtConfig({
     
     // Public keys (exposed to client - safe for browser)
     public: {
-      siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+      siteUrl: process.env.PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:3000',
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
       slackClientId: process.env.SLACK_CLIENT_ID || ''

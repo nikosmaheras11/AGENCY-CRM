@@ -128,16 +128,23 @@ onMounted(() => {
 })
 
 const signInWithSlack = () => {
+  console.log('=== Slack SSO Debug ====')
+  console.log('Config:', config.public)
+  console.log('Slack Client ID:', config.public.slackClientId)
+  console.log('Site URL:', config.public.siteUrl)
+  
   isLoading.value = true
   
   // Debug: Check if client_id is available
   if (!config.public.slackClientId) {
-    console.error('Slack Client ID is missing!')
+    console.error('❌ Slack Client ID is missing!')
     console.error('Available config:', config.public)
-    errorMessage.value = 'Slack integration is not properly configured. Please contact support.'
+    errorMessage.value = 'Slack integration is not properly configured. Check console for details.'
     isLoading.value = false
     return
   }
+  
+  console.log('✅ Slack Client ID found, proceeding...')
   
   // Generate state for CSRF protection
   const state = generateRandomState()
