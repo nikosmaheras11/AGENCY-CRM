@@ -31,13 +31,19 @@
             3
           </div>
         </div>
-        <div class="flex items-center pl-4 border-l border-white/10">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-300 to-primary-400 shadow-primary flex items-center justify-center font-semibold">
-            PM
+        <div v-if="user" class="flex items-center pl-4 border-l border-white/10">
+          <img 
+            v-if="userAvatar" 
+            :src="userAvatar" 
+            :alt="userName"
+            class="w-10 h-10 rounded-full shadow-primary"
+          />
+          <div v-else class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-300 to-primary-400 shadow-primary flex items-center justify-center font-semibold">
+            {{ userInitials }}
           </div>
           <div class="ml-3">
-            <div class="text-sm font-medium text-white">Polymarket</div>
-            <div class="text-xs text-slate-400">Client Account</div>
+            <div class="text-sm font-medium text-white">{{ userName }}</div>
+            <div class="text-xs text-slate-400">{{ userEmail || 'Slack User' }}</div>
           </div>
           <span class="material-icons text-slate-400 ml-2 text-lg">expand_more</span>
         </div>
@@ -55,9 +61,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import RequestFormModal from '~/components/creative/RequestFormModal.vue'
 import type { RequestFormModalInstance } from '~/types/components'
+
+const { supabase } = useSupabase()
+
+// User data
+const user = ref<any>(null)
+
+// Get user info on mount
+onMounted(async () => {
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  user.value = currentUser
+})
+
+// Computed properties for user display
+const userName = computed(() => {
+  if (!user.value) return 'Loading...'
+  // Try to get name from user_metadata (Slack OAuth stores it there)
+  return user.value.user_metadata?.full_name || 
+         user.value.user_metadata?.name || 
+         user.value.email?.split('@')[0] || 
+         'User'
+})
+
+const userEmail = computed(() => {
+  return user.value?.email || ''
+})
+
+const userAvatar = computed(() => {
+  // Slack stores avatar in user_metadata
+  return user.value?.user_metadata?.avatar_url || 
+         user.value?.user_metadata?.picture ||
+         null
+})
+
+const userInitials = computed(() => {
+  const name = userName.value
+  if (name === 'Loading...') return '...'
+  const parts = name.split(' ')
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  }
+  return name.substring(0, 2).toUpperCase()
+})
 
 // Request form modal
 const requestFormModal = ref<RequestFormModalInstance | null>(null)
