@@ -92,7 +92,7 @@
           <!-- Status -->
           <span 
             class="px-2 py-1 rounded text-xs font-medium"
-            :class="statusClasses(request.status)"
+            :class="statusClasses(request.status || 'new-request')"
           >
             {{ formatStatus(request.status) }}
           </span>
@@ -150,24 +150,26 @@ const isOverdue = (dateString: string) => {
   return new Date(dateString) < new Date()
 }
 
-const formatStatus = (status: string) => {
+const formatStatus = (status: string | null) => {
+  if (!status) return 'New Request'
   return status
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
 
-const priorityClasses = (priority: string) => {
+const priorityClasses = (priority: string | null) => {
   const classes = {
     urgent: 'bg-red-500/20 text-red-300 border border-red-500/30',
     high: 'bg-orange-500/20 text-orange-300 border border-orange-500/30',
     medium: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
     low: 'bg-green-500/20 text-green-300 border border-green-500/30'
   }
-  return classes[priority as keyof typeof classes] || classes.medium
+  const key = priority || 'medium'
+  return classes[key as keyof typeof classes] || classes.medium
 }
 
-const statusClasses = (status: string) => {
+const statusClasses = (status: string | null) => {
   const classes = {
     'new-request': 'bg-yellow-500/20 text-yellow-300',
     'in-progress': 'bg-blue-500/20 text-blue-300',
@@ -175,7 +177,8 @@ const statusClasses = (status: string) => {
     'needs-edit': 'bg-red-500/20 text-red-300',
     'done': 'bg-green-500/20 text-green-300'
   }
-  return classes[status as keyof typeof classes] || classes['new-request']
+  const key = status || 'new-request'
+  return classes[key as keyof typeof classes] || classes['new-request']
 }
 
 const viewRequest = (id: string) => {
