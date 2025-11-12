@@ -82,6 +82,14 @@ export const useRequestForm = () => {
       const dimensions = formatParts[0] || null
       const format = formatParts[1] || formData.platform || null
       
+      // Get user display name
+      const createdByName = user.value?.user_metadata?.full_name || 
+                           user.value?.user_metadata?.name || 
+                           user.value?.email?.split('@')[0] || 
+                           'Unknown'
+      
+      console.log('[useRequestForm] Created by name:', createdByName)
+      
       // Prepare request data
       const requestData = {
         title: formData.creativeName,
@@ -98,8 +106,8 @@ export const useRequestForm = () => {
         figma_url: formData.figmaAssetLinks || null,
         asset_file_url: assetFileUrl,
         thumbnail_url: thumbnailUrl,
-        created_by: user.value?.id || null
-        // created_by_name will be auto-populated by trigger
+        created_by: user.value?.id || null,
+        created_by_name: createdByName  // Manually set instead of trigger
       }
       
       console.log('[useRequestForm] Inserting request data:', requestData)
