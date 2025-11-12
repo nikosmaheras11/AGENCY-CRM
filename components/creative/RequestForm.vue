@@ -173,10 +173,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref } from 'vue'
+
 const { supabase } = useSupabase()
 
-const emit = defineEmits(['close', 'submitted'])
+const emit = defineEmits<{
+  close: []
+  submitted: [requestId: string]
+}>()
 
 const form = ref({
   title: '',
@@ -189,17 +194,18 @@ const form = ref({
   figmaLinks: ''
 })
 
-const selectedFile = ref(null)
+const selectedFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 
-function handleFileChange(event) {
-  const file = event.target.files[0]
+function handleFileChange(event: Event): void {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
   if (file) {
     selectedFile.value = file
   }
 }
 
-function formatFileSize(bytes) {
+function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
@@ -207,7 +213,7 @@ function formatFileSize(bytes) {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
-async function handleSubmit() {
+async function handleSubmit(): Promise<void> {
   isSubmitting.value = true
   
   try {

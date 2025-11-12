@@ -232,15 +232,18 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import RequestFormModal from '~/components/creative/RequestFormModal.vue'
-// Request form modal
-const requestFormModal = ref(null)
+import type { RequestFormModalInstance } from '~/types/components'
 
-function openRequestForm() {
+// Request form modal
+const requestFormModal = ref<RequestFormModalInstance | null>(null)
+
+function openRequestForm(): void {
   requestFormModal.value?.open()
 }
 
-function handleRequestSubmitted(requestId) {
+function handleRequestSubmitted(requestId: string): void {
   console.log('New request created:', requestId)
   // Optionally refresh the alerts list or navigate to the request
 }

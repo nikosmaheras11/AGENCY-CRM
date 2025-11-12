@@ -24,31 +24,35 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref, onUnmounted } from 'vue'
 import RequestForm from './RequestForm.vue'
+import type { RequestFormModalMethods } from '~/types/components'
 
 const isOpen = ref(false)
-const emit = defineEmits(['submitted'])
+const emit = defineEmits<{
+  submitted: [requestId: string]
+}>()
 
-function open() {
+const open = (): void => {
   isOpen.value = true
   // Prevent body scroll when modal is open
   document.body.style.overflow = 'hidden'
 }
 
-function close() {
+const close = (): void => {
   isOpen.value = false
   // Restore body scroll
   document.body.style.overflow = ''
 }
 
-function handleSubmitted(requestId) {
+const handleSubmitted = (requestId: string): void => {
   emit('submitted', requestId)
   close()
 }
 
-// Expose methods to parent
-defineExpose({
+// Expose methods to parent with proper typing
+defineExpose<RequestFormModalMethods>({
   open,
   close
 })
