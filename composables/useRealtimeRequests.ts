@@ -16,6 +16,7 @@ export interface Request {
   inspiration: string | null
   figma_url: string | null
   asset_file_url: string | null
+  thumbnail_url: string | null
   created_by_name: string | null
   created_at: string
   updated_at: string
