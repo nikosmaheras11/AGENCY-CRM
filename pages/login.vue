@@ -177,40 +177,11 @@ const generateRandomState = () => {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
-// Redirect if already logged in
-const { user, signIn, signUp } = useAuth()
-watchEffect(() => {
-  if (user.value?.id) {
-    navigateTo('/creative')
-  }
-})
-
-// Add quick email auth for development
-const showEmailAuth = ref(false)
-const email = ref('')
-const password = ref('')
-
-const handleEmailAuth = async () => {
-  try {
-    isLoading.value = true
-    errorMessage.value = ''
-    
-    const { data, error } = await signIn(email.value, password.value)
-    
-    if (error) {
-      errorMessage.value = error.message
-    } else {
-      navigateTo('/creative')
-    }
-  } catch (e: any) {
-    errorMessage.value = e.message || 'Sign in failed'
-  } finally {
-    isLoading.value = false
-  }
-}
+// Guest middleware will handle redirect if already logged in
 
 definePageMeta({
-  layout: false // Don't use any layout for login page
+  layout: false, // Don't use any layout for login page
+  middleware: ['guest'] // Redirect to dashboard if already logged in
 })
 </script>
 
