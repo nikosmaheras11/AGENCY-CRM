@@ -20,6 +20,7 @@ export const useRequestForm = () => {
   
   const submitRequest = async (formData: RequestFormData) => {
     console.log('[useRequestForm] Starting submission...', { formData: { ...formData, assetFile: formData.assetFile?.name } })
+    console.log('[useRequestForm] Supabase client configured')
     
     try {
       submitting.value = true
@@ -31,6 +32,7 @@ export const useRequestForm = () => {
         throw new Error('You must be logged in to create a request')
       }
       console.log('[useRequestForm] User authenticated:', user.value.id)
+      console.log('[useRequestForm] User email:', user.value.email)
       
       // Handle file upload if present
       let assetFileUrl: string | null = null
@@ -102,16 +104,31 @@ export const useRequestForm = () => {
       
       console.log('[useRequestForm] Inserting request data:', requestData)
       
-      // Insert into database
-      const { data, error: insertError } = await supabase
+      // Insert into database with timeout
+      console.log('[useRequestForm] Calling Supabase insert...')
+      const insertPromise = supabase
         .from('requests')
         .insert(requestData)
         .select()
         .single()
       
+      console.log('[useRequestForm] Waiting for response...')
+      const { data, error: insertError } = await insertPromise
+      
+      console.log('[useRequestForm] Got response from Supabase')
+      
       if (insertError) {
         console.error('[useRequestForm] Database insert error:', insertError)
+        console.error('[useRequestForm] Error code:', insertError.code)
+        console.error('[useRequestForm] Error message:', insertError.message)
+        console.error('[useRequestForm] Error details:', insertError.details)
+        console.error('[useRequestForm] Error hint:', insertError.hint)
         throw insertError
+      }
+      
+      if (!data) {
+        console.error('[useRequestForm] No data returned from insert!')
+        throw new Error('No data returned from database insert')
       }
       
       console.log('[useRequestForm] Request inserted successfully:', data)
