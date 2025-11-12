@@ -31,15 +31,21 @@
             3
           </div>
         </div>
+        <!-- User Profile -->
         <div class="flex items-center pl-4 border-l border-white/10">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-300 to-primary-400 shadow-primary flex items-center justify-center font-semibold">
-            PM
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-300 to-primary-400 shadow-primary flex items-center justify-center font-semibold text-sm">
+            {{ userInitials }}
           </div>
-          <div class="ml-3">
-            <div class="text-sm font-medium text-white">Polymarket</div>
-            <div class="text-xs text-slate-400">Client Account</div>
+          <div v-if="user" class="ml-3">
+            <div class="text-sm font-medium text-white">{{ userDisplayName }}</div>
+            <div class="text-xs text-slate-400">{{ userEmail }}</div>
           </div>
-          <span class="material-icons text-slate-400 ml-2 text-lg">expand_more</span>
+          <div v-else class="ml-3">
+            <div class="text-sm font-medium text-white">Loading...</div>
+          </div>
+          <button @click="handleSignOut" class="ml-2 text-slate-400 hover:text-white transition-colors" title="Sign out">
+            <span class="material-icons text-lg">logout</span>
+          </button>
         </div>
       </div>
     </header>
@@ -55,9 +61,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import RequestFormModal from '~/components/creative/RequestFormModal.vue'
 import type { RequestFormModalInstance } from '~/types/components'
+
+const { supabase } = useSupabase()
+const router = useRouter()
+
+// User data
+const user = ref<any>(null)
+const profile = ref<any>(null)
+
+// Get user session
+onMounted(async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.user) {
+    user.value = session.user
+    
+    // Fetch profile data
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single()
+    
+    profile.value = profileData
+  }
+})
+
+// Computed user info
+const userDisplayName = computed(() => {
+  if (profile.value?.first_name) {
+    return `${profile.value.first_name} ${profile.value.last_name || ''}`.trim()
+  }
+  return user.value?.email?.split('@')[0] || 'User'
+})
+
+const userEmail = computed(() => {
+  return user.value?.email || ''
+})
+
+const userInitials = computed(() => {
+  if (profile.value?.first_name) {
+    const first = profile.value.first_name[0] || ''
+    const last = profile.value.last_name?.[0] || ''
+    return (first + last).toUpperCase()
+  }
+  return user.value?.email?.substring(0, 2).toUpperCase() || 'U'
+})
+
+// Sign out handler
+async function handleSignOut() {
+  await supabase.auth.signOut()
+  await router.push('/login')
+}
 
 // Request form modal
 const requestFormModal = ref<RequestFormModalInstance | null>(null)
