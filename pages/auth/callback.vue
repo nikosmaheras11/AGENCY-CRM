@@ -30,7 +30,7 @@ onMounted(async () => {
       }
       
       // Successfully authenticated, redirect to dashboard
-      navigateTo('/dashboard')
+      navigateTo('/')
     } catch (error) {
       console.error('Auth callback error:', error)
       navigateTo('/?error=unexpected_error')

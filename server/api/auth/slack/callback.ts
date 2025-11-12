@@ -157,7 +157,7 @@ export default defineEventHandler(async (event) => {
       type: 'magiclink',
       email: slackUser.profile.email,
       options: {
-        redirectTo: `${config.public.siteUrl}/dashboard`
+        redirectTo: `${config.public.siteUrl}/`
       }
     })
     
