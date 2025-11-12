@@ -216,6 +216,7 @@ function formatFileSize(bytes: number): string {
 
 async function handleSubmit(): Promise<void> {
   isSubmitting.value = true
+  console.log('Form submission started...')
   
   try {
     const payload: RequestFormData = {
@@ -230,12 +231,10 @@ async function handleSubmit(): Promise<void> {
       assetFile: selectedFile.value
     }
 
+    console.log('Submitting payload:', { ...payload, assetFile: selectedFile.value?.name })
     const request = await submitRequest(payload)
+    console.log('Request created:', request)
 
-    // Success!
-    emit('submitted', request.id)
-    emit('close')
-    
     // Reset form
     form.value = {
       title: '',
@@ -249,9 +248,16 @@ async function handleSubmit(): Promise<void> {
     }
     selectedFile.value = null
     
-  } catch (error) {
+    // Success! Emit events
+    emit('submitted', request.id)
+    emit('close')
+    
+  } catch (error: any) {
     console.error('Error creating request:', error)
-    alert(submitError.value || 'Failed to create request. Please try again.')
+    const errorMsg = error?.message || submitError.value || 'Failed to create request. Please check console for details.'
+    alert(errorMsg)
+    // Close form anyway to avoid stuck state
+    emit('close')
   } finally {
     isSubmitting.value = false
   }
