@@ -186,6 +186,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
+definePageMeta({
+  middleware: ['auth']
+})
+
 // Current time and date
 const currentTime = ref('')
 const currentDate = ref('')
