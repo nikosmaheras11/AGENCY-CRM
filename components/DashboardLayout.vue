@@ -31,9 +31,9 @@
             3
           </div>
         </div>
-        <div v-if="user" class="relative">
+        <div v-if="user" ref="userMenuContainer" class="relative">
           <button 
-            @click="toggleUserMenu"
+            @click.stop="toggleUserMenu"
             class="flex items-center pl-4 border-l border-white/10 hover:bg-white/5 rounded-lg transition-colors py-1 pr-2"
           >
             <img 
@@ -71,7 +71,7 @@
               class="absolute right-0 top-full mt-2 w-40 card-glass border border-white/10 rounded-lg shadow-lg overflow-hidden z-50"
             >
               <button
-                @click="signOut"
+                @click.stop="signOut"
                 class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
               >
                 <span class="material-icons text-lg">logout</span>
@@ -103,6 +103,7 @@ const { supabase } = useSupabase()
 // User data
 const user = ref<any>(null)
 const showUserMenu = ref(false)
+const userMenuContainer = ref<HTMLElement | null>(null)
 
 // Get user info on mount
 onMounted(async () => {
@@ -118,7 +119,7 @@ function toggleUserMenu() {
 // Close menu when clicking outside
 function handleClickOutside(event: MouseEvent) {
   const target = event.target as HTMLElement
-  if (!target.closest('.relative')) {
+  if (userMenuContainer.value && !userMenuContainer.value.contains(target)) {
     showUserMenu.value = false
   }
 }
