@@ -20,6 +20,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    console.log('[Figma API] Fetching file metadata for:', fileKey)
+    
     // Fetch file metadata to get name
     const fileResponse = await fetch(`https://api.figma.com/v1/files/${fileKey}`, {
       headers: {
@@ -28,10 +30,13 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!fileResponse.ok) {
-      throw new Error(`Figma API error: ${fileResponse.statusText}`)
+      const errorText = await fileResponse.text()
+      console.error('[Figma API] File fetch failed:', fileResponse.status, errorText)
+      throw new Error(`Figma API error: ${fileResponse.status} ${fileResponse.statusText}`)
     }
 
     const fileData = await fileResponse.json()
+    console.log('[Figma API] File metadata fetched:', fileData.name)
 
     // Fetch thumbnail image
     const thumbnailResponse = await fetch(
@@ -44,7 +49,9 @@ export default defineEventHandler(async (event) => {
     )
 
     if (!thumbnailResponse.ok) {
-      throw new Error(`Figma thumbnail API error: ${thumbnailResponse.statusText}`)
+      const errorText = await thumbnailResponse.text()
+      console.error('[Figma API] Thumbnail fetch failed:', thumbnailResponse.status, errorText)
+      throw new Error(`Figma thumbnail API error: ${thumbnailResponse.status} ${thumbnailResponse.statusText}`)
     }
 
     const thumbnailData = await thumbnailResponse.json()
