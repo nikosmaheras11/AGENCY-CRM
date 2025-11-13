@@ -174,11 +174,6 @@
                   />
                 </template>
               </draggable>
-              
-              <!-- Empty state overlay -->
-              <div v-if="column.assets.length === 0" class="text-center py-16 text-gray-400 text-sm pointer-events-none absolute">
-                No assets in this column
-              </div>
             </div>
           </div>
         </div>
