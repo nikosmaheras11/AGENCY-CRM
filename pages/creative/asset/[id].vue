@@ -100,9 +100,16 @@
           />
         </div>
         
-        <!-- Image Viewer -->
+        <!-- Image Viewer with Comments -->
         <div v-else-if="isImage && mediaUrl" class="image-wrapper">
-          <img :src="mediaUrl" :alt="currentAsset?.title" class="asset-image" />
+          <ImageCommentOverlay
+            :image-url="mediaUrl"
+            :alt="currentAsset?.title"
+            :comments="imageComments"
+            :request-id="assetId"
+            @comment-added="handleCommentAdded"
+            @comment-selected="handleCommentSelected"
+          />
         </div>
         
         <!-- Figma Viewer -->
@@ -262,13 +269,15 @@ onMounted(async () => {
     }
   }
   
-  // Fetch comments for video player
+  // Fetch comments for video player and image viewer
   await fetchVideoComments()
+  await fetchImageComments()
 })
 
 // Video player state
 const currentTime = ref(0)
 const videoComments = ref<any[]>([])
+const imageComments = ref<any[]>([])
 
 // Fetch comments for video overlay
 const fetchVideoComments = async () => {
@@ -285,6 +294,33 @@ const fetchVideoComments = async () => {
   } catch (e) {
     console.error('Error fetching video comments:', e)
   }
+}
+
+// Fetch comments for image overlay
+const fetchImageComments = async () => {
+  try {
+    const { supabase } = useSupabase()
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('request_id', assetId)
+      .not('x_position', 'is', null)
+      .not('y_position', 'is', null)
+    
+    if (error) throw error
+    imageComments.value = data || []
+  } catch (e) {
+    console.error('Error fetching image comments:', e)
+  }
+}
+
+const handleCommentAdded = (comment: any) => {
+  imageComments.value.push(comment)
+}
+
+const handleCommentSelected = (comment: any) => {
+  activeTab.value = 'comments'
+  // The CommentThread component will highlight this comment
 }
 
 // UI state
