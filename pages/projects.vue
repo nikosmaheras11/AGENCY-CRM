@@ -222,16 +222,26 @@
 </template>
 
 <script setup lang="ts">
+interface Campaign {
+  id: number
+  name: string
+  status: 'Planning' | 'In Progress' | 'Review' | 'Completed'
+  priority: 'Critical' | 'High' | 'Medium' | 'Low'
+  owner: string
+  progress: number
+  dueDate: string
+}
+
 const viewMode = ref('table')
 const showCampaignDetail = ref(false)
-const selectedCampaign = ref<any>(null)
+const selectedCampaign = ref<Campaign | null>(null)
 
-function openCampaignDetail(campaign: any) {
+function openCampaignDetail(campaign: Campaign) {
   selectedCampaign.value = campaign
   showCampaignDetail.value = true
 }
 
-const campaigns = ref([])
+const campaigns = ref<Campaign[]>([])
 
 const planningCampaigns = computed(() => campaigns.value.filter(c => c.status === 'Planning'))
 const inProgressCampaigns = computed(() => campaigns.value.filter(c => c.status === 'In Progress'))

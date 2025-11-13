@@ -190,6 +190,25 @@ definePageMeta({
   middleware: ['auth']
 })
 
+interface Alert {
+  id: number
+  title: string
+  description: string
+  type: 'warning' | 'info' | 'success' | 'error'
+  assignee?: string
+  dueDate?: string
+  projectName?: string
+}
+
+interface WeeklyObjective {
+  id: number
+  title: string
+  completed: boolean
+  priority: 'high' | 'medium' | 'low'
+  category: string
+  dueDate: string
+}
+
 // Current time and date
 const currentTime = ref('')
 const currentDate = ref('')
@@ -215,11 +234,11 @@ onMounted(() => {
   setInterval(updateTime, 60000) // Update every minute
 })
 
-const alerts = ref([])
+const alerts = ref<Alert[]>([])
 
 // Slack messages now loaded dynamically via SlackMessageFeed component
 
-const weeklyObjectives = ref([])
+const weeklyObjectives = ref<WeeklyObjective[]>([])
 
 function getAlertColor(type: string) {
   const colors: Record<string, string> = {
