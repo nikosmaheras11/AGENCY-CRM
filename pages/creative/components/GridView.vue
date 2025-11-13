@@ -17,26 +17,8 @@
 <script setup lang="ts">
 import KanbanCard from '~/components/creative/KanbanCard.vue'
 
-interface Asset {
-  id: string
-  title: string
-  format: string
-  size: string
-  dimensions: string
-  duration?: string
-  status: string
-  videoUrl?: string
-  figmaUrl?: string
-  commentCount: number
-  metadata: {
-    assignee?: string | null
-    tags?: string | null
-    [key: string]: any
-  }
-}
-
 interface Props {
-  assets: Asset[]
+  assets: any[]
   density?: 'comfortable' | 'cozy' | 'compact'
   columns?: 3 | 4 | 5 | 6 | 'auto'
   selectionEnabled?: boolean
@@ -49,7 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  assetClick: [asset: Asset]
+  assetClick: [asset: any]
   selectionChange: [selectedIds: string[]]
 }>()
 
@@ -71,7 +53,7 @@ const toggleSelection = (id: string) => {
 const sortedAssets = computed(() => props.assets)
 
 // Asset click handler
-const handleAssetClick = (asset: Asset) => {
+const handleAssetClick = (asset: any) => {
   emit('assetClick', asset)
 }
 </script>
