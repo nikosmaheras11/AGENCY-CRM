@@ -61,13 +61,13 @@ export const useRequestForm = () => {
         if (fileType === 'image') {
           console.log('[useRequestForm] Uploading image...')
           assetFileUrl = await uploadImage(file, 'requests')
+          thumbnailUrl = assetFileUrl // Use image as its own thumbnail
           console.log('[useRequestForm] Image uploaded:', assetFileUrl)
         } else if (fileType === 'video') {
           console.log('[useRequestForm] Uploading video...')
           assetFileUrl = await uploadVideo(file, 'requests')
+          thumbnailUrl = assetFileUrl // Use video URL as thumbnail (browser can show first frame)
           console.log('[useRequestForm] Video uploaded:', assetFileUrl)
-          // Generate thumbnail from video if needed
-          // thumbnailUrl = await generateVideoThumbnail(file)
         } else {
           console.log('[useRequestForm] Uploading generic file...')
           // For other file types, use generic upload
@@ -88,6 +88,7 @@ export const useRequestForm = () => {
             .getPublicUrl(fileName)
           
           assetFileUrl = data.publicUrl
+          thumbnailUrl = assetFileUrl // Use file URL as thumbnail
           console.log('[useRequestForm] Generic file uploaded:', assetFileUrl)
         }
       }
