@@ -533,6 +533,16 @@ async function handleDragChange(event: any, columnStatus: string) {
     
     console.log(`Moving asset ${asset.id} from ${oldStatus} to ${columnStatus}`)
     
+    // Find the original request in allRequests and update it directly
+    const request = allRequests.value.find(r => r.id === asset.id)
+    if (!request) {
+      console.error('❌ Request not found in allRequests')
+      return
+    }
+    
+    // Optimistically update local state FIRST
+    request.status = columnStatus
+    
     try {
       const { supabase } = useSupabase()
       const { error } = await supabase
@@ -542,13 +552,12 @@ async function handleDragChange(event: any, columnStatus: string) {
       
       if (error) throw error
       
-      // Update local state
-      asset.status = columnStatus
-      console.log('✅ Status updated successfully')
+      console.log('✅ Status updated in database')
     } catch (error) {
       console.error('❌ Error updating status:', error)
       alert('Failed to update status')
-      // Refresh to revert UI on error
+      // Revert local state and refresh from database
+      request.status = oldStatus
       await fetchRequests()
     }
   }
