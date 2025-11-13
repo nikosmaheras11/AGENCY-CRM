@@ -124,14 +124,14 @@
         </div>
         
         <!-- Board View (Kanban) -->
-        <div v-else class="h-full overflow-x-auto overflow-y-hidden px-6 py-6">
-        <div class="flex gap-4 h-full pb-4">
-          <!-- Column Component for each status -->
-          <div
-            v-for="column in columns"
-            :key="column.id"
-            class="flex-shrink-0 w-80 flex flex-col"
-          >
+        <div v-else class="h-full overflow-x-auto overflow-y-hidden">
+          <div class="flex gap-4 h-full px-6 py-6">
+            <!-- Column Component for each status -->
+            <div
+              v-for="column in columns"
+              :key="column.id"
+              class="flex-shrink-0 w-80 flex flex-col min-h-0"
+            >
             <!-- Column Header -->
             <div class="bg-white rounded-lg border border-gray-200 p-3 mb-3 shadow-sm">
               <div class="flex items-center justify-between">
@@ -156,35 +156,35 @@
               </div>
             </div>
 
-            <!-- Cards Container -->
-            <draggable
-              :list="column.assets"
-              :group="{ name: 'assets', pull: true, put: true }"
-              item-key="id"
-              class="flex-1 overflow-y-auto pr-1 min-h-0"
-              :animation="200"
-              ghost-class="opacity-50"
-              @change="handleDragChange($event, column.id)"
-            >
-              <template #item="{ element: asset }">
-                <div class="mb-3">
-                  <KanbanCard
-                    :asset="asset"
-                    @click="handleAssetClick(asset)"
-                  />
-                </div>
-              </template>
-              
-              <!-- Empty state -->
-              <template #footer>
-                <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
-                  No assets in this column
-                </div>
-              </template>
-            </draggable>
+              <!-- Cards Container -->
+              <draggable
+                :list="column.assets"
+                :group="{ name: 'assets', pull: true, put: true }"
+                item-key="id"
+                class="flex-1 min-h-0 overflow-y-auto"
+                :animation="200"
+                ghost-class="opacity-50"
+                @change="handleDragChange($event, column.id)"
+              >
+                <template #item="{ element: asset }">
+                  <div class="mb-3">
+                    <KanbanCard
+                      :asset="asset"
+                      @click="handleAssetClick(asset)"
+                    />
+                  </div>
+                </template>
+                
+                <!-- Empty state -->
+                <template #footer>
+                  <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
+                    No assets in this column
+                  </div>
+                </template>
+              </draggable>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
     
