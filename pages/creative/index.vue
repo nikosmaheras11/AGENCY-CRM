@@ -158,124 +158,12 @@
 
             <!-- Cards Container -->
             <div class="flex-1 overflow-y-auto space-y-3 pr-1">
-              <div
+              <KanbanCard
                 v-for="asset in column.assets"
                 :key="asset.id"
-                @click="handleAssetClick(asset)"
-                class="block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-              >
-                <!-- Thumbnail with actual gradient background -->
-                <div 
-                  class="relative rounded-t-lg overflow-hidden"
-                  style="aspect-ratio: 16/9; min-height: 180px;"
-                >
-                  <!-- Thumbnail image (if available) -->
-                  <img
-                    v-if="asset.thumbnail"
-                    :src="asset.thumbnail"
-                    :alt="asset.title"
-                    class="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  />
-                  <!-- Figma embed iframe -->
-                  <iframe
-                    v-else-if="asset.figmaUrl"
-                    :src="convertToFigmaEmbedUrl(asset.figmaUrl)"
-                    class="absolute inset-0 w-full h-full border-0 pointer-events-none"
-                    allowfullscreen
-                  />
-                  <!-- Video thumbnail -->
-                  <video
-                    v-else-if="asset.videoUrl"
-                    class="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    :src="asset.videoUrl"
-                    muted
-                    preload="metadata"
-                  />
-                  <!-- Colorful gradient background layer fallback -->
-                  <div 
-                    v-else
-                    class="absolute inset-0"
-                    :style="{ backgroundImage: getAssetGradient(asset.id) }"
-                  />
-                  
-                  <!-- Center icon (play or figma) -->
-                  <div class="absolute inset-0 flex items-center justify-center z-10">
-                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-transform hover:scale-110">
-                      <span v-if="asset.figmaUrl" class="material-icons text-white text-4xl">dashboard</span>
-                      <span v-else class="material-icons text-white text-4xl">play_arrow</span>
-                    </div>
-                  </div>
-                  
-                  <!-- Top-left overlays -->
-                  <div class="absolute top-2 left-2 flex items-center gap-2">
-                    <div class="bg-black/70 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
-                      <span class="material-icons text-white text-xs">description</span>
-                      <span class="material-icons text-white text-xs">comment</span>
-                      <span class="text-white text-xs font-medium">{{ asset.commentCount }}</span>
-                    </div>
-                  </div>
-
-                  <!-- Bottom-right duration -->
-                  <div class="absolute bottom-2 right-2">
-                    <div class="bg-black/70 backdrop-blur-sm rounded px-2 py-1">
-                      <span class="text-white text-xs font-medium">{{ asset.duration }}</span>
-                    </div>
-                  </div>
-
-                  <!-- Play/Figma overlay on hover -->
-                  <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                    <div class="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
-                      <span v-if="asset.figmaUrl" class="material-icons text-gray-900 text-2xl">dashboard</span>
-                      <span v-else class="material-icons text-gray-900 text-2xl">play_arrow</span>
-                    </div>
-                    <span v-if="asset.figmaUrl" class="text-white text-sm font-medium drop-shadow-lg">Open in Figma</span>
-                  </div>
-                </div>
-
-                <!-- Card Content -->
-                <div class="p-3">
-                  <!-- Title -->
-                  <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {{ asset.title }}
-                  </h3>
-
-                  <!-- File Info -->
-                  <p class="text-xs text-gray-500 mb-3">
-                    {{ asset.format }} · {{ asset.size }} · {{ asset.dimensions }}
-                  </p>
-
-                  <!-- Metadata Fields -->
-                  <div class="space-y-2 mb-3">
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
-                      <span class="material-icons text-gray-300" style="font-size: 16px;">person</span>
-                      <span>{{ asset.metadata.assignee || 'None' }}</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
-                      <span class="material-icons text-gray-300" style="font-size: 16px;">calendar_today</span>
-                      <span>{{ asset.metadata.dueDate || 'None' }}</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
-                      <span class="material-icons text-gray-300" style="font-size: 16px;">label</span>
-                      <span>{{ asset.metadata.tags || 'None' }}</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
-                      <span class="material-icons text-gray-300" style="font-size: 16px;">flag</span>
-                      <span>{{ asset.metadata.priority || 'None' }}</span>
-                    </div>
-                  </div>
-
-                  <!-- Status Badge -->
-                  <div>
-                    <span
-                      class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium"
-                      :class="getStatusBadgeClass(asset.status)"
-                    >
-                      <span>{{ getStatusEmoji(asset.status) }}</span>
-                      <span>{{ getStatusText(asset.status) }}</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
+                :asset="asset"
+                @click="handleAssetClick"
+              />
 
               <!-- Empty state -->
               <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
