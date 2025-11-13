@@ -2,8 +2,16 @@
   <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group">
     <!-- Large Visual Thumbnail -->
     <div class="relative aspect-video bg-gradient-to-br from-purple-100 to-pink-100 overflow-hidden">
-      <!-- Placeholder Image/Video Icon -->
-      <div class="absolute inset-0 flex items-center justify-center">
+      <!-- Actual Thumbnail Image -->
+      <img 
+        v-if="asset.thumbnail || asset.assetFileUrl"
+        :src="asset.thumbnail || asset.assetFileUrl" 
+        :alt="asset.name"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+      
+      <!-- Fallback Icon if no thumbnail -->
+      <div v-else class="absolute inset-0 flex items-center justify-center">
         <span class="material-icons text-7xl text-purple-300 group-hover:scale-110 transition-transform">
           {{ asset.type === 'video' ? 'play_circle' : asset.type === 'document' ? 'description' : 'image' }}
         </span>
@@ -79,6 +87,8 @@ interface Asset {
   uploadedBy: string
   uploadedAt: string
   comments: number
+  thumbnail?: string
+  assetFileUrl?: string
 }
 
 defineProps<{
