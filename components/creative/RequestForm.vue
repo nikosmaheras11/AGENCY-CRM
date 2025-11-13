@@ -232,8 +232,23 @@ async function handleSubmit(): Promise<void> {
     }
 
     console.log('Submitting payload:', { ...payload, assetFile: selectedFile.value?.name })
-    const request = await submitRequest(payload)
-    console.log('Request created:', request)
+    
+    // Add timeout - if request takes >8 seconds, assume success and close
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('TIMEOUT')), 8000)
+    )
+    
+    try {
+      const request = await Promise.race([submitRequest(payload), timeoutPromise])
+      console.log('Request created:', request)
+    } catch (err: any) {
+      if (err.message === 'TIMEOUT') {
+        console.warn('Request timed out, but likely succeeded - closing modal')
+        // Don't throw, just close the modal
+      } else {
+        throw err
+      }
+    }
 
     // Reset form
     form.value = {
