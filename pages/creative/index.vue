@@ -162,9 +162,10 @@
                   :list="column.assets"
                   :group="{ name: 'assets', pull: true, put: true }"
                   item-key="id"
-                  class="space-y-3"
+                  class="space-y-3 min-h-full"
                   :animation="200"
                   ghost-class="opacity-50"
+                  :empty-insert-threshold="100"
                   @change="handleDragChange($event, column.id)"
                 >
                   <template #item="{ element: asset }">
@@ -173,14 +174,12 @@
                       @click="handleAssetClick(asset)"
                     />
                   </template>
-                  
-                  <!-- Empty state -->
-                  <template #footer>
-                    <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
-                      No assets in this column
-                    </div>
-                  </template>
                 </draggable>
+                
+                <!-- Empty state overlay (doesn't interfere with drops) -->
+                <div v-if="column.assets.length === 0" class="text-center py-16 text-gray-400 text-sm pointer-events-none">
+                  No assets in this column
+                </div>
               </div>
             </div>
           </div>
