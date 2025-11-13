@@ -334,6 +334,54 @@ npx create-directus-extension@latest
 - `DIRECTUS_SERVER_TOKEN`
 - All integration tokens (Slack, OpenAI, etc.)
 
+## Known Issues & Solutions
+
+### Form Submission Hanging (RESOLVED)
+
+**Problem:** Creative request form would hang indefinitely on submission, despite records being created in the database.
+
+**Root Causes Identified:**
+1. **Database trigger issue**: `populate_requests_created_by_name` trigger attempted to access `auth.users` table, causing hangs
+2. **Field mapping error**: Form tried to insert `platform` field, but database schema uses `format`, `dimensions`, `size`
+3. **Supabase JS client `.select()` hang**: The `.select()` call after insert would never return, even though insert succeeded
+4. **Variable name conflicts**: TypeScript errors from redeclaring `data` variable in same scope
+
+**Solution Applied:**
+1. Disabled problematic database trigger: `ALTER TABLE requests DISABLE TRIGGER populate_requests_created_by_name`
+2. Fixed field mapping in `useRequestForm.ts`: `platform` → `format`
+3. Replaced Supabase JS client with direct REST API calls using `fetch()` to avoid `.select()` hang
+4. Manually populate `created_by_name` from user metadata instead of relying on trigger
+5. Fixed TypeScript variable conflicts: `data` → `authData` and `insertedData`
+
+**Key Code Pattern (composables/useRequestForm.ts):**
+```typescript
+// Use REST API directly instead of Supabase JS client
+const config = useRuntimeConfig()
+const restUrl = `${config.public.supabaseUrl}/rest/v1/requests`
+const authHeader = await supabase.auth.getSession()
+const token = authHeader.data.session?.access_token || config.public.supabaseAnonKey
+
+const response = await fetch(restUrl, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'apikey': config.public.supabaseAnonKey,
+    'Authorization': `Bearer ${token}`,
+    'Prefer': 'return=representation'
+  },
+  body: JSON.stringify(requestData)
+})
+
+const insertedData = await response.json()
+const requestRecord = insertedData[0] // REST API returns array
+```
+
+**Files Modified:**
+- `composables/useRequestForm.ts` - Lines 28-162 (REST API implementation, variable fixes)
+- Database: `requests` table triggers disabled
+
+**Status:** ✅ RESOLVED - Form submission now works correctly with Slack OAuth
+
 ## Important Notes
 
 - **Always use pnpm**, not npm or yarn
@@ -342,3 +390,4 @@ npx create-directus-extension@latest
 - The project is based on [directus-labs/agency-os](https://github.com/directus-labs/agency-os)
 - Smart tagging (AI) is optional and requires OpenAI API key
 - TypeScript strict mode is enabled - all code should be type-safe
+- **For form submissions**: Use REST API directly via `fetch()` instead of Supabase JS client `.select()` to avoid hang issues
