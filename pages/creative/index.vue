@@ -343,47 +343,8 @@ const filteredAssets = computed(() => {
   return assets
 })
 
-// Convert filtered assets to column format for board view
+// Kanban columns - use direct references to requestsByStatus for drag and drop
 const columns = computed(() => [
-  {
-    id: 'new-request',
-    title: 'New Request',
-    emoji: '📬',
-    badgeClass: 'bg-purple-100 text-purple-700 border border-purple-200',
-    assets: filteredAssets.value.filter(asset => asset.status === 'new-request')
-  },
-  {
-    id: 'in-progress',
-    title: 'In Progress',
-    emoji: '🔄',
-    badgeClass: 'bg-amber-100 text-amber-700 border border-amber-200',
-    assets: filteredAssets.value.filter(asset => asset.status === 'in-progress')
-  },
-  {
-    id: 'needs-review',
-    title: 'Needs Review',
-    emoji: '👀',
-    badgeClass: 'bg-blue-100 text-blue-700 border border-blue-200',
-    assets: filteredAssets.value.filter(asset => asset.status === 'needs-review')
-  },
-  {
-    id: 'needs-edit',
-    title: 'Needs Edit',
-    emoji: '✏️',
-    badgeClass: 'bg-orange-100 text-orange-700 border border-orange-200',
-    assets: filteredAssets.value.filter(asset => asset.status === 'needs-edit')
-  },
-  {
-    id: 'done',
-    title: 'Done',
-    emoji: '✅',
-    badgeClass: 'bg-green-100 text-green-700 border border-green-200',
-    assets: filteredAssets.value.filter(asset => asset.status === 'done')
-  }
-])
-
-// Original columns (for backward compatibility)
-const originalColumns = computed(() => [
   {
     id: 'new-request',
     title: 'New Request',
