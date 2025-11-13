@@ -135,7 +135,28 @@ onBeforeUnmount(() => {
 async function signOut() {
   try {
     showUserMenu.value = false
+    
+    // Get current session token
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (session?.access_token) {
+      // Revoke Slack OAuth token
+      try {
+        await $fetch('/api/auth/slack/revoke', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        })
+      } catch (error) {
+        // Continue with sign out even if Slack revocation fails
+        console.warn('Slack token revocation failed:', error)
+      }
+    }
+    
+    // Sign out from Supabase
     await supabase.auth.signOut()
+    
     // Redirect to login page
     await navigateTo('/login')
   } catch (error) {
