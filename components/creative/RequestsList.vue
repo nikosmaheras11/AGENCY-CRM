@@ -111,7 +111,7 @@
         <!-- Asset Preview (if available) -->
         <div v-if="request.thumbnail_url || request.asset_file_url" class="mt-4 rounded-lg overflow-hidden bg-black/20">
           <img 
-            :src="request.thumbnail_url || request.asset_file_url" 
+            :src="(request.thumbnail_url || request.asset_file_url) || undefined" 
             :alt="request.title"
             class="w-full h-32 object-cover"
           />
