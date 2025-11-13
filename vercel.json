@@ -8,5 +8,16 @@
     "enabled": true,
     "autoAlias": true,
     "autoJobCancelation": true
-  }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Production-URL",
+          "value": "https://v0-agency-os-seven.vercel.app"
+        }
+      ]
+    }
+  ]
 }
