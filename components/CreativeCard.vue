@@ -4,8 +4,8 @@
     <div class="relative aspect-video bg-gradient-to-br from-purple-100 to-pink-100 overflow-hidden">
       <!-- Actual Thumbnail Image -->
       <img 
-        v-if="asset.thumbnail || asset.assetFileUrl"
-        :src="asset.thumbnail || asset.assetFileUrl" 
+        v-if="asset.thumbnail_url || asset.asset_file_url || asset.thumbnail || asset.assetFileUrl"
+        :src="asset.thumbnail_url || asset.asset_file_url || asset.thumbnail || asset.assetFileUrl" 
         :alt="asset.name"
         class="absolute inset-0 w-full h-full object-cover"
       />
@@ -89,6 +89,8 @@ interface Asset {
   comments: number
   thumbnail?: string
   assetFileUrl?: string
+  thumbnail_url?: string
+  asset_file_url?: string
 }
 
 defineProps<{

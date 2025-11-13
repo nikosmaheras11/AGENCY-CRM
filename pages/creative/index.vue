@@ -169,9 +169,16 @@
                   class="relative rounded-t-lg overflow-hidden"
                   style="aspect-ratio: 16/9; min-height: 180px;"
                 >
+                  <!-- Thumbnail image (if available) -->
+                  <img
+                    v-if="asset.thumbnail"
+                    :src="asset.thumbnail"
+                    :alt="asset.title"
+                    class="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
                   <!-- Figma embed iframe -->
                   <iframe
-                    v-if="asset.figmaUrl"
+                    v-else-if="asset.figmaUrl"
                     :src="convertToFigmaEmbedUrl(asset.figmaUrl)"
                     class="absolute inset-0 w-full h-full border-0 pointer-events-none"
                     allowfullscreen
@@ -184,7 +191,7 @@
                     muted
                     preload="metadata"
                   />
-                  <!-- Colorful gradient background layer for non-video/non-Figma items -->
+                  <!-- Colorful gradient background layer fallback -->
                   <div 
                     v-else
                     class="absolute inset-0"
