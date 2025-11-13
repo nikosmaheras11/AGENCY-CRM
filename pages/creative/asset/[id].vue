@@ -226,6 +226,7 @@
 <script setup lang="ts">
 import { convertToFigmaEmbedUrl } from '~/utils/figma'
 import { formatTime, formatFileSize, formatRelativeTime } from '~/utils/asset-viewer'
+import ImageCommentOverlay from '~/components/creative/ImageCommentOverlay.vue'
 
 definePageMeta({
   layout: false
@@ -388,22 +389,28 @@ const handleDownload = () => {
 
 // Media URL and type detection
 const mediaUrl = computed(() => {
-  return currentAsset.value?.assetFileUrl || 
+  const url = currentAsset.value?.assetFileUrl || 
          currentAsset.value?.videoUrl || 
          currentAsset.value?.thumbnail ||
          null
+  console.log('[Asset Viewer] mediaUrl:', url)
+  return url
 })
 
 const isVideo = computed(() => {
   if (!mediaUrl.value) return false
   const url = mediaUrl.value.toLowerCase()
-  return url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('.avi')
+  const result = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('.avi')
+  console.log('[Asset Viewer] isVideo:', result, 'for url:', url)
+  return result
 })
 
 const isImage = computed(() => {
   if (!mediaUrl.value) return false
   const url = mediaUrl.value.toLowerCase()
-  return url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif') || url.includes('.webp')
+  const result = url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif') || url.includes('.webp')
+  console.log('[Asset Viewer] isImage:', result, 'for url:', url)
+  return result
 })
 
 const getFileName = (url: string | null) => {
