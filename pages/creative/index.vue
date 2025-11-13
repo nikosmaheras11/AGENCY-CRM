@@ -162,7 +162,7 @@
                 v-for="asset in column.assets"
                 :key="asset.id"
                 :asset="asset"
-                @click="handleAssetClick"
+                @click="handleAssetClick(asset)"
               />
 
               <!-- Empty state -->
@@ -212,6 +212,7 @@ import { convertToFigmaEmbedUrl } from '~/utils/figma'
 import GridView from './components/GridView.vue'
 import FilterPanel from './components/FilterPanel.vue'
 import BulkActionsBar from './components/BulkActionsBar.vue'
+import KanbanCard from '~/components/creative/KanbanCard.vue'
 
 const selectedAssetId = ref<string | null>(null)
 
