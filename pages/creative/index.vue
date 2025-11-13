@@ -132,56 +132,56 @@
               :key="column.id"
               class="flex-shrink-0 w-80 flex flex-col min-h-0"
             >
-            <!-- Column Header -->
-            <div class="bg-white rounded-lg border border-gray-200 p-3 mb-3 shadow-sm">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium"
-                    :class="column.badgeClass"
-                  >
-                    <span v-if="column.emoji">{{ column.emoji }}</span>
-                    <span>{{ column.title }}</span>
-                    <span class="opacity-60">{{ column.assets.length }}</span>
-                  </span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <button class="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center transition-colors" aria-label="Minimize">
-                    <span class="text-gray-400 text-sm">—</span>
-                  </button>
-                  <button class="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center transition-colors cursor-move" aria-label="Drag column">
-                    <span class="text-gray-400 text-xs">⋮⋮</span>
-                  </button>
+              <!-- Column Header -->
+              <div class="bg-white rounded-lg border border-gray-200 p-3 mb-3 shadow-sm flex-shrink-0">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium"
+                      :class="column.badgeClass"
+                    >
+                      <span v-if="column.emoji">{{ column.emoji }}</span>
+                      <span>{{ column.title }}</span>
+                      <span class="opacity-60">{{ column.assets.length }}</span>
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <button class="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center transition-colors" aria-label="Minimize">
+                      <span class="text-gray-400 text-sm">—</span>
+                    </button>
+                    <button class="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center transition-colors cursor-move" aria-label="Drag column">
+                      <span class="text-gray-400 text-xs">⋮⋮</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-              <!-- Cards Container -->
-              <draggable
-                :list="column.assets"
-                :group="{ name: 'assets', pull: true, put: true }"
-                item-key="id"
-                class="flex-1 min-h-0 overflow-y-auto"
-                :animation="200"
-                ghost-class="opacity-50"
-                @change="handleDragChange($event, column.id)"
-              >
-                <template #item="{ element: asset }">
-                  <div class="mb-3">
+              <!-- Cards Container with proper overflow -->
+              <div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+                <draggable
+                  :list="column.assets"
+                  :group="{ name: 'assets', pull: true, put: true }"
+                  item-key="id"
+                  class="space-y-3"
+                  :animation="200"
+                  ghost-class="opacity-50"
+                  @change="handleDragChange($event, column.id)"
+                >
+                  <template #item="{ element: asset }">
                     <KanbanCard
                       :asset="asset"
                       @click="handleAssetClick(asset)"
                     />
-                  </div>
-                </template>
-                
-                <!-- Empty state -->
-                <template #footer>
-                  <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
-                    No assets in this column
-                  </div>
-                </template>
-              </draggable>
+                  </template>
+                  
+                  <!-- Empty state -->
+                  <template #footer>
+                    <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
+                      No assets in this column
+                    </div>
+                  </template>
+                </draggable>
+              </div>
             </div>
           </div>
         </div>
