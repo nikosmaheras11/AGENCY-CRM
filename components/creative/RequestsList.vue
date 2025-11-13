@@ -109,12 +109,23 @@
         </div>
 
         <!-- Asset Preview (if available) -->
-        <div v-if="request.thumbnail_url || request.asset_file_url" class="mt-4 rounded-lg overflow-hidden">
+        <div v-if="request.thumbnail_url || request.asset_file_url" class="mt-4 rounded-lg overflow-hidden relative bg-black/20">
+          <!-- Image Preview -->
           <img 
+            v-if="isImageFile(request.asset_file_url)"
             :src="(request.thumbnail_url || request.asset_file_url) || undefined" 
             :alt="request.title"
             class="w-full h-32 object-cover"
+            @error="handleImageError"
           />
+          <!-- Video Preview -->
+          <div v-else-if="isVideoFile(request.asset_file_url)" class="w-full h-32 flex items-center justify-center bg-gradient-to-br from-purple-900/20 to-blue-900/20">
+            <span class="material-icons text-4xl text-white/50">play_circle</span>
+          </div>
+          <!-- Document Preview -->
+          <div v-else class="w-full h-32 flex items-center justify-center bg-gradient-to-br from-gray-900/20 to-slate-900/20">
+            <span class="material-icons text-4xl text-white/50">description</span>
+          </div>
         </div>
       </div>
     </div>
@@ -183,6 +194,27 @@ const statusClasses = (status: string | null) => {
 
 const viewRequest = (id: string) => {
   router.push(`/creative/asset/${id}`)
+}
+
+const isImageFile = (url: string | null) => {
+  if (!url) return false
+  const lowerUrl = url.toLowerCase()
+  return lowerUrl.includes('.jpg') || lowerUrl.includes('.jpeg') || 
+         lowerUrl.includes('.png') || lowerUrl.includes('.gif') || 
+         lowerUrl.includes('.webp')
+}
+
+const isVideoFile = (url: string | null) => {
+  if (!url) return false
+  const lowerUrl = url.toLowerCase()
+  return lowerUrl.includes('.mp4') || lowerUrl.includes('.mov') || 
+         lowerUrl.includes('.webm') || lowerUrl.includes('.avi')
+}
+
+const handleImageError = (event: Event) => {
+  // Hide broken images gracefully
+  const img = event.target as HTMLImageElement
+  img.style.display = 'none'
 }
 </script>
 
