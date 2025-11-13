@@ -13,7 +13,6 @@ export interface RequestFormData {
 
 export const useRequestForm = () => {
   const { supabase, uploadImage, uploadVideo } = useSupabase()
-  const { user } = useAuth()
   
   const submitting = ref(false)
   const error = ref<string | null>(null)
@@ -26,13 +25,16 @@ export const useRequestForm = () => {
       submitting.value = true
       error.value = null
       
+      // Get current user directly from session
+      const { data: { user } } = await supabase.auth.getUser()
+      
       // Check auth first
-      if (!user.value) {
+      if (!user) {
         console.error('[useRequestForm] No authenticated user found!')
         throw new Error('You must be logged in to create a request')
       }
-      console.log('[useRequestForm] User authenticated:', user.value.id)
-      console.log('[useRequestForm] User email:', user.value.email)
+      console.log('[useRequestForm] User authenticated:', user.id)
+      console.log('[useRequestForm] User email:', user.email)
       
       // Handle file upload if present
       let assetFileUrl: string | null = null
@@ -83,9 +85,9 @@ export const useRequestForm = () => {
       const format = formatParts[1] || formData.platform || null
       
       // Get user display name
-      const createdByName = user.value?.user_metadata?.full_name || 
-                           user.value?.user_metadata?.name || 
-                           user.value?.email?.split('@')[0] || 
+      const createdByName = user?.user_metadata?.full_name || 
+                           user?.user_metadata?.name || 
+                           user?.email?.split('@')[0] || 
                            'Unknown'
       
       console.log('[useRequestForm] Created by name:', createdByName)
@@ -106,7 +108,7 @@ export const useRequestForm = () => {
         figma_url: formData.figmaAssetLinks || null,
         asset_file_url: assetFileUrl,
         thumbnail_url: thumbnailUrl,
-        created_by: user.value?.id || null,
+        created_by: user?.id || null,
         created_by_name: createdByName
       }
       
@@ -157,7 +159,7 @@ export const useRequestForm = () => {
             file_size: formData.assetFile?.size || 0,
             thumbnail_url: thumbnailUrl,
             status: 'draft',
-            created_by: user.value?.id
+            created_by: user?.id
           })
         
         if (versionError) {
