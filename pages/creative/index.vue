@@ -541,7 +541,7 @@ async function handleDragChange(event: any, columnStatus: string) {
     }
     
     // Optimistically update local state FIRST
-    request.status = columnStatus
+    request.status = columnStatus as 'new-request' | 'in-progress' | 'needs-review' | 'needs-edit' | 'done'
     
     try {
       const { supabase } = useSupabase()
