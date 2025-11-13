@@ -231,18 +231,7 @@ function openCampaignDetail(campaign: any) {
   showCampaignDetail.value = true
 }
 
-const campaigns = ref([
-  { id: 1, name: 'Q4 Holiday Campaign', status: 'In Progress', priority: 'High', owner: 'Sarah Johnson', progress: 65, dueDate: 'Nov 30, 2024' },
-  { id: 2, name: 'Brand Refresh Launch', status: 'Planning', priority: 'High', owner: 'Mike Chen', progress: 25, dueDate: 'Dec 15, 2024' },
-  { id: 3, name: 'Product Launch - Winter', status: 'In Progress', priority: 'Critical', owner: 'Emma Davis', progress: 80, dueDate: 'Nov 25, 2024' },
-  { id: 4, name: 'Social Media Strategy 2025', status: 'Planning', priority: 'Medium', owner: 'John Smith', progress: 15, dueDate: 'Jan 10, 2025' },
-  { id: 5, name: 'Email Marketing Automation', status: 'Review', priority: 'Medium', owner: 'Sarah Johnson', progress: 90, dueDate: 'Nov 20, 2024' },
-  { id: 6, name: 'Website Redesign', status: 'In Progress', priority: 'High', owner: 'Mike Chen', progress: 55, dueDate: 'Dec 5, 2024' },
-  { id: 7, name: 'Black Friday Promo', status: 'Completed', priority: 'Critical', owner: 'Emma Davis', progress: 100, dueDate: 'Nov 24, 2024' },
-  { id: 8, name: 'Customer Retention Campaign', status: 'Review', priority: 'Low', owner: 'John Smith', progress: 85, dueDate: 'Nov 28, 2024' },
-  { id: 9, name: 'Influencer Partnership Q1', status: 'Planning', priority: 'Medium', owner: 'Sarah Johnson', progress: 30, dueDate: 'Jan 15, 2025' },
-  { id: 10, name: 'Content Calendar Dec', status: 'Completed', priority: 'High', owner: 'Mike Chen', progress: 100, dueDate: 'Nov 15, 2024' }
-])
+const campaigns = ref([])
 
 const planningCampaigns = computed(() => campaigns.value.filter(c => c.status === 'Planning'))
 const inProgressCampaigns = computed(() => campaigns.value.filter(c => c.status === 'In Progress'))
