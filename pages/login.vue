@@ -157,7 +157,8 @@ const signInWithSlack = async () => {
 
 definePageMeta({
   layout: false, // Don't use any layout for login page
-  middleware: ['guest'] // Redirect to dashboard if already logged in
+  middleware: ['guest'], // Redirect to dashboard if already logged in
+  name: 'login' // Explicit name to prevent layout inheritance
 })
 </script>
 

@@ -75,9 +75,17 @@ const logoPngExists = ref(true)
 
 // Hide sidebar for fullscreen routes (asset viewer, login, auth)
 const isFullscreenRoute = computed(() => {
-  return route.path.startsWith('/creative/asset/') || 
+  const isFullscreen = route.path.startsWith('/creative/asset/') || 
          route.path === '/login' || 
-         route.path.startsWith('/auth/')
+         route.path.startsWith('/auth/') ||
+         route.path === '/debug-auth' ||
+         route.path === '/test-insert'
+  
+  if (isFullscreen) {
+    console.log('[app.vue] Fullscreen route detected:', route.path)
+  }
+  
+  return isFullscreen
 })
 
 // Head configuration for fonts
