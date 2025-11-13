@@ -94,7 +94,7 @@
           <CommentLayer
             :asset-id="assetId"
             :is-video="true"
-            :enable-collaboration="false"
+            :enable-collaboration="true"
             :video-duration="videoDuration"
             :current-video-time="currentTime"
             @comment-added="handleCommentAdded"
@@ -119,7 +119,7 @@
           <CommentLayer
             :asset-id="assetId"
             :is-video="false"
-            :enable-collaboration="false"
+            :enable-collaboration="true"
             @comment-added="handleCommentAdded"
             @comment-selected="handleCommentSelected"
           >
@@ -364,8 +364,43 @@ const updateField = (field: string) => {
   console.log('Update field:', field, value)
 }
 
-const handleShare = () => {
-  alert('Share functionality coming soon')
+const { generateShareLink, copyToClipboard } = useShareLinks()
+const generatingLink = ref(false)
+
+const handleShare = async () => {
+  if (generatingLink.value) return
+
+  generatingLink.value = true
+
+  try {
+    const shareLink = await generateShareLink({
+      assetId,
+      permissions: {
+        canComment: true,
+        canDownload: true,
+        expiresIn: 168 // 7 days
+      }
+    })
+
+    if (!shareLink) {
+      alert('Failed to generate share link')
+      return
+    }
+
+    const copied = await copyToClipboard(shareLink.url)
+
+    if (copied) {
+      alert(`Share link copied to clipboard!\n\nLink expires in 7 days.\n\n${shareLink.url}`)
+    } else {
+      // Fallback: show link in alert
+      prompt('Copy this link:', shareLink.url)
+    }
+  } catch (error) {
+    console.error('Error sharing:', error)
+    alert('Failed to create share link')
+  } finally {
+    generatingLink.value = false
+  }
 }
 
 const handleDownload = () => {
@@ -435,6 +470,79 @@ const getAssetGradient = (id: string) => {
   height: 100vh;
   overflow: hidden;
   background: #0a0a0a;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN - Mobile First
+   ============================================ */
+
+/* Tablet: Hide left sidebar, keep right panel */
+@media (max-width: 1024px) {
+  .asset-viewer-layout {
+    grid-template-columns: 1fr 360px;
+  }
+
+  .asset-sidebar {
+    display: none;
+  }
+}
+
+/* Mobile: Stack vertically, full width */
+@media (max-width: 768px) {
+  .asset-viewer-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .asset-sidebar {
+    display: none;
+  }
+
+  .asset-details-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50vh;
+    border-left: none;
+    border-top: 1px solid #2a2a2a;
+    transform: translateY(calc(100% - 60px));
+    transition: transform 0.3s ease;
+    z-index: 100;
+  }
+
+  .asset-details-panel.expanded {
+    transform: translateY(0);
+  }
+
+  /* Smaller header on mobile */
+  .asset-header {
+    padding: 12px 16px;
+  }
+
+  .asset-title {
+    font-size: 16px;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .action-button span:not(.material-icons) {
+    display: none;
+  }
+
+  /* Simplified breadcrumb */
+  .breadcrumb {
+    font-size: 11px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Adjust media container padding */
+  .media-container {
+    padding: 12px;
+  }
 }
 
 /* Left Sidebar */
