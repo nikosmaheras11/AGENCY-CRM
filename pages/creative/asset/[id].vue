@@ -90,7 +90,7 @@
       <!-- Media container -->
       <div class="media-container">
         <!-- Video Player -->
-        <div v-if="isVideo" class="video-wrapper">
+        <div v-if="isVideo && mediaUrl" class="video-wrapper">
           <VideoPlayer
             :src="mediaUrl"
             :asset-id="assetId"
@@ -101,7 +101,7 @@
         </div>
         
         <!-- Image Viewer -->
-        <div v-else-if="isImage" class="image-wrapper">
+        <div v-else-if="isImage && mediaUrl" class="image-wrapper">
           <img :src="mediaUrl" :alt="currentAsset?.title" class="asset-image" />
         </div>
         
@@ -118,8 +118,8 @@
         <div v-else-if="mediaUrl" class="file-wrapper">
           <div class="file-preview">
             <span class="material-icons">description</span>
-            <p>{{ getFileName(mediaUrl) }}</p>
-            <a :href="mediaUrl" target="_blank" class="download-link">
+            <p v-if="mediaUrl">{{ getFileName(mediaUrl) }}</p>
+            <a v-if="mediaUrl" :href="mediaUrl" target="_blank" class="download-link">
               <span class="material-icons">download</span>
               Download File
             </a>
@@ -370,7 +370,7 @@ const isImage = computed(() => {
   return url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif') || url.includes('.webp')
 })
 
-const getFileName = (url: string) => {
+const getFileName = (url: string | null) => {
   if (!url) return 'File'
   const parts = url.split('/')
   return parts[parts.length - 1] || 'File'
