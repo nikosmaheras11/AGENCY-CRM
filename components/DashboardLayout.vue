@@ -68,30 +68,15 @@
           >
             <div 
               v-if="showUserMenu"
-              class="absolute right-0 top-full mt-2 w-56 card-glass border border-white/10 rounded-lg shadow-lg overflow-hidden z-50"
+              class="absolute right-0 top-full mt-2 w-40 card-glass border border-white/10 rounded-lg shadow-lg overflow-hidden z-50"
             >
-              <div class="p-3 border-b border-white/10">
-                <div class="text-sm font-medium text-white">{{ userName }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">{{ userEmail }}</div>
-              </div>
-              
-              <div class="py-1">
-                <button
-                  @click="navigateToProfile"
-                  class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
-                >
-                  <span class="material-icons text-lg">person</span>
-                  <span>Profile Settings</span>
-                </button>
-                
-                <button
-                  @click="signOut"
-                  class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-                >
-                  <span class="material-icons text-lg">logout</span>
-                  <span>Sign Out</span>
-                </button>
-              </div>
+              <button
+                @click="signOut"
+                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+              >
+                <span class="material-icons text-lg">logout</span>
+                <span>Sign Out</span>
+              </button>
             </div>
           </transition>
         </div>
@@ -156,12 +141,6 @@ async function signOut() {
   } catch (error) {
     console.error('Error signing out:', error)
   }
-}
-
-// Navigate to profile
-function navigateToProfile() {
-  showUserMenu.value = false
-  navigateTo('/profile')
 }
 
 // Computed properties for user display
