@@ -109,22 +109,12 @@
         </div>
 
         <!-- Asset Preview (if available) -->
-        <div v-if="request.thumbnail_url || request.asset_file_url" class="mt-4 rounded-lg overflow-hidden relative bg-black/20">
-          <!-- Always try to show thumbnail first -->
-          <div class="relative w-full h-32">
-            <img 
-              :src="getThumbnailUrl(request)" 
-              :alt="request.title"
-              class="w-full h-32 object-cover"
-              @error="(e) => showFallbackIcon(e, request.asset_file_url)"
-            />
-            <!-- Overlay icon for video files -->
-            <div v-if="isVideoFile(request.asset_file_url)" class="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div class="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                <span class="material-icons text-2xl text-white">play_arrow</span>
-              </div>
-            </div>
-          </div>
+        <div v-if="request.thumbnail_url || request.asset_file_url" class="mt-4 rounded-lg overflow-hidden bg-black/20">
+          <img 
+            :src="request.thumbnail_url || request.asset_file_url" 
+            :alt="request.title"
+            class="w-full h-32 object-cover"
+          />
         </div>
       </div>
     </div>
@@ -193,54 +183,6 @@ const statusClasses = (status: string | null) => {
 
 const viewRequest = (id: string) => {
   router.push(`/creative/asset/${id}`)
-}
-
-const getThumbnailUrl = (request: any) => {
-  // Priority: thumbnail_url > asset_file_url (if image) > asset_file_url (for video)
-  if (request.thumbnail_url) return request.thumbnail_url
-  if (request.asset_file_url) {
-    // For images, use the file directly
-    if (isImageFile(request.asset_file_url)) {
-      return request.asset_file_url
-    }
-    // For videos, try to use the asset URL (Supabase might serve a preview frame)
-    return request.asset_file_url
-  }
-  return ''
-}
-
-const showFallbackIcon = (event: Event, assetUrl: string | null) => {
-  const img = event.target as HTMLImageElement
-  const parent = img.parentElement
-  if (!parent) return
-  
-  // Replace image with appropriate icon
-  img.style.display = 'none'
-  
-  const iconDiv = document.createElement('div')
-  iconDiv.className = 'w-full h-32 flex items-center justify-center bg-gradient-to-br from-gray-900/20 to-slate-900/20'
-  
-  const icon = document.createElement('span')
-  icon.className = 'material-icons text-4xl text-white/50'
-  icon.textContent = isVideoFile(assetUrl) ? 'movie' : 'description'
-  
-  iconDiv.appendChild(icon)
-  parent.appendChild(iconDiv)
-}
-
-const isImageFile = (url: string | null) => {
-  if (!url) return false
-  const lowerUrl = url.toLowerCase()
-  return lowerUrl.includes('.jpg') || lowerUrl.includes('.jpeg') || 
-         lowerUrl.includes('.png') || lowerUrl.includes('.gif') || 
-         lowerUrl.includes('.webp')
-}
-
-const isVideoFile = (url: string | null) => {
-  if (!url) return false
-  const lowerUrl = url.toLowerCase()
-  return lowerUrl.includes('.mp4') || lowerUrl.includes('.mov') || 
-         lowerUrl.includes('.webm') || lowerUrl.includes('.avi')
 }
 </script>
 
