@@ -27,14 +27,14 @@ export const useRequestForm = () => {
       
       // Get current user directly from session
       console.log('[useRequestForm] Getting user from session...')
-      const { data, error: authError } = await supabase.auth.getUser()
+      const { data: authData, error: authError } = await supabase.auth.getUser()
       
       if (authError) {
         console.error('[useRequestForm] Auth error:', authError)
         throw new Error(`Authentication error: ${authError.message}`)
       }
       
-      const user = data.user
+      const user = authData.user
       
       console.log('[useRequestForm] Session data:', { hasUser: !!user, userData: user })
       
@@ -155,11 +155,11 @@ export const useRequestForm = () => {
         throw new Error(errorData.message || `API error: ${response.status}`)
       }
       
-      const data = await response.json()
-      console.log('[useRequestForm] Request inserted successfully:', data[0])
+      const insertedData = await response.json()
+      console.log('[useRequestForm] Request inserted successfully:', insertedData[0])
       
       // Create initial asset version if file was uploaded
-      const requestRecord = data[0] // REST API returns array
+      const requestRecord = insertedData[0] // REST API returns array
       if (assetFileUrl && requestRecord) {
         console.log('[useRequestForm] Creating asset version...')
         const { error: versionError } = await supabase
