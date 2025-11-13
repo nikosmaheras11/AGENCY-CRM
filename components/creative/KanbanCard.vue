@@ -16,13 +16,47 @@
         class="absolute inset-0 w-full h-full object-cover"
       />
       
-      <!-- Figma embed iframe -->
-      <iframe
+      <!-- Figma file thumbnail -->
+      <div 
         v-else-if="asset.figmaUrl"
-        :src="asset.figmaUrl"
-        class="absolute inset-0 w-full h-full border-0 pointer-events-none"
-        allowfullscreen
-      />
+        class="absolute inset-0"
+      >
+        <!-- Loading state -->
+        <div v-if="figmaLoading" class="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+        </div>
+        
+        <!-- Figma thumbnail -->
+        <img
+          v-else-if="figmaThumbnail"
+          :src="figmaThumbnail"
+          :alt="asset.title"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        
+        <!-- Error/fallback state -->
+        <div v-else class="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-24 h-24 text-white/90" viewBox="0 0 38 57" fill="currentColor">
+              <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z"/>
+              <path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z"/>
+              <path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z"/>
+              <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z"/>
+              <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z"/>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Figma badge overlay -->
+        <div class="absolute top-2 left-2">
+          <div class="bg-purple-600 text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
+            <svg class="w-3 h-3" viewBox="0 0 38 57" fill="currentColor">
+              <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z"/>
+            </svg>
+            Figma
+          </div>
+        </div>
+      </div>
       
       <!-- Gradient fallback -->
       <div 
@@ -121,6 +155,26 @@ const props = defineProps<{
 defineEmits<{
   click: [asset: Asset]
 }>()
+
+// Figma integration
+const { fetchFigmaThumbnail } = useFigma()
+const figmaThumbnail = ref<string | null>(null)
+const figmaLoading = ref(false)
+
+// Fetch Figma thumbnail if asset has Figma URL
+if (props.asset.figmaUrl) {
+  figmaLoading.value = true
+  fetchFigmaThumbnail(props.asset.figmaUrl)
+    .then((data: any) => {
+      figmaThumbnail.value = data.thumbnailUrl
+    })
+    .catch((error) => {
+      console.error('Failed to fetch Figma thumbnail:', error)
+    })
+    .finally(() => {
+      figmaLoading.value = false
+    })
+}
 
 const gradientFallback = computed(() => {
   const gradients = [

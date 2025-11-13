@@ -19,6 +19,7 @@ export default defineNuxtConfig({
     slackChannelRequests: process.env.SLACK_CHANNEL_REQUESTS,
     slackChannelUgc: process.env.SLACK_CHANNEL_UGC,
     supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+    figmaAccessToken: process.env.FIGMA_ACCESS_TOKEN,
     
     // Public keys (exposed to client - safe for browser)
     public: {
