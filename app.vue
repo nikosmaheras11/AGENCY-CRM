@@ -83,6 +83,11 @@ const isFullscreenRoute = computed(() => {
   
   if (isFullscreen) {
     console.log('[app.vue] Fullscreen route detected:', route.path)
+    // Hide the entire sidebar on fullscreen routes
+    document.documentElement.style.overflow = 'hidden'
+  } else {
+    // Restore on non-fullscreen routes
+    document.documentElement.style.overflow = ''
   }
   
   return isFullscreen
