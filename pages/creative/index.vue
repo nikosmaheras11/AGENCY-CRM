@@ -157,11 +157,17 @@
             </div>
 
             <!-- Cards Container -->
-            <div class="flex-1 overflow-y-auto space-y-3 pr-1">
+            <div 
+              class="flex-1 overflow-y-auto space-y-3 pr-1"
+              @dragover.prevent
+              @drop="handleDrop($event, column.id)"
+            >
               <KanbanCard
                 v-for="asset in column.assets"
                 :key="asset.id"
                 :asset="asset"
+                draggable="true"
+                @dragstart="handleDragStart($event, asset)"
                 @click="handleAssetClick(asset)"
               />
 
@@ -547,6 +553,51 @@ function getAssetGradient(id: string): string {
   ]
   const index = parseInt(id) % gradients.length
   return gradients[index]
+}
+
+// Drag and drop
+const draggedAsset = ref<any>(null)
+
+function handleDragStart(event: DragEvent, asset: any) {
+  draggedAsset.value = asset
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+  }
+}
+
+async function handleDrop(event: DragEvent, newStatus: string) {
+  event.preventDefault()
+  
+  if (!draggedAsset.value) return
+  
+  const assetId = draggedAsset.value.id
+  const oldStatus = draggedAsset.value.status
+  
+  if (oldStatus === newStatus) {
+    draggedAsset.value = null
+    return
+  }
+  
+  console.log(`Moving asset ${assetId} from ${oldStatus} to ${newStatus}`)
+  
+  try {
+    const { supabase } = useSupabase()
+    const { error } = await supabase
+      .from('requests')
+      .update({ status: newStatus })
+      .eq('id', assetId)
+    
+    if (error) throw error
+    
+    // Refresh requests to update UI
+    await fetchRequests()
+    console.log('✅ Status updated successfully')
+  } catch (error) {
+    console.error('❌ Error updating status:', error)
+    alert('Failed to update status')
+  } finally {
+    draggedAsset.value = null
+  }
 }
 </script>
 
