@@ -62,13 +62,13 @@
       
       <div class="flex justify-end gap-2">
         <button
-          @click="cancelComment"
+          @click.stop="cancelComment"
           class="px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
         >
           Cancel
         </button>
         <button
-          @click="submitComment"
+          @click.stop="submitComment"
           class="px-3 py-1.5 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="!commentText.trim()"
         >
@@ -116,7 +116,8 @@ const newCommentPosition = ref({ x: 0, y: 0, xPercent: 0, yPercent: 0 })
 const { supabase } = useSupabase()
 
 const handleImageClick = (event: MouseEvent) => {
-  if (!containerRef.value) return
+  // Don't open new form if one is already open
+  if (showCommentForm.value || !containerRef.value) return
   
   const rect = containerRef.value.getBoundingClientRect()
   const x = event.clientX - rect.left
