@@ -90,9 +90,9 @@
       <!-- Media container -->
       <div class="media-container">
         <!-- Video Player -->
-        <div v-if="currentAsset?.videoUrl" class="video-wrapper">
+        <div v-if="isVideo" class="video-wrapper">
           <VideoPlayer
-            :src="currentAsset.videoUrl"
+            :src="mediaUrl"
             :asset-id="assetId"
             :comments="videoComments"
             @add-comment="handleAddComment"
@@ -100,13 +100,30 @@
           />
         </div>
         
+        <!-- Image Viewer -->
+        <div v-else-if="isImage" class="image-wrapper">
+          <img :src="mediaUrl" :alt="currentAsset?.title" class="asset-image" />
+        </div>
+        
         <!-- Figma Viewer -->
-        <div v-else-if="currentAsset?.figmaUrl" class="figma-wrapper">
+        <div v-else-if="currentAsset?.figma_url" class="figma-wrapper">
           <iframe
-            :src="convertToFigmaEmbedUrl(currentAsset.figmaUrl)"
+            :src="convertToFigmaEmbedUrl(currentAsset.figma_url)"
             class="figma-embed"
             allowfullscreen
           />
+        </div>
+        
+        <!-- Document/File Viewer -->
+        <div v-else-if="mediaUrl" class="file-wrapper">
+          <div class="file-preview">
+            <span class="material-icons">description</span>
+            <p>{{ getFileName(mediaUrl) }}</p>
+            <a :href="mediaUrl" target="_blank" class="download-link">
+              <span class="material-icons">download</span>
+              Download File
+            </a>
+          </div>
         </div>
         
         <!-- Fallback -->
@@ -328,9 +345,35 @@ const handleShare = () => {
 }
 
 const handleDownload = () => {
-  if (currentAsset.value?.videoUrl) {
-    window.open(currentAsset.value.videoUrl, '_blank')
+  if (mediaUrl.value) {
+    window.open(mediaUrl.value, '_blank')
   }
+}
+
+// Media URL and type detection
+const mediaUrl = computed(() => {
+  return currentAsset.value?.asset_file_url || 
+         currentAsset.value?.videoUrl || 
+         currentAsset.value?.thumbnail_url ||
+         null
+})
+
+const isVideo = computed(() => {
+  if (!mediaUrl.value) return false
+  const url = mediaUrl.value.toLowerCase()
+  return url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('.avi')
+})
+
+const isImage = computed(() => {
+  if (!mediaUrl.value) return false
+  const url = mediaUrl.value.toLowerCase()
+  return url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif') || url.includes('.webp')
+})
+
+const getFileName = (url: string) => {
+  if (!url) return 'File'
+  const parts = url.split('/')
+  return parts[parts.length - 1] || 'File'
 }
 
 // Version handlers
@@ -671,6 +714,76 @@ const getAssetGradient = (id: string) => {
   height: 100%;
   border: none;
   border-radius: 8px;
+}
+
+.image-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.asset-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.file-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  border: 2px dashed #374151;
+}
+
+.file-preview .material-icons {
+  font-size: 64px;
+  color: #6b7280;
+}
+
+.file-preview p {
+  color: #e5e7eb;
+  font-size: 16px;
+  margin: 0;
+  text-align: center;
+  word-break: break-all;
+  max-width: 400px;
+}
+
+.download-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.download-link:hover {
+  background: #2563eb;
+}
+
+.download-link .material-icons {
+  font-size: 20px;
 }
 
 .media-placeholder {
