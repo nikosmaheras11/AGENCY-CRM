@@ -123,17 +123,17 @@
           />
         </div>
         
-        <!-- Board View (Kanban) -->
-        <div v-else class="h-full overflow-x-auto overflow-y-hidden">
-          <div class="flex gap-4 h-full px-6 py-6">
+        <!-- Board View (Kanban) - Container scrolls both X and Y -->
+        <div v-else class="h-full overflow-auto scroll-smooth">
+          <div class="flex gap-4 px-6 py-6 min-h-full">
             <!-- Column Component for each status -->
             <div
               v-for="column in columns"
               :key="column.id"
-              class="flex-shrink-0 w-80 flex flex-col min-h-0"
+              class="flex-shrink-0 w-80 flex flex-col"
             >
               <!-- Column Header -->
-              <div class="bg-white rounded-lg border border-gray-200 p-3 mb-3 shadow-sm flex-shrink-0">
+              <div class="bg-white rounded-lg border border-gray-200 p-3 mb-3 shadow-sm">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <span
@@ -156,30 +156,28 @@
                 </div>
               </div>
 
-              <!-- Cards Container with proper overflow -->
-              <div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-                <draggable
-                  :list="column.assets"
-                  :group="{ name: 'assets', pull: true, put: true }"
-                  item-key="id"
-                  class="space-y-3 min-h-full"
-                  :animation="200"
-                  ghost-class="opacity-50"
-                  :empty-insert-threshold="100"
-                  @change="handleDragChange($event, column.id)"
-                >
-                  <template #item="{ element: asset }">
-                    <KanbanCard
-                      :asset="asset"
-                      @click="handleAssetClick(asset)"
-                    />
-                  </template>
-                </draggable>
-                
-                <!-- Empty state overlay (doesn't interfere with drops) -->
-                <div v-if="column.assets.length === 0" class="text-center py-16 text-gray-400 text-sm pointer-events-none">
-                  No assets in this column
-                </div>
+              <!-- Cards Container - no scroll, auto expands -->
+              <draggable
+                :list="column.assets"
+                :group="{ name: 'assets', pull: true, put: true }"
+                item-key="id"
+                class="space-y-3 min-h-[200px]"
+                :animation="200"
+                ghost-class="opacity-50"
+                :empty-insert-threshold="100"
+                @change="handleDragChange($event, column.id)"
+              >
+                <template #item="{ element: asset }">
+                  <KanbanCard
+                    :asset="asset"
+                    @click="handleAssetClick(asset)"
+                  />
+                </template>
+              </draggable>
+              
+              <!-- Empty state overlay -->
+              <div v-if="column.assets.length === 0" class="text-center py-16 text-gray-400 text-sm pointer-events-none absolute">
+                No assets in this column
               </div>
             </div>
           </div>
@@ -565,10 +563,10 @@ async function handleDragChange(event: any, columnStatus: string) {
 </script>
 
 <style scoped>
-/* Custom scrollbar for columns */
+/* Custom auto-hiding scrollbars with smooth behavior */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -576,12 +574,22 @@ async function handleDragChange(event: any, columnStatus: string) {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Smooth momentum scrolling */
+.overflow-auto {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 </style>
 /* Force reload 1762676334 */
