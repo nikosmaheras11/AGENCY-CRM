@@ -89,27 +89,48 @@
       
       <!-- Media container -->
       <div class="media-container">
-        <!-- Video Player -->
+        <!-- Video Player with Comments -->
         <div v-if="isVideo && mediaUrl" class="video-wrapper">
-          <VideoPlayer
-            :src="mediaUrl"
+          <CommentLayer
             :asset-id="assetId"
-            :comments="videoComments"
-            @add-comment="handleAddComment"
-            @time-update="handleTimeUpdate"
-          />
+            :is-video="true"
+            :enable-collaboration="false"
+            :video-duration="videoDuration"
+            :current-video-time="currentTime"
+            @comment-added="handleCommentAdded"
+            @comment-selected="handleCommentSelected"
+            @seek="handleSeek"
+          >
+            <template #media>
+              <video 
+                ref="videoElement"
+                :src="mediaUrl" 
+                class="w-full h-full object-contain bg-black rounded-lg"
+                controls
+                @loadedmetadata="handleVideoLoaded"
+                @timeupdate="handleTimeUpdate"
+              />
+            </template>
+          </CommentLayer>
         </div>
         
         <!-- Image Viewer with Comments -->
         <div v-else-if="isImage && mediaUrl" class="image-wrapper">
-          <ImageCommentOverlay
-            :image-url="mediaUrl"
-            :alt="currentAsset?.title"
-            :comments="imageComments"
-            :request-id="assetId"
+          <CommentLayer
+            :asset-id="assetId"
+            :is-video="false"
+            :enable-collaboration="false"
             @comment-added="handleCommentAdded"
             @comment-selected="handleCommentSelected"
-          />
+          >
+            <template #media>
+              <img 
+                :src="mediaUrl" 
+                :alt="currentAsset?.title"
+                class="w-full h-full object-contain"
+              />
+            </template>
+          </CommentLayer>
         </div>
         
         <!-- Figma Viewer -->
@@ -226,7 +247,7 @@
 <script setup lang="ts">
 import { convertToFigmaEmbedUrl } from '~/utils/figma'
 import { formatTime, formatFileSize, formatRelativeTime } from '~/utils/asset-viewer'
-import ImageCommentOverlay from '~/components/creative/ImageCommentOverlay.vue'
+import CommentLayer from '~/components/creative/CommentLayer.vue'
 
 definePageMeta({
   layout: false
@@ -269,59 +290,37 @@ onMounted(async () => {
       await fetchFigmaThumbnail(asset.figmaUrl)
     }
   }
-  
-  // Fetch comments for video player and image viewer
-  await fetchVideoComments()
-  await fetchImageComments()
 })
 
 // Video player state
+const videoElement = ref<HTMLVideoElement | null>(null)
 const currentTime = ref(0)
-const videoComments = ref<any[]>([])
-const imageComments = ref<any[]>([])
+const videoDuration = ref(0)
 
-// Fetch comments for video overlay
-const fetchVideoComments = async () => {
-  try {
-    const { supabase } = useSupabase()
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('request_id', assetId)
-      .not('timecode', 'is', null)
-    
-    if (error) throw error
-    videoComments.value = data || []
-  } catch (e) {
-    console.error('Error fetching video comments:', e)
-  }
+const handleVideoLoaded = (event: Event) => {
+  const video = event.target as HTMLVideoElement
+  videoDuration.value = video.duration
 }
 
-// Fetch comments for image overlay
-const fetchImageComments = async () => {
-  try {
-    const { supabase } = useSupabase()
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('request_id', assetId)
-      .not('x_position', 'is', null)
-      .not('y_position', 'is', null)
-    
-    if (error) throw error
-    imageComments.value = data || []
-  } catch (e) {
-    console.error('Error fetching image comments:', e)
-  }
+const handleTimeUpdate = (event: Event) => {
+  const video = event.target as HTMLVideoElement
+  currentTime.value = video.currentTime
 }
 
 const handleCommentAdded = (comment: any) => {
-  imageComments.value.push(comment)
+  // Comment is added through CommentLayer composable
+  console.log('Comment added:', comment)
 }
 
 const handleCommentSelected = (comment: any) => {
   activeTab.value = 'comments'
   // The CommentThread component will highlight this comment
+}
+
+const handleSeek = (time: number) => {
+  if (videoElement.value) {
+    videoElement.value.currentTime = time
+  }
 }
 
 // UI state
@@ -339,18 +338,6 @@ const tabs = [
   { id: 'versions' as const, label: 'Versions', icon: 'history', badge: 1 },
   { id: 'activity' as const, label: 'Activity', icon: 'notifications', badge: null }
 ]
-
-// Video player event handlers
-const handleTimeUpdate = (time: number) => {
-  currentTime.value = time
-}
-
-const handleAddComment = (time: number) => {
-  // Switch to comments tab and set the timecode
-  activeTab.value = 'comments'
-  currentTime.value = time
-  // The CommentThread component will pick up the currentTime prop
-}
 
 // Navigation
 const navigateToAsset = (id: string) => {
