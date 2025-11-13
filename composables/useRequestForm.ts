@@ -26,11 +26,24 @@ export const useRequestForm = () => {
       error.value = null
       
       // Get current user directly from session
-      const { data: { user } } = await supabase.auth.getUser()
+      console.log('[useRequestForm] Getting user from session...')
+      const { data, error: authError } = await supabase.auth.getUser()
+      
+      if (authError) {
+        console.error('[useRequestForm] Auth error:', authError)
+        throw new Error(`Authentication error: ${authError.message}`)
+      }
+      
+      const user = data.user
+      
+      console.log('[useRequestForm] Session data:', { hasUser: !!user, userData: user })
       
       // Check auth first
       if (!user) {
         console.error('[useRequestForm] No authenticated user found!')
+        console.log('[useRequestForm] Checking session...')
+        const { data: sessionData } = await supabase.auth.getSession()
+        console.log('[useRequestForm] Session:', sessionData)
         throw new Error('You must be logged in to create a request')
       }
       console.log('[useRequestForm] User authenticated:', user.id)
