@@ -19,7 +19,8 @@
     "test:db": "vitest tests/supabase/db-functions.test.ts",
     "validate-db": "tsx scripts/validate-db.ts",
     "slack-monitor": "node scripts/slack-monitor.cjs",
-    "setup-supabase": "node scripts/setup-supabase.cjs"
+    "setup-supabase": "node scripts/setup-supabase.cjs",
+    "db": "tsx scripts/supabase-cli.ts"
   },
   "dependencies": {
     "@directus/sdk": "^17.0.0",
