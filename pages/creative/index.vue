@@ -161,16 +161,18 @@
               :list="column.assets"
               :group="{ name: 'assets', pull: true, put: true }"
               item-key="id"
-              class="flex-1 overflow-y-auto space-y-3 pr-1"
+              class="flex-1 overflow-y-auto pr-1 min-h-0"
               :animation="200"
               ghost-class="opacity-50"
               @change="handleDragChange($event, column.id)"
             >
               <template #item="{ element: asset }">
-                <KanbanCard
-                  :asset="asset"
-                  @click="handleAssetClick(asset)"
-                />
+                <div class="mb-3">
+                  <KanbanCard
+                    :asset="asset"
+                    @click="handleAssetClick(asset)"
+                  />
+                </div>
               </template>
               
               <!-- Empty state -->
