@@ -31,21 +31,69 @@
             3
           </div>
         </div>
-        <div v-if="user" class="flex items-center pl-4 border-l border-white/10">
-          <img 
-            v-if="userAvatar" 
-            :src="userAvatar" 
-            :alt="userName"
-            class="w-10 h-10 rounded-full shadow-primary"
-          />
-          <div v-else class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-300 to-primary-400 shadow-primary flex items-center justify-center font-semibold">
-            {{ userInitials }}
-          </div>
-          <div class="ml-3">
-            <div class="text-sm font-medium text-white">{{ userName }}</div>
-            <div class="text-xs text-slate-400">{{ userEmail || 'Slack User' }}</div>
-          </div>
-          <span class="material-icons text-slate-400 ml-2 text-lg">expand_more</span>
+        <div v-if="user" class="relative">
+          <button 
+            @click="toggleUserMenu"
+            class="flex items-center pl-4 border-l border-white/10 hover:bg-white/5 rounded-lg transition-colors py-1 pr-2"
+          >
+            <img 
+              v-if="userAvatar" 
+              :src="userAvatar" 
+              :alt="userName"
+              class="w-10 h-10 rounded-full shadow-primary"
+            />
+            <div v-else class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-300 to-primary-400 shadow-primary flex items-center justify-center font-semibold">
+              {{ userInitials }}
+            </div>
+            <div class="ml-3">
+              <div class="text-sm font-medium text-white">{{ userName }}</div>
+              <div class="text-xs text-slate-400">{{ userEmail || 'Slack User' }}</div>
+            </div>
+            <span 
+              class="material-icons text-slate-400 ml-2 text-lg transition-transform"
+              :class="{ 'rotate-180': showUserMenu }"
+            >
+              expand_more
+            </span>
+          </button>
+          
+          <!-- User Dropdown Menu -->
+          <transition
+            enter-active-class="transition ease-out duration-100"
+            enter-from-class="transform opacity-0 scale-95"
+            enter-to-class="transform opacity-100 scale-100"
+            leave-active-class="transition ease-in duration-75"
+            leave-from-class="transform opacity-100 scale-100"
+            leave-to-class="transform opacity-0 scale-95"
+          >
+            <div 
+              v-if="showUserMenu"
+              class="absolute right-0 top-full mt-2 w-56 card-glass border border-white/10 rounded-lg shadow-lg overflow-hidden z-50"
+            >
+              <div class="p-3 border-b border-white/10">
+                <div class="text-sm font-medium text-white">{{ userName }}</div>
+                <div class="text-xs text-slate-400 mt-0.5">{{ userEmail }}</div>
+              </div>
+              
+              <div class="py-1">
+                <button
+                  @click="navigateToProfile"
+                  class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  <span class="material-icons text-lg">person</span>
+                  <span>Profile Settings</span>
+                </button>
+                
+                <button
+                  @click="signOut"
+                  class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                >
+                  <span class="material-icons text-lg">logout</span>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </transition>
         </div>
       </div>
     </header>
@@ -61,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import RequestFormModal from '~/components/creative/RequestFormModal.vue'
 import type { RequestFormModalInstance } from '~/types/components'
 
@@ -69,12 +117,52 @@ const { supabase } = useSupabase()
 
 // User data
 const user = ref<any>(null)
+const showUserMenu = ref(false)
 
 // Get user info on mount
 onMounted(async () => {
   const { data: { user: currentUser } } = await supabase.auth.getUser()
   user.value = currentUser
 })
+
+// Toggle user menu
+function toggleUserMenu() {
+  showUserMenu.value = !showUserMenu.value
+}
+
+// Close menu when clicking outside
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!target.closest('.relative')) {
+    showUserMenu.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// Sign out function
+async function signOut() {
+  try {
+    showUserMenu.value = false
+    await supabase.auth.signOut()
+    // Redirect to login page
+    await navigateTo('/login')
+  } catch (error) {
+    console.error('Error signing out:', error)
+  }
+}
+
+// Navigate to profile
+function navigateToProfile() {
+  showUserMenu.value = false
+  navigateTo('/profile')
+}
 
 // Computed properties for user display
 const userName = computed(() => {
