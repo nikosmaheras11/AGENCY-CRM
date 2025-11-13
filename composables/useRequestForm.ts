@@ -112,42 +112,45 @@ export const useRequestForm = () => {
       
       console.log('[useRequestForm] Inserting request data:', requestData)
       
-      // Insert into database with timeout
-      console.log('[useRequestForm] Calling Supabase insert...')
-      const insertPromise = supabase
-        .from('requests')
-        .insert(requestData)
-        .select()
-        .single()
+      // Use REST API directly with proper Prefer header instead of .select()
+      // This avoids the .select() hang issue with the JS client
+      console.log('[useRequestForm] Calling REST API insert...')
       
-      console.log('[useRequestForm] Waiting for response...')
-      const { data, error: insertError } = await insertPromise
+      const config = useRuntimeConfig()
+      const restUrl = `${config.public.supabaseUrl}/rest/v1/requests`
+      const authHeader = await supabase.auth.getSession()
+      const token = authHeader.data.session?.access_token || config.public.supabaseAnonKey
       
-      console.log('[useRequestForm] Got response from Supabase')
+      const response = await fetch(restUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': config.public.supabaseAnonKey,
+          'Authorization': `Bearer ${token}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(requestData)
+      })
       
-      if (insertError) {
-        console.error('[useRequestForm] Database insert error:', insertError)
-        console.error('[useRequestForm] Error code:', insertError.code)
-        console.error('[useRequestForm] Error message:', insertError.message)
-        console.error('[useRequestForm] Error details:', insertError.details)
-        console.error('[useRequestForm] Error hint:', insertError.hint)
-        throw insertError
+      console.log('[useRequestForm] Got response status:', response.status)
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('[useRequestForm] API error:', errorData)
+        throw new Error(errorData.message || `API error: ${response.status}`)
       }
       
-      if (!data) {
-        console.error('[useRequestForm] No data returned from insert!')
-        throw new Error('No data returned from database insert')
-      }
-      
-      console.log('[useRequestForm] Request inserted successfully:', data)
+      const data = await response.json()
+      console.log('[useRequestForm] Request inserted successfully:', data[0])
       
       // Create initial asset version if file was uploaded
-      if (assetFileUrl && data) {
+      const requestRecord = data[0] // REST API returns array
+      if (assetFileUrl && requestRecord) {
         console.log('[useRequestForm] Creating asset version...')
         const { error: versionError } = await supabase
           .from('asset_versions')
           .insert({
-            request_id: data.id,
+            request_id: requestRecord.id,
             version_number: 1,
             file_url: assetFileUrl,
             file_type: formData.assetFile?.type.split('/')[0] || 'unknown',
@@ -165,8 +168,8 @@ export const useRequestForm = () => {
         }
       }
       
-      console.log('[useRequestForm] Submission complete! Returning:', data)
-      return data
+      console.log('[useRequestForm] Submission complete! Returning:', requestRecord)
+      return requestRecord
     } catch (err: any) {
       error.value = err.message || 'Failed to submit request'
       console.error('[useRequestForm] ERROR:', err)
