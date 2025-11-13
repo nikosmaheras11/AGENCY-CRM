@@ -13,7 +13,7 @@ importers:
         version: 17.0.2
       '@nuxt/ui':
         specifier: ^2.18.0
-        version: 2.22.3(axios@1.13.2)(magicast@0.5.1)(tsx@4.20.6)(vite@7.2.2(@types/node@20.19.24)(jiti@2.6.1)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(vue@3.5.24(typescript@5.9.3))(yaml@2.8.1)
+        version: 2.22.3(axios@1.13.2)(magicast@0.5.1)(sortablejs@1.14.0)(tsx@4.20.6)(vite@7.2.2(@types/node@20.19.24)(jiti@2.6.1)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(vue@3.5.24(typescript@5.9.3))(yaml@2.8.1)
       '@slack/bolt':
         specifier: ^3.22.0
         version: 3.22.0
@@ -59,6 +59,9 @@ importers:
       vue-chartjs:
         specifier: ^5.3.0
         version: 5.3.3(chart.js@4.5.1)(vue@3.5.24(typescript@5.9.3))
+      vuedraggable:
+        specifier: ^4.1.0
+        version: 4.1.0(vue@3.5.24(typescript@5.9.3))
     devDependencies:
       '@nuxt/eslint':
         specifier: ^0.5.0
@@ -5232,6 +5235,9 @@ packages:
   smob@1.5.0:
     resolution: {integrity: sha512-g6T+p7QO8npa+/hNx9ohv1E5pVCmWrVCUzUXJyLdMmftX6ER0oiWY/w9knEonLpnOp6b6FenKnMfR8gqwWdwig==}
 
+  sortablejs@1.14.0:
+    resolution: {integrity: sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w==}
+
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
@@ -5929,6 +5935,11 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  vuedraggable@4.1.0:
+    resolution: {integrity: sha512-FU5HCWBmsf20GpP3eudURW3WdWTKIbEIQxh9/8GE806hydR9qZqRRxRE3RjqX7PkuLuMQG/A7n3cfj9rCEchww==}
+    peerDependencies:
+      vue: ^3.0.1
 
   w3c-keyname@2.2.8:
     resolution: {integrity: sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==}
@@ -7084,7 +7095,7 @@ snapshots:
       - magicast
       - typescript
 
-  '@nuxt/ui@2.22.3(axios@1.13.2)(magicast@0.5.1)(tsx@4.20.6)(vite@7.2.2(@types/node@20.19.24)(jiti@2.6.1)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(vue@3.5.24(typescript@5.9.3))(yaml@2.8.1)':
+  '@nuxt/ui@2.22.3(axios@1.13.2)(magicast@0.5.1)(sortablejs@1.14.0)(tsx@4.20.6)(vite@7.2.2(@types/node@20.19.24)(jiti@2.6.1)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1))(vue@3.5.24(typescript@5.9.3))(yaml@2.8.1)':
     dependencies:
       '@headlessui/tailwindcss': 0.2.2(tailwindcss@3.4.18(tsx@4.20.6)(yaml@2.8.1))
       '@headlessui/vue': 1.7.23(vue@3.5.24(typescript@5.9.3))
@@ -7100,7 +7111,7 @@ snapshots:
       '@tailwindcss/forms': 0.5.10(tailwindcss@3.4.18(tsx@4.20.6)(yaml@2.8.1))
       '@tailwindcss/typography': 0.5.19(tailwindcss@3.4.18(tsx@4.20.6)(yaml@2.8.1))
       '@vueuse/core': 13.9.0(vue@3.5.24(typescript@5.9.3))
-      '@vueuse/integrations': 13.9.0(axios@1.13.2)(fuse.js@7.1.0)(vue@3.5.24(typescript@5.9.3))
+      '@vueuse/integrations': 13.9.0(axios@1.13.2)(fuse.js@7.1.0)(sortablejs@1.14.0)(vue@3.5.24(typescript@5.9.3))
       '@vueuse/math': 13.9.0(vue@3.5.24(typescript@5.9.3))
       defu: 6.1.4
       fuse.js: 7.1.0
@@ -8517,7 +8528,7 @@ snapshots:
       '@vueuse/shared': 14.0.0(vue@3.5.24(typescript@5.9.3))
       vue: 3.5.24(typescript@5.9.3)
 
-  '@vueuse/integrations@13.9.0(axios@1.13.2)(fuse.js@7.1.0)(vue@3.5.24(typescript@5.9.3))':
+  '@vueuse/integrations@13.9.0(axios@1.13.2)(fuse.js@7.1.0)(sortablejs@1.14.0)(vue@3.5.24(typescript@5.9.3))':
     dependencies:
       '@vueuse/core': 13.9.0(vue@3.5.24(typescript@5.9.3))
       '@vueuse/shared': 13.9.0(vue@3.5.24(typescript@5.9.3))
@@ -8525,6 +8536,7 @@ snapshots:
     optionalDependencies:
       axios: 1.13.2
       fuse.js: 7.1.0
+      sortablejs: 1.14.0
 
   '@vueuse/math@13.9.0(vue@3.5.24(typescript@5.9.3))':
     dependencies:
@@ -12010,6 +12022,8 @@ snapshots:
 
   smob@1.5.0: {}
 
+  sortablejs@1.14.0: {}
+
   source-map-js@1.2.1: {}
 
   source-map-support@0.5.21:
@@ -12785,6 +12799,11 @@ snapshots:
       '@vue/shared': 3.5.24
     optionalDependencies:
       typescript: 5.9.3
+
+  vuedraggable@4.1.0(vue@3.5.24(typescript@5.9.3)):
+    dependencies:
+      sortablejs: 1.14.0
+      vue: 3.5.24(typescript@5.9.3)
 
   w3c-keyname@2.2.8: {}
 

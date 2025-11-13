@@ -38,7 +38,8 @@
     "nuxt": "^3.13.0",
     "tippy.js": "^6.3.7",
     "vue": "^3.4.0",
-    "vue-chartjs": "^5.3.0"
+    "vue-chartjs": "^5.3.0",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@nuxt/eslint": "^0.5.0",

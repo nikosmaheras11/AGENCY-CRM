@@ -157,25 +157,29 @@
             </div>
 
             <!-- Cards Container -->
-            <div 
+            <draggable
+              :list="column.assets"
+              :group="{ name: 'assets', pull: true, put: true }"
+              item-key="id"
               class="flex-1 overflow-y-auto space-y-3 pr-1"
-              @dragover.prevent
-              @drop="handleDrop($event, column.id)"
+              :animation="200"
+              ghost-class="opacity-50"
+              @change="handleDragChange($event, column.id)"
             >
-              <KanbanCard
-                v-for="asset in column.assets"
-                :key="asset.id"
-                :asset="asset"
-                draggable="true"
-                @dragstart="handleDragStart($event, asset)"
-                @click="handleAssetClick(asset)"
-              />
-
+              <template #item="{ element: asset }">
+                <KanbanCard
+                  :asset="asset"
+                  @click="handleAssetClick(asset)"
+                />
+              </template>
+              
               <!-- Empty state -->
-              <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
-                No assets in this column
-              </div>
-            </div>
+              <template #footer>
+                <div v-if="column.assets.length === 0" class="text-center py-8 text-gray-400 text-sm">
+                  No assets in this column
+                </div>
+              </template>
+            </draggable>
           </div>
         </div>
       </div>
@@ -219,6 +223,7 @@ import GridView from './components/GridView.vue'
 import FilterPanel from './components/FilterPanel.vue'
 import BulkActionsBar from './components/BulkActionsBar.vue'
 import KanbanCard from '~/components/creative/KanbanCard.vue'
+import draggable from 'vuedraggable'
 
 const selectedAssetId = ref<string | null>(null)
 
@@ -555,48 +560,35 @@ function getAssetGradient(id: string): string {
   return gradients[index]
 }
 
-// Drag and drop
-const draggedAsset = ref<any>(null)
-
-function handleDragStart(event: DragEvent, asset: any) {
-  draggedAsset.value = asset
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move'
-  }
-}
-
-async function handleDrop(event: DragEvent, newStatus: string) {
-  event.preventDefault()
-  
-  if (!draggedAsset.value) return
-  
-  const assetId = draggedAsset.value.id
-  const oldStatus = draggedAsset.value.status
-  
-  if (oldStatus === newStatus) {
-    draggedAsset.value = null
-    return
-  }
-  
-  console.log(`Moving asset ${assetId} from ${oldStatus} to ${newStatus}`)
-  
-  try {
-    const { supabase } = useSupabase()
-    const { error } = await supabase
-      .from('requests')
-      .update({ status: newStatus })
-      .eq('id', assetId)
+// Drag and drop with Vue Draggable
+async function handleDragChange(event: any, columnStatus: string) {
+  // Event fires when item is added to or removed from list
+  if (event.added) {
+    const asset = event.added.element
+    const oldStatus = asset.status
     
-    if (error) throw error
+    if (oldStatus === columnStatus) return
     
-    // Refresh requests to update UI
-    await fetchRequests()
-    console.log('✅ Status updated successfully')
-  } catch (error) {
-    console.error('❌ Error updating status:', error)
-    alert('Failed to update status')
-  } finally {
-    draggedAsset.value = null
+    console.log(`Moving asset ${asset.id} from ${oldStatus} to ${columnStatus}`)
+    
+    try {
+      const { supabase } = useSupabase()
+      const { error } = await supabase
+        .from('requests')
+        .update({ status: columnStatus })
+        .eq('id', asset.id)
+      
+      if (error) throw error
+      
+      // Update local state
+      asset.status = columnStatus
+      console.log('✅ Status updated successfully')
+    } catch (error) {
+      console.error('❌ Error updating status:', error)
+      alert('Failed to update status')
+      // Refresh to revert UI on error
+      await fetchRequests()
+    }
   }
 }
 </script>
