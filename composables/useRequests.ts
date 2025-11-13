@@ -15,6 +15,7 @@ export interface Request {
   thumbnail?: string
   figmaUrl?: string
   videoUrl?: string
+  assetFileUrl?: string
   metadata: {
     assignee?: string | null
     dueDate?: string | null
@@ -72,6 +73,7 @@ export const useRequests = () => {
         thumbnail: item.thumbnail_url,
         figmaUrl: item.figma_url,
         videoUrl: item.video_url,
+        assetFileUrl: item.asset_file_url,
         metadata: {
           assignee: item.assignee,
           dueDate: item.due_date,

@@ -106,9 +106,9 @@
         </div>
         
         <!-- Figma Viewer -->
-        <div v-else-if="currentAsset?.figma_url" class="figma-wrapper">
+        <div v-else-if="currentAsset?.figmaUrl" class="figma-wrapper">
           <iframe
-            :src="convertToFigmaEmbedUrl(currentAsset.figma_url)"
+            :src="convertToFigmaEmbedUrl(currentAsset.figmaUrl)"
             class="figma-embed"
             allowfullscreen
           />
@@ -352,9 +352,9 @@ const handleDownload = () => {
 
 // Media URL and type detection
 const mediaUrl = computed(() => {
-  return currentAsset.value?.asset_file_url || 
+  return currentAsset.value?.assetFileUrl || 
          currentAsset.value?.videoUrl || 
-         currentAsset.value?.thumbnail_url ||
+         currentAsset.value?.thumbnail ||
          null
 })
 
