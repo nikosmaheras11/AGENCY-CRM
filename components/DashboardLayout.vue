@@ -71,8 +71,8 @@
               class="absolute right-0 top-full mt-2 w-40 card-glass border border-white/10 rounded-lg shadow-lg overflow-hidden z-50"
             >
               <button
-                @click.stop="signOut"
-                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                @mousedown.prevent.stop="signOut"
+                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors cursor-pointer"
               >
                 <span class="material-icons text-lg">logout</span>
                 <span>Sign Out</span>
