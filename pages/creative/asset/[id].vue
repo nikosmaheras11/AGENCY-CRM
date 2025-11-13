@@ -717,8 +717,11 @@ const getAssetGradient = (id: string) => {
 }
 
 .image-wrapper {
+  position: relative;
   width: 100%;
   height: 100%;
+  max-width: 1200px;
+  max-height: 800px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -727,6 +730,8 @@ const getAssetGradient = (id: string) => {
 .asset-image {
   max-width: 100%;
   max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
