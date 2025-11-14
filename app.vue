@@ -48,21 +48,8 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main :class="isFullscreenRoute ? 'w-full' : 'flex-1'" class="flex flex-col overflow-hidden">
-      <!-- Top Nav Bar with Search -->
-      <div v-if="!isFullscreenRoute" class="flex-shrink-0 px-6 py-4 border-b border-white/10 backdrop-blur-sm" style="background: rgba(6, 11, 38, 0.6);">
-        <div class="flex items-center justify-between">
-          <div class="flex-1">
-            <!-- Page title or breadcrumb can go here -->
-          </div>
-          <GlobalSearch />
-        </div>
-      </div>
-      
-      <!-- Page Content -->
-      <div class="flex-1 overflow-auto">
-        <NuxtPage />
-      </div>
+    <main :class="isFullscreenRoute ? 'w-full' : 'flex-1'" class="overflow-auto">
+      <NuxtPage />
     </main>
   </div>
 </template>

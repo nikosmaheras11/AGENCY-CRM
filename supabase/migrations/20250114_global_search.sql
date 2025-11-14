@@ -17,7 +17,7 @@ RETURNS TABLE (
   project_type text,
   status text,
   created_at timestamptz,
-  score float
+  score real
 ) 
 LANGUAGE plpgsql
 AS $$
@@ -29,7 +29,7 @@ BEGIN
     r.title,
     r.description,
     r.thumbnail_url,
-    '/creative/request/' || r.id::text AS url,
+    '/creative/asset/' || r.id::text AS url,
     r.project_type,
     r.status,
     r.created_at,
@@ -39,8 +39,8 @@ BEGIN
     ) AS sim_score
   FROM requests r
   WHERE 
-    r.title % search_term OR
-    COALESCE(r.description, '') % search_term
+    r.project_type = 'creative' AND
+    (r.title % search_term OR COALESCE(r.description, '') % search_term)
   ORDER BY 
     r.created_at DESC, -- Most recent first
     sim_score DESC     -- Then by relevance
