@@ -686,7 +686,9 @@ const uploadNewVersion = async () => {
   
   try {
     const { supabase } = useSupabase()
-    const user = useSupabaseUser().value
+    
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
     
     // Get current max version for this request
     const { data: currentAssets } = await supabase
