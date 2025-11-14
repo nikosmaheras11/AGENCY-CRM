@@ -85,17 +85,25 @@ export const useRequests = () => {
       let assetVersions: Record<string, any> = {}
       
       if (requestIds.length > 0) {
-        const { data: assetsData } = await supabase
-          .from('assets')
-          .select('request_id, thumbnail_url, preview_url')
-          .in('request_id', requestIds)
-          .eq('is_current_version', true)
-        
-        // Create a map of request_id -> asset data
-        assetVersions = (assetsData || []).reduce((acc: Record<string, any>, asset: any) => {
-          acc[asset.request_id] = asset
-          return acc
-        }, {} as Record<string, any>)
+        try {
+          const { data: assetsData, error: assetsError } = await supabase
+            .from('assets')
+            .select('request_id, thumbnail_url, preview_url')
+            .in('request_id', requestIds)
+            .eq('is_current_version', true)
+          
+          if (assetsError) {
+            console.warn('⚠️ Could not fetch asset versions:', assetsError)
+          } else {
+            // Create a map of request_id -> asset data
+            assetVersions = (assetsData || []).reduce((acc: Record<string, any>, asset: any) => {
+              acc[asset.request_id] = asset
+              return acc
+            }, {} as Record<string, any>)
+          }
+        } catch (assetsErr) {
+          console.warn('⚠️ Error fetching asset versions:', assetsErr)
+        }
       }
       
       // Transform database format to Request format
