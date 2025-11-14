@@ -3,5 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "types": ["node"]
-  }
+  },
+  "exclude": [
+    "tests/**/*",
+    "scripts/test-supabase-connection.ts"
+  ]
 }
