@@ -19,7 +19,7 @@
       <!-- Video without thumbnail - generate preview -->
       <div
         v-else-if="asset.videoUrl && !asset.figmaUrl"
-        class="absolute inset-0 bg-black"
+        class="absolute inset-0 bg-black rounded-t-xl"
       >
         <video
           :src="asset.videoUrl"
@@ -41,10 +41,10 @@
       <!-- Figma file thumbnail -->
       <div 
         v-else-if="asset.figmaUrl"
-        class="absolute inset-0"
+        class="absolute inset-0 rounded-t-xl overflow-hidden"
       >
         <!-- Loading state -->
-        <div v-if="figmaLoading" class="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+        <div v-if="figmaLoading" class="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center rounded-t-xl">
           <div class="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
         </div>
         
@@ -57,7 +57,7 @@
         />
         
         <!-- Error/fallback state -->
-        <div v-else class="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500">
+        <div v-else class="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-t-xl">
           <div class="absolute inset-0 flex items-center justify-center">
             <svg class="w-24 h-24 text-white/90" viewBox="0 0 38 57" fill="currentColor">
               <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z"/>
@@ -83,7 +83,7 @@
       <!-- Gradient fallback -->
       <div 
         v-else
-        class="absolute inset-0"
+        class="absolute inset-0 rounded-t-xl"
         :style="{ backgroundImage: gradientFallback }"
       />
       
