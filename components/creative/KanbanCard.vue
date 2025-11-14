@@ -36,12 +36,6 @@
             Video
           </div>
         </div>
-        <!-- Play icon overlay -->
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div class="bg-black/50 rounded-full p-4">
-            <span class="material-icons text-white" style="font-size: 48px;">play_arrow</span>
-          </div>
-        </div>
       </div>
       
       <!-- Figma file thumbnail -->

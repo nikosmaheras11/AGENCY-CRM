@@ -288,12 +288,6 @@
             @version-restored="handleVersionRestored"
           />
         </div>
-        
-        <!-- Activity Tab -->
-        <div v-if="activeTab === 'activity'" class="tab-panel activity-panel">
-          <h3>Activity Feed</h3>
-          <p class="empty-state">No activity yet</p>
-        </div>
       </div>
     </aside>
   </div>
@@ -499,7 +493,7 @@ const formatTimecode = (seconds: number) => {
 }
 
 // UI state
-const activeTab = ref<'details' | 'comments' | 'versions' | 'activity'>('details')
+const activeTab = ref<'details' | 'comments' | 'versions'>('details')
 const editingTitle = ref(false)
 const isFavorite = ref(false)
 
@@ -510,8 +504,7 @@ const localAsset = ref({
 const tabs = [
   { id: 'details' as const, label: 'Details', icon: 'info', badge: null },
   { id: 'comments' as const, label: 'Comments', icon: 'comment', badge: 0 },
-  { id: 'versions' as const, label: 'Versions', icon: 'history', badge: 1 },
-  { id: 'activity' as const, label: 'Activity', icon: 'notifications', badge: null }
+  { id: 'versions' as const, label: 'Versions', icon: 'history', badge: 1 }
 ]
 
 // Navigation
