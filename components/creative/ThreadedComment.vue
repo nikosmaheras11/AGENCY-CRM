@@ -16,8 +16,8 @@
           <span v-if="comment.x_position !== null" class="comment-badge">
             📍 Pin {{ pinNumber }}
           </span>
-          <span v-if="comment.timecode !== null" class="comment-badge">
-            🎬 {{ formatTimecode(comment.timecode) }}
+          <span v-if="comment.timecode !== null && comment.timecode !== undefined" class="comment-badge">
+            🎬 {{ formatTimecode(comment.timecode!) }}
           </span>
         </div>
         

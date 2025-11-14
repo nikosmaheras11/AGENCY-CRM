@@ -89,29 +89,27 @@
       
       <!-- Media container -->
       <div class="media-container">
-        <!-- Video Player with Comments -->
+        <!-- Video Player -->
         <div v-if="isVideo && mediaUrl" class="video-wrapper">
-          <CommentLayer
-            :asset-id="assetId"
-            :is-video="true"
-            :enable-collaboration="true"
-            :video-duration="videoDuration"
-            :current-video-time="currentTime"
-            @comment-added="handleCommentAdded"
-            @comment-selected="handleCommentSelected"
-            @seek="handleSeek"
-          >
-            <template #media>
-              <video 
-                ref="videoElement"
-                :src="mediaUrl" 
-                class="w-full h-full object-contain bg-black rounded-lg"
-                controls
-                @loadedmetadata="handleVideoLoaded"
-                @timeupdate="handleTimeUpdate"
-              />
-            </template>
-          </CommentLayer>
+          <video 
+            ref="videoElement"
+            :src="mediaUrl" 
+            class="w-full h-full object-contain bg-black rounded-lg"
+            controls
+            @loadedmetadata="handleVideoLoaded"
+            @timeupdate="handleTimeUpdate"
+          />
+          
+          <!-- Video comment button overlay -->
+          <div class="video-comment-overlay">
+            <button 
+              class="btn-add-comment"
+              @click="openVideoCommentForm"
+            >
+              <span class="material-icons">add_comment</span>
+              <span>Add Comment at {{ formatTimecode(currentTime) }}</span>
+            </button>
+          </div>
         </div>
         
         <!-- Image Viewer with Spatial Comments -->
@@ -222,6 +220,39 @@
             >
               {{ showResolvedComments ? 'Hide Resolved' : 'Show Resolved' }}
             </button>
+          </div>
+          
+          <!-- New comment form (for video) -->
+          <div v-if="showVideoCommentForm && isVideo" class="comment-form-container">
+            <div class="form-header">
+              <span class="timestamp-badge">
+                <span class="material-icons">schedule</span>
+                {{ formatTimecode(pendingVideoTimecode) }}
+              </span>
+              <button class="btn-close" @click="closeVideoCommentForm">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+            <textarea
+              ref="videoCommentTextarea"
+              v-model="videoCommentText"
+              placeholder="Add your comment..."
+              class="comment-textarea"
+              rows="3"
+              @keydown.meta.enter="submitVideoComment"
+              @keydown.ctrl.enter="submitVideoComment"
+              @keydown.esc="closeVideoCommentForm"
+            />
+            <div class="form-actions">
+              <button class="btn-cancel" @click="closeVideoCommentForm">Cancel</button>
+              <button 
+                class="btn-submit"
+                :disabled="!videoCommentText.trim()"
+                @click="submitVideoComment"
+              >
+                Post
+              </button>
+            </div>
           </div>
           
           <div class="comments-list">
@@ -366,6 +397,12 @@ const {
 const showResolvedComments = ref(false)
 const activeCommentId = ref<string | null>(null)
 
+// Video comment form state
+const showVideoCommentForm = ref(false)
+const videoCommentText = ref('')
+const pendingVideoTimecode = ref(0)
+const videoCommentTextarea = ref<HTMLTextAreaElement | null>(null)
+
 // Filter comments based on resolved state
 const displayedComments = computed(() => {
   if (showResolvedComments.value) {
@@ -426,6 +463,44 @@ const handleReply = async ({ parentId, text }: { parentId: string; text: string 
     console.error('Error adding reply:', error)
     alert('Failed to add reply')
   }
+}
+
+// Video comment functions
+const openVideoCommentForm = () => {
+  pendingVideoTimecode.value = currentTime.value
+  showVideoCommentForm.value = true
+  activeTab.value = 'comments'
+  
+  nextTick(() => {
+    videoCommentTextarea.value?.focus()
+  })
+}
+
+const closeVideoCommentForm = () => {
+  showVideoCommentForm.value = false
+  videoCommentText.value = ''
+}
+
+const submitVideoComment = async () => {
+  if (!videoCommentText.value.trim()) return
+  
+  try {
+    await addComment({
+      content: videoCommentText.value,
+      video_timestamp: pendingVideoTimecode.value
+    })
+    
+    closeVideoCommentForm()
+  } catch (error) {
+    console.error('Error adding video comment:', error)
+    alert('Failed to add comment')
+  }
+}
+
+const formatTimecode = (seconds: number) => {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
 // UI state
@@ -1244,6 +1319,152 @@ const getAssetGradient = (id: string) => {
 .empty-state .helper-text {
   font-size: 12px;
   color: #4b5563;
+}
+
+.video-comment-overlay {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  z-index: 10;
+}
+
+.btn-add-comment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59, 130, 246, 0.95);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s;
+}
+
+.btn-add-comment:hover {
+  background: rgba(37, 99, 235, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.btn-add-comment .material-icons {
+  font-size: 20px;
+}
+
+.comment-form-container {
+  padding: 16px 20px;
+  background: #0a0a0a;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.timestamp-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #374151;
+  color: #e5e7eb;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.timestamp-badge .material-icons {
+  font-size: 16px;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  color: #e5e7eb;
+  background: #374151;
+}
+
+.btn-close .material-icons {
+  font-size: 20px;
+}
+
+.comment-textarea {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 12px;
+  color: #e5e7eb;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.comment-textarea::placeholder {
+  color: #6b7280;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-cancel {
+  background: #1a1a1a;
+  border: 1px solid #374151;
+  color: #9ca3af;
+}
+
+.btn-cancel:hover {
+  background: #2a2a2a;
+  color: #e5e7eb;
+}
+
+.btn-submit {
+  background: #3b82f6;
+  border: none;
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .comment-input {
