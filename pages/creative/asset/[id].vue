@@ -352,7 +352,7 @@
 
 <script setup lang="ts">
 import { convertToFigmaEmbedUrl } from '~/utils/figma'
-import { formatTime, formatFileSize, formatRelativeTime } from '~/utils/asset-viewer'
+import { formatTime, formatRelativeTime } from '~/utils/asset-viewer'
 import CommentLayer from '~/components/creative/CommentLayer.vue'
 import InteractiveImageViewer from '~/components/creative/InteractiveImageViewer.vue'
 import ThreadedComment from '~/components/creative/ThreadedComment.vue'
@@ -686,7 +686,7 @@ const uploadNewVersion = async () => {
   
   try {
     const { supabase } = useSupabase()
-    const user = useSupabaseUser()
+    const user = useSupabaseUser().value
     
     // Get current max version for this request
     const { data: currentAssets } = await supabase
