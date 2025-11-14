@@ -752,6 +752,16 @@ const uploadNewVersion = async () => {
     
     if (insertError) throw insertError
     
+    // Update the request's video_url and thumbnail_url to point to new version
+    const isVideoFile = uploadFile.value.type.startsWith('video/')
+    await supabase
+      .from('requests')
+      .update({
+        video_url: isVideoFile ? urlData.publicUrl : null,
+        thumbnail_url: urlData.publicUrl
+      })
+      .eq('id', assetId)
+    
     // Refresh the page to show new version
     window.location.reload()
     
