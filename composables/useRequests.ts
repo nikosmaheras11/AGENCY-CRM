@@ -142,8 +142,10 @@ export const useRequests = () => {
       error.value = null
     } catch (e) {
       error.value = e as Error
-      console.error('Error fetching requests:', e)
+      console.error('❌ Error fetching requests:', e)
+      // Set empty array so app doesn't crash
       allRequests.value = []
+      // Don't throw - let the app continue
     } finally {
       loading.value = false
     }
