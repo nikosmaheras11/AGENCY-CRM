@@ -13,7 +13,7 @@
         v-if="asset.thumbnail && !isVideoFile(asset.thumbnail)"
         :src="asset.thumbnail"
         :alt="asset.title"
-        class="absolute inset-0 w-full h-full object-cover"
+        class="absolute inset-0 w-full h-full object-cover rounded-t-lg"
       />
       
       <!-- Video without thumbnail - generate preview -->
@@ -23,7 +23,7 @@
       >
         <video
           :src="asset.videoUrl"
-          class="absolute inset-0 w-full h-full object-cover"
+          class="absolute inset-0 w-full h-full object-cover rounded-t-lg"
           preload="metadata"
           muted
           @loadeddata="onVideoLoaded"
@@ -53,7 +53,7 @@
           v-else-if="figmaThumbnail"
           :src="figmaThumbnail"
           :alt="asset.title"
-          class="absolute inset-0 w-full h-full object-cover"
+          class="absolute inset-0 w-full h-full object-cover rounded-t-lg"
         />
         
         <!-- Error/fallback state -->
