@@ -214,6 +214,10 @@ const formatDate = (dateString: string) => {
 }
 </script>
 
+<style>
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+</style>
+
 <style scoped>
 .share-viewer {
   min-height: 100vh;
@@ -325,13 +329,19 @@ const formatDate = (dateString: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: #0a0a0a;
 }
 
 .media-element {
   max-width: 100%;
-  max-height: 100%;
+  max-height: calc(100vh - 200px);
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 .comments-panel {
