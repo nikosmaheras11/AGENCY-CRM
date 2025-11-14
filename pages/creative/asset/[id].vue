@@ -743,7 +743,7 @@ const uploadNewVersion = async () => {
         version_number: nextVersion,
         is_current_version: true,
         version_notes: versionComment.value || null,
-        created_by: user.value?.id
+        created_by: user?.id || null
       })
     
     if (insertError) throw insertError
