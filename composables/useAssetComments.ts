@@ -13,11 +13,11 @@ export const useAssetComments = (requestId: string) => {
       loading.value = true
       error.value = null
       
-      // Use asset_id instead of request_id to match database schema
+      // Query by request_id (your schema has both request_id and asset_id)
       const { data, error: fetchError} = await supabase
         .from('comments')
         .select('*')
-        .eq('asset_id', requestId)
+        .eq('request_id', requestId)
         .order('created_at', { ascending: false })
       
       if (fetchError) throw fetchError
@@ -49,13 +49,16 @@ export const useAssetComments = (requestId: string) => {
         throw new Error('User not authenticated')
       }
       
-      // Match actual database schema: asset_id, author_id, text, video_timestamp, status
+      // Match actual database schema: request_id, author (NOT NULL), author_id, text, timecode, x_position, y_position
       const newComment = {
-        asset_id: requestId,
+        request_id: requestId,
+        author: userData.user.user_metadata?.full_name || userData.user.email || 'Anonymous',
         author_id: userData.user.id,
         text: content,
-        video_timestamp: video_timestamp,
-        status: 'open'
+        timecode: video_timestamp,
+        x_position: x_position || null,
+        y_position: y_position || null,
+        resolved: false
       }
       
       const { data, error: addError } = await supabase
@@ -115,7 +118,7 @@ export const useAssetComments = (requestId: string) => {
           event: '*', 
           schema: 'public', 
           table: 'comments',
-          filter: `asset_id=eq.${requestId}`
+          filter: `request_id=eq.${requestId}`
         },
         (payload: any) => {
           console.log('Realtime comment event:', payload.eventType, payload)
@@ -145,16 +148,16 @@ export const useAssetComments = (requestId: string) => {
   // For video assets, get comments at a specific timestamp
   const getCommentsAtTimestamp = (timestamp: number, tolerance = 2) => {
     return comments.value.filter(comment => {
-      if (comment.video_timestamp === null || comment.video_timestamp === undefined) return false
-      return Math.abs(comment.video_timestamp - timestamp) <= tolerance
+      if (comment.timecode === null || comment.timecode === undefined) return false
+      return Math.abs(comment.timecode - timestamp) <= tolerance
     })
   }
   
   // Order comments by timestamp (for video navigation)
   const timeOrderedComments = computed(() => {
     return [...comments.value]
-      .filter(comment => comment.video_timestamp !== null && comment.video_timestamp !== undefined)
-      .sort((a, b) => a.video_timestamp - b.video_timestamp)
+      .filter(comment => comment.timecode !== null && comment.timecode !== undefined)
+      .sort((a, b) => a.timecode - b.timecode)
   })
   
   // Lifecycle hooks

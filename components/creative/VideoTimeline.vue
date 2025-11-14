@@ -6,8 +6,8 @@
       :key="comment.id"
       class="absolute w-1 h-4 rounded-sm bottom-0 transform -translate-x-1/2 pointer-events-auto cursor-pointer transition-all hover:h-5 hover:w-1.5"
       :class="comment.resolved ? 'bg-green-500' : 'bg-blue-500'"
-      :style="{ left: `${getPositionPercent(comment.video_timestamp)}%` }"
-      @click.stop="$emit('seek', comment.video_timestamp)"
+      :style="{ left: `${getPositionPercent(comment.timecode)}%` }"
+      @click.stop="$emit('seek', comment.timecode)"
     ></div>
   </div>
 </template>
@@ -24,7 +24,7 @@ defineEmits<{
 }>()
 
 const videoComments = computed(() => {
-  return props.comments.filter(c => c.video_timestamp !== null && c.video_timestamp !== undefined)
+  return props.comments.filter(c => c.timecode !== null && c.timecode !== undefined)
 })
 
 const getPositionPercent = (time: number | null) => {
