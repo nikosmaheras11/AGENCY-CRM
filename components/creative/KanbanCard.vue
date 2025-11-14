@@ -8,9 +8,9 @@
       class="relative rounded-t-lg overflow-hidden"
       style="aspect-ratio: 16/9; min-height: 180px;"
     >
-      <!-- Actual Thumbnail Image -->
+      <!-- Actual Thumbnail Image (not a video file) -->
       <img
-        v-if="asset.thumbnail"
+        v-if="asset.thumbnail && !isVideoFile(asset.thumbnail)"
         :src="asset.thumbnail"
         :alt="asset.title"
         class="absolute inset-0 w-full h-full object-cover"
@@ -184,6 +184,13 @@ defineEmits<{
   click: [asset: Asset]
 }>()
 
+// Helper: Check if URL is a video file (not a thumbnail image)
+const isVideoFile = (url: string | undefined): boolean => {
+  if (!url) return false
+  const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.mkv']
+  return videoExtensions.some(ext => url.toLowerCase().includes(ext))
+}
+
 // Debug: Log asset data on mount
 onMounted(() => {
   if (props.asset.videoUrl) {
@@ -191,6 +198,7 @@ onMounted(() => {
       id: props.asset.id,
       title: props.asset.title,
       thumbnail: props.asset.thumbnail,
+      thumbnailIsVideo: isVideoFile(props.asset.thumbnail),
       videoUrl: props.asset.videoUrl,
       figmaUrl: props.asset.figmaUrl
     })
