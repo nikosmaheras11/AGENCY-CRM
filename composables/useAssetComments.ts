@@ -49,7 +49,7 @@ export const useAssetComments = (requestId: string) => {
         text: content,
         x_position,
         y_position,
-        video_timestamp,
+        timecode: video_timestamp, // Database uses 'timecode' not 'video_timestamp'
         resolved: false,
         author: userData.user?.user_metadata?.full_name || userData.user?.email || 'Anonymous',
         author_id: userData.user?.id
@@ -142,16 +142,16 @@ export const useAssetComments = (requestId: string) => {
   // For video assets, get comments at a specific timestamp
   const getCommentsAtTimestamp = (timestamp: number, tolerance = 2) => {
     return comments.value.filter(comment => {
-      if (comment.video_timestamp === null) return false
-      return Math.abs(comment.video_timestamp - timestamp) <= tolerance
+      if (comment.timecode === null) return false
+      return Math.abs(comment.timecode - timestamp) <= tolerance
     })
   }
   
   // Order comments by timestamp (for video navigation)
   const timeOrderedComments = computed(() => {
     return [...comments.value]
-      .filter(comment => comment.video_timestamp !== null)
-      .sort((a, b) => a.video_timestamp - b.video_timestamp)
+      .filter(comment => comment.timecode !== null)
+      .sort((a, b) => a.timecode - b.timecode)
   })
   
   // Lifecycle hooks
