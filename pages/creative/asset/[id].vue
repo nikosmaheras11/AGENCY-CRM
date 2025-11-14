@@ -386,11 +386,39 @@ const boardAssets = computed(() => {
     }))
 })
 
+// Fetch current asset version from assets table
+const currentAssetVersion = ref<any>(null)
+const loadingAssetVersion = ref(false)
+
+const fetchCurrentAssetVersion = async () => {
+  loadingAssetVersion.value = true
+  try {
+    const { supabase } = useSupabase()
+    const { data, error } = await supabase
+      .from('assets')
+      .select('*')
+      .eq('request_id', assetId)
+      .eq('is_current_version', true)
+      .single()
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error fetching current asset version:', error)
+    }
+    
+    currentAssetVersion.value = data
+  } finally {
+    loadingAssetVersion.value = false
+  }
+}
+
 // Fetch requests and Figma thumbnails
 onMounted(async () => {
   if (allRequests.value.length === 0) {
     await fetchRequests()
   }
+  
+  // Fetch current asset version
+  await fetchCurrentAssetVersion()
   
   // Fetch thumbnails for Figma assets
   for (const asset of boardAssets.value) {
@@ -752,18 +780,11 @@ const uploadNewVersion = async () => {
     
     if (insertError) throw insertError
     
-    // Update the request's video_url and thumbnail_url to point to new version
-    const isVideoFile = uploadFile.value.type.startsWith('video/')
-    await supabase
-      .from('requests')
-      .update({
-        video_url: isVideoFile ? urlData.publicUrl : null,
-        thumbnail_url: urlData.publicUrl
-      })
-      .eq('id', assetId)
+    // Refresh current asset version data
+    await fetchCurrentAssetVersion()
     
-    // Refresh the page to show new version
-    window.location.reload()
+    // Close dialog and reset state
+    cancelVersionUpload()
     
   } catch (error: any) {
     console.error('Error uploading version:', error)
@@ -782,13 +803,21 @@ const formatFileSize = (bytes: number) => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
-// Media URL and type detection
+// Media URL and type detection - prioritize current asset version from assets table
 const mediaUrl = computed(() => {
+  // First check if we have a current asset version from the assets table
+  if (currentAssetVersion.value) {
+    const url = currentAssetVersion.value.preview_url || currentAssetVersion.value.thumbnail_url
+    console.log('[Asset Viewer] mediaUrl from asset version:', url)
+    return url
+  }
+  
+  // Fallback to request URLs (for backwards compatibility)
   const url = currentAsset.value?.assetFileUrl || 
          currentAsset.value?.videoUrl || 
          currentAsset.value?.thumbnail ||
          null
-  console.log('[Asset Viewer] mediaUrl:', url)
+  console.log('[Asset Viewer] mediaUrl from request:', url)
   return url
 })
 
