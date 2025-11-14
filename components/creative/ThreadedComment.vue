@@ -119,7 +119,7 @@ const props = withDefaults(defineProps<Props>(), {
   pinNumber: 0
 })
 
-defineEmits<{
+const emit = defineEmits<{
   resolve: [commentId: string]
   unresolve: [commentId: string]
   reply: [payload: { parentId: string; text: string }]
@@ -173,12 +173,6 @@ const cancelReply = () => {
   replyText.value = ''
   showReplyInput.value = false
 }
-
-const emit = defineEmits<{
-  resolve: [commentId: string]
-  unresolve: [commentId: string]
-  reply: [payload: { parentId: string; text: string }]
-}>()
 </script>
 
 <style scoped>
