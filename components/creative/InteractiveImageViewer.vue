@@ -3,15 +3,16 @@
     <div 
       ref="imageContainer"
       class="image-container"
-      :class="{ 'commenting-mode': isCommentingEnabled }"
-      @click="handleImageClick"
     >
       <!-- The actual image -->
       <img 
+        ref="imageElement"
         :src="imageUrl" 
         :alt="altText"
         class="viewer-image"
+        :class="{ 'commenting-mode': isCommentingEnabled }"
         @load="onImageLoad"
+        @click="handleImageClick"
       />
       
       <!-- Spatial comment markers overlay -->
@@ -103,6 +104,7 @@ const emit = defineEmits<{
 }>()
 
 const imageContainer = ref<HTMLElement | null>(null)
+const imageElement = ref<HTMLImageElement | null>(null)
 const commentTextarea = ref<HTMLTextAreaElement | null>(null)
 const pendingComment = ref<{
   x: number
@@ -122,11 +124,11 @@ const handleImageClick = (event: MouseEvent) => {
   if (!props.isCommentingEnabled || !imageLoaded.value) return
   if (pendingComment.value) return // Already placing a comment
   
-  const container = imageContainer.value
-  if (!container) return
+  const image = imageElement.value
+  if (!image) return
   
-  // Get click position relative to image container
-  const rect = container.getBoundingClientRect()
+  // Get click position relative to the actual image element
+  const rect = image.getBoundingClientRect()
   const x = ((event.clientX - rect.left) / rect.width) * 100
   const y = ((event.clientY - rect.top) / rect.height) * 100
   
@@ -194,15 +196,15 @@ const cancelComment = () => {
   overflow: hidden;
 }
 
-.image-container.commenting-mode {
-  cursor: crosshair;
-}
-
 .viewer-image {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
+}
+
+.viewer-image.commenting-mode {
+  cursor: crosshair;
 }
 
 .click-instruction {

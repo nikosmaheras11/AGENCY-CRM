@@ -13,9 +13,9 @@
         <div class="comment-header">
           <span class="comment-author">{{ comment.author }}</span>
           <span class="comment-time">{{ formatRelativeTime(comment.created_at) }}</span>
-          <span v-if="comment.x_position !== null" class="comment-badge">
-            📍 Pin {{ pinNumber }}
-          </span>
+          <div v-if="comment.x_position !== null" class="pin-indicator">
+            {{ pinNumber }}
+          </div>
           <span v-if="comment.timecode !== null && comment.timecode !== undefined" class="comment-badge">
             🎬 {{ formatTimecode(comment.timecode!) }}
           </span>
@@ -222,25 +222,39 @@ const cancelReply = () => {
 
 .comment-author {
   font-weight: 600;
-  color: #111827;
+  color: #f9fafb;
   font-size: 14px;
 }
 
 .comment-time {
   font-size: 13px;
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 .comment-badge {
   font-size: 11px;
   padding: 2px 8px;
-  background: #f3f4f6;
-  color: #4b5563;
+  background: #374151;
+  color: #e5e7eb;
   border-radius: 12px;
 }
 
+.pin-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 .comment-text {
-  color: #374151;
+  color: #e5e7eb;
   font-size: 14px;
   line-height: 1.5;
   margin-bottom: 8px;
