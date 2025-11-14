@@ -219,9 +219,27 @@
         
         <!-- Comments Tab -->
         <div v-if="activeTab === 'comments'" class="tab-panel comments-panel no-padding">
+          <!-- Video comments with timeline -->
           <CommentThread 
+            v-if="isVideo"
             :asset-id="assetId"
             :current-time="currentTime"
+          />
+          
+          <!-- Image comments - show instructions -->
+          <div v-else-if="isImage" class="image-comments-panel">
+            <div class="comment-instructions">
+              <span class="material-icons">touch_app</span>
+              <p>Click anywhere on the image to add a comment at that location</p>
+            </div>
+            <!-- Existing comments will show as pins on the image -->
+          </div>
+          
+          <!-- Fallback -->
+          <CommentThread 
+            v-else
+            :asset-id="assetId"
+            :current-time="undefined"
           />
         </div>
         

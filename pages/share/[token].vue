@@ -75,13 +75,25 @@
         </CommentLayer>
       </main>
 
-      <!-- Comments Panel (if enabled) -->
-      <aside v-if="shareLink?.canComment" class="comments-panel">
+      <!-- Comments Panel (only for videos with time-bound comments) -->
+      <aside v-if="shareLink?.canComment && isVideo" class="comments-panel">
         <h3>Comments</h3>
         <CommentThread
           :asset-id="asset.id"
-          :current-time="isVideo ? currentTime : undefined"
+          :current-time="currentTime"
         />
+      </aside>
+      
+      <!-- Instructions for static images -->
+      <aside v-else-if="shareLink?.canComment && isImage" class="comments-panel">
+        <h3>Comments</h3>
+        <div class="comment-instructions">
+          <span class="material-icons">touch_app</span>
+          <p>Click anywhere on the image to add a comment</p>
+        </div>
+        <div class="existing-comments">
+          <!-- TODO: Show existing comment list -->
+        </div>
       </aside>
 
       <!-- Footer Info -->
@@ -380,6 +392,28 @@ const formatDate = (dateString: string) => {
 
 .no-media .material-icons {
   font-size: 64px;
+}
+
+/* Comment instructions panel */
+.comment-instructions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 24px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.comment-instructions .material-icons {
+  font-size: 48px;
+  color: #6b7280;
+}
+
+.comment-instructions p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Mobile responsive */
