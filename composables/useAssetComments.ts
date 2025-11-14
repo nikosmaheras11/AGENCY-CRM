@@ -1,11 +1,59 @@
+interface CommentNode {
+  id: string
+  request_id: string
+  asset_id?: string
+  parent_comment_id?: string | null
+  author: string
+  author_id: string
+  text: string
+  timecode?: number | null
+  x_position?: number | null
+  y_position?: number | null
+  resolved: boolean
+  created_at: string
+  updated_at: string
+  replies?: CommentNode[]
+}
+
 export const useAssetComments = (requestId: string) => {
   const { supabase } = useSupabase()
   
-  const comments = ref<any[]>([])
+  const comments = ref<CommentNode[]>([])
+  const flatComments = ref<any[]>([])
   const loading = ref(true)
   const error = ref<Error | null>(null)
   
   let commentsChannel: any = null
+  
+  // Build comment tree from flat array
+  const buildCommentTree = (flatComments: any[]): CommentNode[] => {
+    const commentMap = new Map<string, CommentNode>()
+    const rootComments: CommentNode[] = []
+    
+    // First pass: create map with replies array
+    flatComments.forEach(comment => {
+      commentMap.set(comment.id, { ...comment, replies: [] })
+    })
+    
+    // Second pass: build tree structure
+    flatComments.forEach(comment => {
+      const commentNode = commentMap.get(comment.id)!
+      
+      if (comment.parent_comment_id) {
+        const parent = commentMap.get(comment.parent_comment_id)
+        if (parent) {
+          parent.replies!.push(commentNode)
+        } else {
+          // Parent not found, treat as root
+          rootComments.push(commentNode)
+        }
+      } else {
+        rootComments.push(commentNode)
+      }
+    })
+    
+    return rootComments
+  }
   
   // Fetch comments for this asset
   const fetchComments = async () => {
@@ -13,15 +61,17 @@ export const useAssetComments = (requestId: string) => {
       loading.value = true
       error.value = null
       
-      // Query by request_id (your schema has both request_id and asset_id)
+      // Fetch all comments flat, ordered by creation time
       const { data, error: fetchError} = await supabase
         .from('comments')
         .select('*')
         .eq('request_id', requestId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: true })
       
       if (fetchError) throw fetchError
-      comments.value = data || []
+      
+      flatComments.value = data || []
+      comments.value = buildCommentTree(data || [])
     } catch (e: any) {
       error.value = e
       console.error('Error fetching comments:', e)
@@ -30,17 +80,19 @@ export const useAssetComments = (requestId: string) => {
     }
   }
   
-  // Add a new comment with optional video timestamp
+  // Add a new comment with optional video timestamp or spatial position
   const addComment = async ({ 
     content, 
     x_position, 
     y_position, 
-    video_timestamp = null 
+    video_timestamp = null,
+    parent_id = null
   }: {
     content: string
     x_position?: number
     y_position?: number
     video_timestamp?: number | null
+    parent_id?: string | null
   }) => {
     try {
       const { data: userData } = await supabase.auth.getUser()
@@ -49,7 +101,7 @@ export const useAssetComments = (requestId: string) => {
         throw new Error('User not authenticated')
       }
       
-      // Match actual database schema: request_id, author (NOT NULL), author_id, text, timecode, x_position, y_position
+      // Match actual database schema: request_id, author (NOT NULL), author_id, text, timecode, x_position, y_position, parent_comment_id
       const newComment = {
         request_id: requestId,
         author: userData.user.user_metadata?.full_name || userData.user.email || 'Anonymous',
@@ -58,6 +110,7 @@ export const useAssetComments = (requestId: string) => {
         timecode: video_timestamp,
         x_position: x_position || null,
         y_position: y_position || null,
+        parent_comment_id: parent_id,
         resolved: false
       }
       
@@ -69,14 +122,24 @@ export const useAssetComments = (requestId: string) => {
       
       if (addError) throw addError
       
-      // Optimistic update
-      comments.value = [data, ...comments.value]
+      // Rebuild tree with new comment
+      flatComments.value = [...flatComments.value, data]
+      comments.value = buildCommentTree(flatComments.value)
+      
       return data
     } catch (e: any) {
       error.value = e
       console.error('Error adding comment:', e)
       throw e
     }
+  }
+  
+  // Add a reply to an existing comment
+  const addReply = async (parentId: string, content: string) => {
+    return addComment({ 
+      content, 
+      parent_id: parentId 
+    })
   }
   
   // Update comment status
@@ -124,21 +187,21 @@ export const useAssetComments = (requestId: string) => {
           console.log('Realtime comment event:', payload.eventType, payload)
           
           if (payload.eventType === 'INSERT') {
-            // Check if comment already exists (avoid duplicates from optimistic updates)
-            const exists = comments.value.find(c => c.id === payload.new.id)
+            // Check if comment already exists (avoid duplicates)
+            const exists = flatComments.value.find(c => c.id === payload.new.id)
             if (!exists) {
-              comments.value = [payload.new, ...comments.value]
+              flatComments.value = [...flatComments.value, payload.new]
+              comments.value = buildCommentTree(flatComments.value)
             }
           } else if (payload.eventType === 'UPDATE') {
-            const index = comments.value.findIndex(c => c.id === payload.new.id)
+            const index = flatComments.value.findIndex(c => c.id === payload.new.id)
             if (index !== -1) {
-              comments.value[index] = {
-                ...comments.value[index],
-                ...payload.new
-              }
+              flatComments.value[index] = payload.new
+              comments.value = buildCommentTree(flatComments.value)
             }
           } else if (payload.eventType === 'DELETE') {
-            comments.value = comments.value.filter(c => c.id !== payload.old.id)
+            flatComments.value = flatComments.value.filter(c => c.id !== payload.old.id)
+            comments.value = buildCommentTree(flatComments.value)
           }
         }
       )
@@ -153,12 +216,29 @@ export const useAssetComments = (requestId: string) => {
     })
   }
   
+  // Get only root-level comments (for display)
+  const rootComments = computed(() => {
+    return comments.value
+  })
+  
   // Order comments by timestamp (for video navigation)
   const timeOrderedComments = computed(() => {
-    return [...comments.value]
+    return flatComments.value
       .filter(comment => comment.timecode !== null && comment.timecode !== undefined)
-      .sort((a, b) => a.timecode - b.timecode)
+      .sort((a, b) => a.timecode! - b.timecode!)
   })
+  
+  // Get spatial comments (image pins)
+  const spatialComments = computed(() => {
+    return flatComments.value.filter(comment => 
+      comment.x_position !== null && 
+      comment.y_position !== null &&
+      !comment.parent_comment_id // Only root spatial comments
+    )
+  })
+  
+  // Get total comment count (including replies)
+  const totalCommentCount = computed(() => flatComments.value.length)
   
   // Lifecycle hooks
   onMounted(() => {
@@ -173,12 +253,16 @@ export const useAssetComments = (requestId: string) => {
   })
   
   return {
-    comments,
+    comments: rootComments,
+    flatComments,
     loading,
     error,
     timeOrderedComments,
+    spatialComments,
+    totalCommentCount,
     fetchComments,
     addComment,
+    addReply,
     updateCommentStatus,
     getCommentsAtTimestamp
   }

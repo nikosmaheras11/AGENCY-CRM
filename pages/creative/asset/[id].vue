@@ -114,23 +114,17 @@
           </CommentLayer>
         </div>
         
-        <!-- Image Viewer with Comments -->
+        <!-- Image Viewer with Spatial Comments -->
         <div v-else-if="isImage && mediaUrl" class="image-wrapper">
-          <CommentLayer
-            :asset-id="assetId"
-            :is-video="false"
-            :enable-collaboration="true"
-            @comment-added="handleCommentAdded"
-            @comment-selected="handleCommentSelected"
-          >
-            <template #media>
-              <img 
-                :src="mediaUrl" 
-                :alt="currentAsset?.title"
-                class="w-full h-full object-contain"
-              />
-            </template>
-          </CommentLayer>
+          <InteractiveImageViewer
+            :image-url="mediaUrl"
+            :spatial-comments="spatialComments"
+            :alt-text="currentAsset?.title || 'Asset image'"
+            :is-commenting-enabled="true"
+            :active-comment-id="activeCommentId"
+            @add-comment="handleSpatialComment"
+            @select-comment="handleSelectSpatialComment"
+          />
         </div>
         
         <!-- Figma Viewer -->
@@ -219,28 +213,43 @@
         
         <!-- Comments Tab -->
         <div v-if="activeTab === 'comments'" class="tab-panel comments-panel no-padding">
-          <!-- Video comments with timeline -->
-          <CommentThread 
-            v-if="isVideo"
-            :asset-id="assetId"
-            :current-time="currentTime"
-          />
-          
-          <!-- Image comments - show instructions -->
-          <div v-else-if="isImage" class="image-comments-panel">
-            <div class="comment-instructions">
-              <span class="material-icons">touch_app</span>
-              <p>Click anywhere on the image to add a comment at that location</p>
-            </div>
-            <!-- Existing comments will show as pins on the image -->
+          <div class="comments-header">
+            <h3>Comments ({{ totalCommentCount }})</h3>
+            <button 
+              v-if="!isVideo"
+              class="btn-filter"
+              @click="showResolvedComments = !showResolvedComments"
+            >
+              {{ showResolvedComments ? 'Hide Resolved' : 'Show Resolved' }}
+            </button>
           </div>
           
-          <!-- Fallback -->
-          <CommentThread 
-            v-else
-            :asset-id="assetId"
-            :current-time="undefined"
-          />
+          <div class="comments-list">
+            <div v-if="commentsLoading" class="loading-state">
+              <span class="material-icons spin">refresh</span>
+              <p>Loading comments...</p>
+            </div>
+            
+            <div v-else-if="displayedComments.length === 0" class="empty-state">
+              <span class="material-icons">comment</span>
+              <p>No comments yet</p>
+              <p class="helper-text">
+                {{ isVideo ? 'Play the video and click to add a comment' : 'Click on the image to add a comment' }}
+              </p>
+            </div>
+            
+            <div v-else class="threaded-comments-container">
+              <ThreadedComment
+                v-for="(comment, index) in displayedComments"
+                :key="comment.id"
+                :comment="comment"
+                :pin-number="index + 1"
+                @resolve="handleResolveComment"
+                @unresolve="handleUnresolveComment"
+                @reply="handleReply"
+              />
+            </div>
+          </div>
         </div>
         
         <!-- Versions Tab -->
@@ -266,6 +275,8 @@
 import { convertToFigmaEmbedUrl } from '~/utils/figma'
 import { formatTime, formatFileSize, formatRelativeTime } from '~/utils/asset-viewer'
 import CommentLayer from '~/components/creative/CommentLayer.vue'
+import InteractiveImageViewer from '~/components/creative/InteractiveImageViewer.vue'
+import ThreadedComment from '~/components/creative/ThreadedComment.vue'
 
 definePageMeta({
   layout: false
@@ -338,6 +349,82 @@ const handleCommentSelected = (comment: any) => {
 const handleSeek = (time: number) => {
   if (videoElement.value) {
     videoElement.value.currentTime = time
+  }
+}
+
+// Comments system
+const { 
+  comments, 
+  spatialComments,
+  totalCommentCount,
+  loading: commentsLoading, 
+  addComment, 
+  addReply,
+  updateCommentStatus 
+} = useAssetComments(assetId)
+
+const showResolvedComments = ref(false)
+const activeCommentId = ref<string | null>(null)
+
+// Filter comments based on resolved state
+const displayedComments = computed(() => {
+  if (showResolvedComments.value) {
+    return comments.value
+  }
+  return comments.value.filter(c => !c.resolved)
+})
+
+// Handle spatial comment on image
+const handleSpatialComment = async ({ x, y, text }: { x: number; y: number; text: string }) => {
+  try {
+    await addComment({
+      content: text,
+      x_position: x,
+      y_position: y
+    })
+    activeTab.value = 'comments'
+  } catch (error) {
+    console.error('Error adding spatial comment:', error)
+    alert('Failed to add comment')
+  }
+}
+
+// Handle selecting a spatial comment pin
+const handleSelectSpatialComment = (commentId: string) => {
+  activeCommentId.value = commentId
+  activeTab.value = 'comments'
+  
+  // Scroll to comment in sidebar
+  nextTick(() => {
+    const commentEl = document.querySelector(`[data-comment-id="${commentId}"]`)
+    commentEl?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+}
+
+// Handle resolving/unresolving comments
+const handleResolveComment = async (commentId: string) => {
+  try {
+    await updateCommentStatus(commentId, true)
+  } catch (error) {
+    console.error('Error resolving comment:', error)
+  }
+}
+
+const handleUnresolveComment = async (commentId: string) => {
+  try {
+    await updateCommentStatus(commentId, false)
+  } catch (error) {
+    console.error('Error unresolving comment:', error)
+  }
+}
+
+// Handle replies to comments
+const handleReply = async ({ parentId, text }: { parentId: string; text: string }) => {
+  try {
+    await addReply(parentId, text)
+  } catch (error) {
+    console.error('Error adding reply:', error)
+    alert('Failed to add reply')
   }
 }
 
@@ -1073,7 +1160,90 @@ const getAssetGradient = (id: string) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #2a2a2a;
+  background: #1a1a1a;
+}
+
+.comments-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.btn-filter {
+  background: #0a0a0a;
+  border: 1px solid #374151;
+  color: #9ca3af;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-filter:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.comments-list {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.loading-state .material-icons {
+  font-size: 32px;
+}
+
+.loading-state .spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.threaded-comments-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.empty-state .material-icons {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.empty-state .helper-text {
+  font-size: 12px;
+  color: #4b5563;
 }
 
 .comment-input {
