@@ -16,6 +16,34 @@
         class="absolute inset-0 w-full h-full object-cover"
       />
       
+      <!-- Video without thumbnail - generate preview -->
+      <div
+        v-else-if="asset.videoUrl && !asset.figmaUrl"
+        class="absolute inset-0 bg-black"
+      >
+        <video
+          :src="asset.videoUrl"
+          class="absolute inset-0 w-full h-full object-cover"
+          preload="metadata"
+          muted
+          @loadeddata="onVideoLoaded"
+        >
+        </video>
+        <!-- Video badge -->
+        <div class="absolute top-2 left-2 z-10">
+          <div class="bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
+            <span class="material-icons" style="font-size: 14px;">videocam</span>
+            Video
+          </div>
+        </div>
+        <!-- Play icon overlay -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="bg-black/50 rounded-full p-4">
+            <span class="material-icons text-white" style="font-size: 48px;">play_arrow</span>
+          </div>
+        </div>
+      </div>
+      
       <!-- Figma file thumbnail -->
       <div 
         v-else-if="asset.figmaUrl"
@@ -220,4 +248,10 @@ const statusText = computed(() => {
   }
   return text[props.asset.status] || props.asset.status
 })
+
+// Seek video to first frame for thumbnail preview
+const onVideoLoaded = (event: Event) => {
+  const video = event.target as HTMLVideoElement
+  video.currentTime = 0.1 // Seek to 0.1s to show first frame
+}
 </script>
