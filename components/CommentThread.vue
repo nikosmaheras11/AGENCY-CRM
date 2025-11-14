@@ -101,7 +101,8 @@
     <div class="new-comment-input">
       <div class="input-header">
         <span>Add comment</span>
-        <span v-if="currentTime !== null && currentTime !== undefined" class="timecode-display">
+        <!-- Only show timecode for videos (when currentTime prop is actually passed) -->
+        <span v-if="currentTime !== null && currentTime !== undefined && currentTime > 0" class="timecode-display">
           at {{ formatTime(currentTime) }}
         </span>
       </div>

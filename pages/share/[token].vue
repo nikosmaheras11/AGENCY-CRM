@@ -80,7 +80,7 @@
         <h3>Comments</h3>
         <CommentThread
           :asset-id="asset.id"
-          :current-time="currentTime"
+          :current-time="isVideo ? currentTime : undefined"
         />
       </aside>
 
@@ -142,11 +142,13 @@ onMounted(async () => {
   trackView()
 })
 
-// Media detection
+// Media detection (use snake_case field names from database)
 const mediaUrl = computed(() => {
-  return asset.value?.assetFileUrl ||
-         asset.value?.videoUrl ||
-         asset.value?.thumbnail ||
+  if (!asset.value) return null
+  return asset.value.asset_file_url ||
+         asset.value.video_url ||
+         asset.value.thumbnail ||
+         asset.value.figma_url ||
          null
 })
 
