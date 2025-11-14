@@ -184,6 +184,19 @@ defineEmits<{
   click: [asset: Asset]
 }>()
 
+// Debug: Log asset data on mount
+onMounted(() => {
+  if (props.asset.videoUrl) {
+    console.log('🎬 KanbanCard video asset:', {
+      id: props.asset.id,
+      title: props.asset.title,
+      thumbnail: props.asset.thumbnail,
+      videoUrl: props.asset.videoUrl,
+      figmaUrl: props.asset.figmaUrl
+    })
+  }
+})
+
 // Figma integration
 const { fetchFigmaThumbnail } = useFigma()
 const figmaThumbnail = ref<string | null>(null)
