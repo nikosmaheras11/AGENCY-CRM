@@ -5,7 +5,7 @@
   >
     <!-- Thumbnail -->
     <div 
-      class="relative rounded-t-lg overflow-hidden"
+      class="relative rounded-t-xl overflow-hidden"
       style="aspect-ratio: 16/9; min-height: 180px;"
     >
       <!-- Actual Thumbnail Image (not a video file) -->
@@ -13,7 +13,7 @@
         v-if="asset.thumbnail && !isVideoFile(asset.thumbnail)"
         :src="asset.thumbnail"
         :alt="asset.title"
-        class="absolute inset-0 w-full h-full object-cover rounded-t-lg"
+        class="absolute inset-0 w-full h-full object-cover rounded-t-xl"
       />
       
       <!-- Video without thumbnail - generate preview -->
@@ -23,7 +23,7 @@
       >
         <video
           :src="asset.videoUrl"
-          class="absolute inset-0 w-full h-full object-cover rounded-t-lg"
+          class="absolute inset-0 w-full h-full object-cover rounded-t-xl"
           preload="metadata"
           muted
           @loadeddata="onVideoLoaded"
@@ -53,7 +53,7 @@
           v-else-if="figmaThumbnail"
           :src="figmaThumbnail"
           :alt="asset.title"
-          class="absolute inset-0 w-full h-full object-cover rounded-t-lg"
+          class="absolute inset-0 w-full h-full object-cover rounded-t-xl"
         />
         
         <!-- Error/fallback state -->
