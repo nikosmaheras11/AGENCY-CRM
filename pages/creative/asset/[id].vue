@@ -703,7 +703,11 @@ const uploadNewVersion = async () => {
     // Upload file to Supabase Storage
     const fileExt = uploadFile.value.name.split('.').pop()
     const timestamp = Date.now()
-    const storagePath = `requests/${timestamp}-${uploadFile.value.name}`
+    // Sanitize filename: remove spaces and special characters
+    const sanitizedFilename = uploadFile.value.name
+      .replace(/\s+/g, '-')  // Replace spaces with hyphens
+      .replace(/[^a-zA-Z0-9.-]/g, '')  // Remove special characters except dots and hyphens
+    const storagePath = `requests/${timestamp}-${sanitizedFilename}`
     
     const { data: uploadData, error: uploadError } = await supabase
       .storage
