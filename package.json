@@ -19,7 +19,14 @@
     "test:db": "vitest tests/supabase/db-functions.test.ts",
     "validate-db": "tsx scripts/validate-db.ts",
     "slack-monitor": "node scripts/slack-monitor.cjs",
-    "setup-supabase": "node scripts/setup-supabase.cjs"
+    "setup-supabase": "node scripts/setup-supabase.cjs",
+    "db": "tsx scripts/supabase-cli.ts",
+    "vercel:status": "tsx scripts/vercel-monitor.ts status",
+    "vercel:logs": "tsx scripts/vercel-monitor.ts logs",
+    "vercel:errors": "tsx scripts/vercel-monitor.ts errors",
+    "vercel:watch": "tsx scripts/vercel-monitor.ts watch",
+    "vercel:test": "tsx scripts/vercel-monitor.ts test",
+    "vercel:info": "tsx scripts/vercel-monitor.ts project"
   },
   "dependencies": {
     "@directus/sdk": "^17.0.0",
