@@ -7,16 +7,17 @@ export const useAssetComments = (requestId: string) => {
   
   let commentsChannel: any = null
   
-  // Fetch comments for this request
+  // Fetch comments for this asset
   const fetchComments = async () => {
     try {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await supabase
+      // Use asset_id instead of request_id to match database schema
+      const { data, error: fetchError} = await supabase
         .from('comments')
         .select('*')
-        .eq('request_id', requestId)
+        .eq('asset_id', requestId)
         .order('created_at', { ascending: false })
       
       if (fetchError) throw fetchError
@@ -29,7 +30,7 @@ export const useAssetComments = (requestId: string) => {
     }
   }
   
-  // Add a new comment with position and optional timestamp
+  // Add a new comment with optional video timestamp
   const addComment = async ({ 
     content, 
     x_position, 
@@ -37,22 +38,24 @@ export const useAssetComments = (requestId: string) => {
     video_timestamp = null 
   }: {
     content: string
-    x_position: number
-    y_position: number
+    x_position?: number
+    y_position?: number
     video_timestamp?: number | null
   }) => {
     try {
       const { data: userData } = await supabase.auth.getUser()
       
+      if (!userData.user) {
+        throw new Error('User not authenticated')
+      }
+      
+      // Match actual database schema: asset_id, author_id, text, video_timestamp, status
       const newComment = {
-        request_id: requestId,
+        asset_id: requestId,
+        author_id: userData.user.id,
         text: content,
-        x_position,
-        y_position,
-        timecode: video_timestamp, // Database uses 'timecode' not 'video_timestamp'
-        resolved: false,
-        author: userData.user?.user_metadata?.full_name || userData.user?.email || 'Anonymous',
-        author_id: userData.user?.id
+        video_timestamp: video_timestamp,
+        status: 'open'
       }
       
       const { data, error: addError } = await supabase
@@ -112,7 +115,7 @@ export const useAssetComments = (requestId: string) => {
           event: '*', 
           schema: 'public', 
           table: 'comments',
-          filter: `request_id=eq.${requestId}`
+          filter: `asset_id=eq.${requestId}`
         },
         (payload: any) => {
           console.log('Realtime comment event:', payload.eventType, payload)
@@ -142,16 +145,16 @@ export const useAssetComments = (requestId: string) => {
   // For video assets, get comments at a specific timestamp
   const getCommentsAtTimestamp = (timestamp: number, tolerance = 2) => {
     return comments.value.filter(comment => {
-      if (comment.timecode === null) return false
-      return Math.abs(comment.timecode - timestamp) <= tolerance
+      if (comment.video_timestamp === null || comment.video_timestamp === undefined) return false
+      return Math.abs(comment.video_timestamp - timestamp) <= tolerance
     })
   }
   
   // Order comments by timestamp (for video navigation)
   const timeOrderedComments = computed(() => {
     return [...comments.value]
-      .filter(comment => comment.timecode !== null)
-      .sort((a, b) => a.timecode - b.timecode)
+      .filter(comment => comment.video_timestamp !== null && comment.video_timestamp !== undefined)
+      .sort((a, b) => a.video_timestamp - b.video_timestamp)
   })
   
   // Lifecycle hooks
