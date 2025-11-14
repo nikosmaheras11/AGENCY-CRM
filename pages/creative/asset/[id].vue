@@ -88,7 +88,20 @@
       </header>
       
       <!-- Media container -->
-      <div class="media-container">
+      <div 
+        class="media-container"
+        @dragenter="handleDragEnter"
+        @dragleave="handleDragLeave"
+        @dragover="handleDragOver"
+        @drop="handleDrop"
+      >
+        <!-- Drag overlay -->
+        <div v-if="isDragging" class="drag-overlay">
+          <div class="drag-overlay-content">
+            <span class="material-icons">cloud_upload</span>
+            <p>Drop file to create new version</p>
+          </div>
+        </div>
         <!-- Video Player -->
         <div v-if="isVideo && mediaUrl" class="video-wrapper">
           <video 
@@ -290,6 +303,50 @@
         </div>
       </div>
     </aside>
+    
+    <!-- Version Upload Dialog -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div v-if="showVersionDialog" class="version-dialog-backdrop" @click="cancelVersionUpload">
+          <div class="version-dialog" @click.stop>
+            <h3>Upload New Version</h3>
+            <p>You're about to upload a new version of this asset.</p>
+            
+            <div v-if="uploadFile" class="file-preview">
+              <div class="file-name">{{ uploadFile.name }}</div>
+              <div class="file-meta">{{ formatFileSize(uploadFile.size) }}</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="version-comment">Version comment (optional):</label>
+              <textarea 
+                id="version-comment"
+                v-model="versionComment"
+                placeholder="What changed in this version?"
+                rows="3"
+              ></textarea>
+            </div>
+            
+            <div class="dialog-actions">
+              <button 
+                @click="cancelVersionUpload"
+                class="cancel-btn"
+                :disabled="isUploading"
+              >
+                Cancel
+              </button>
+              <button 
+                @click="uploadNewVersion"
+                :disabled="isUploading"
+                class="confirm-btn"
+              >
+                {{ isUploading ? 'Uploading...' : 'Upload Version' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -492,6 +549,13 @@ const formatTimecode = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
+// Drag and drop state
+const isDragging = ref(false)
+const isUploading = ref(false)
+const showVersionDialog = ref(false)
+const uploadFile = ref<File | null>(null)
+const versionComment = ref('')
+
 // UI state
 const activeTab = ref<'details' | 'comments' | 'versions'>('details')
 const editingTitle = ref(false)
@@ -575,6 +639,131 @@ const handleDownload = () => {
   if (mediaUrl.value) {
     window.open(mediaUrl.value, '_blank')
   }
+}
+
+// Drag and drop handlers
+const handleDragEnter = (e: DragEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+  isDragging.value = true
+}
+
+const handleDragLeave = (e: DragEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+  if (e.target === e.currentTarget) {
+    isDragging.value = false
+  }
+}
+
+const handleDragOver = (e: DragEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+}
+
+const handleDrop = async (e: DragEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+  isDragging.value = false
+  
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+  
+  uploadFile.value = files[0]
+  showVersionDialog.value = true
+}
+
+const cancelVersionUpload = () => {
+  uploadFile.value = null
+  versionComment.value = ''
+  showVersionDialog.value = false
+}
+
+const uploadNewVersion = async () => {
+  if (!uploadFile.value || !assetId) return
+  
+  isUploading.value = true
+  
+  try {
+    const { supabase } = useSupabase()
+    const user = useSupabaseUser()
+    
+    // Get current max version for this request
+    const { data: currentAssets } = await supabase
+      .from('assets')
+      .select('version_number')
+      .eq('request_id', assetId)
+      .order('version_number', { ascending: false })
+      .limit(1)
+    
+    const nextVersion = (currentAssets?.[0]?.version_number || 0) + 1
+    
+    // Upload file to Supabase Storage
+    const fileExt = uploadFile.value.name.split('.').pop()
+    const timestamp = Date.now()
+    const storagePath = `requests/${timestamp}-${uploadFile.value.name}`
+    
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from('assets')
+      .upload(storagePath, uploadFile.value, {
+        cacheControl: '3600',
+        upsert: false
+      })
+    
+    if (uploadError) throw uploadError
+    
+    // Get public URL
+    const { data: urlData } = supabase
+      .storage
+      .from('assets')
+      .getPublicUrl(storagePath)
+    
+    // Mark all existing versions as not current
+    await supabase
+      .from('assets')
+      .update({ is_current_version: false })
+      .eq('request_id', assetId)
+    
+    // Create new asset version
+    const { error: insertError } = await supabase
+      .from('assets')
+      .insert({
+        request_id: assetId,
+        name: uploadFile.value.name,
+        original_filename: uploadFile.value.name,
+        storage_path: storagePath,
+        file_type: uploadFile.value.type,
+        file_size: uploadFile.value.size,
+        mime_type: uploadFile.value.type,
+        preview_url: urlData.publicUrl,
+        thumbnail_url: urlData.publicUrl,
+        version_number: nextVersion,
+        is_current_version: true,
+        version_notes: versionComment.value || null,
+        created_by: user.value?.id
+      })
+    
+    if (insertError) throw insertError
+    
+    // Refresh the page to show new version
+    window.location.reload()
+    
+  } catch (error: any) {
+    console.error('Error uploading version:', error)
+    alert('Failed to upload new version: ' + error.message)
+  } finally {
+    isUploading.value = false
+    cancelVersionUpload()
+  }
+}
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
 // Media URL and type detection
@@ -883,6 +1072,35 @@ const getAssetGradient = (id: string) => {
   justify-content: center;
   position: relative;
   padding: 24px;
+}
+
+/* Drag and Drop Overlay */
+.drag-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(59, 130, 246, 0.9);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.drag-overlay-content {
+  text-align: center;
+  color: white;
+}
+
+.drag-overlay-content .material-icons {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.drag-overlay-content p {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0;
 }
 
 .video-wrapper {
@@ -1515,5 +1733,138 @@ const getAssetGradient = (id: string) => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #4b5563;
+}
+/* Version Dialog */
+.version-dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.version-dialog {
+  background-color: #1E2532;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.version-dialog h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.version-dialog p {
+  margin-bottom: 20px;
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+.file-preview {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #374151;
+}
+
+.file-name {
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #f9fafb;
+}
+
+.file-meta {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #e5e7eb;
+}
+
+.form-group textarea {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #f9fafb;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-btn, .confirm-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn {
+  background-color: transparent;
+  border: 1px solid #374151;
+  color: #d1d5db;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background-color: #1f2937;
+  border-color: #4b5563;
+}
+
+.confirm-btn {
+  background-color: #3b82f6;
+  border: none;
+  color: white;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.confirm-btn:disabled, .cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-fade-enter-active, .modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-fade-enter-from, .modal-fade-leave-to {
+  opacity: 0;
 }
 </style>
