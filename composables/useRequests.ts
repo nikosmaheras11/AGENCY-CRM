@@ -60,32 +60,55 @@ export const useRequests = () => {
         throw fetchError
       }
       
+      // Fetch current asset versions for thumbnail URLs
+      const requestIds = data?.map((r: any) => r.id) || []
+      let assetVersions: Record<string, any> = {}
+      
+      if (requestIds.length > 0) {
+        const { data: assetsData } = await supabase
+          .from('assets')
+          .select('request_id, thumbnail_url, preview_url')
+          .in('request_id', requestIds)
+          .eq('is_current_version', true)
+        
+        // Create a map of request_id -> asset data
+        assetVersions = (assetsData || []).reduce((acc: Record<string, any>, asset: any) => {
+          acc[asset.request_id] = asset
+          return acc
+        }, {} as Record<string, any>)
+      }
+      
       // Transform database format to Request format
-      allRequests.value = (data || []).map(item => ({
-        id: item.id,
-        projectType: item.project_type,
-        status: item.status,
-        title: item.title,
-        format: item.format,
-        size: item.size,
-        dimensions: item.dimensions,
-        duration: item.duration,
-        thumbnail: item.thumbnail_url,
-        figmaUrl: item.figma_url,
-        videoUrl: item.video_url,
-        assetFileUrl: item.asset_file_url,
-        metadata: {
-          assignee: item.assignee,
-          dueDate: item.due_date,
-          tags: item.tags,
-          priority: item.priority,
-          client: item.client,
-          campaign: item.campaign
-        },
-        comments: [],
-        createdAt: item.created_at,
-        updatedAt: item.updated_at
-      }))
+      allRequests.value = (data || []).map(item => {
+        const currentAsset = assetVersions[item.id]
+        
+        return {
+          id: item.id,
+          projectType: item.project_type,
+          status: item.status,
+          title: item.title,
+          format: item.format,
+          size: item.size,
+          dimensions: item.dimensions,
+          duration: item.duration,
+          // Use current asset version thumbnail if available, otherwise use request thumbnail
+          thumbnail: currentAsset?.thumbnail_url || currentAsset?.preview_url || item.thumbnail_url,
+          figmaUrl: item.figma_url,
+          videoUrl: item.video_url,
+          assetFileUrl: item.asset_file_url,
+          metadata: {
+            assignee: item.assignee,
+            dueDate: item.due_date,
+            tags: item.tags,
+            priority: item.priority,
+            client: item.client,
+            campaign: item.campaign
+          },
+          comments: [],
+          createdAt: item.created_at,
+          updatedAt: item.updated_at
+        }
+      })
       console.log('✅ useRequests: Transformed', allRequests.value.length, 'requests')
       console.log('🎨 useRequests: Creative requests:', allRequests.value.filter(r => r.projectType === 'creative').length)
       error.value = null
@@ -165,7 +188,23 @@ export const useRequests = () => {
   /**
    * Convert Request to legacy Asset format for backward compatibility
    */
-  const requestToAsset = (request: Request) => {
+// Helper to get current asset version for a request
+const getCurrentAssetVersion = async (requestId: string) => {
+  try {
+    const { data } = await supabase
+      .from('assets')
+      .select('thumbnail_url, preview_url')
+      .eq('request_id', requestId)
+      .eq('is_current_version', true)
+      .single()
+    
+    return data
+  } catch (error) {
+    return null
+  }
+}
+
+const requestToAsset = (request: Request): Asset => {
     return {
       id: request.id,
       thumbnail: request.thumbnail || '',

@@ -150,7 +150,7 @@ const currentVersion = ref<Version | null>(null)
 const loading = ref(true)
 const error = ref<Error | null>(null)
 
-// Fetch versions from Supabase
+// Fetch versions from Supabase (using assets table)
 const fetchVersions = async () => {
   loading.value = true
   error.value = null
@@ -158,17 +158,34 @@ const fetchVersions = async () => {
   try {
     const { supabase } = useSupabase()
     
+    // Query assets table for all versions of this request
     const { data, error: fetchError } = await supabase
-      .from('asset_versions')
+      .from('assets')
       .select('*')
       .eq('request_id', props.assetId)
       .order('version_number', { ascending: false })
     
     if (fetchError) throw fetchError
     
-    versions.value = data || []
+    // Map assets to version format
+    versions.value = (data || []).map(asset => ({
+      id: asset.id,
+      request_id: asset.request_id,
+      version_number: asset.version_number || 1,
+      file_url: asset.preview_url || asset.thumbnail_url,
+      thumbnail_url: asset.thumbnail_url,
+      preview_url: asset.preview_url,
+      file_size: asset.file_size,
+      mime_type: asset.mime_type,
+      dimensions: asset.metadata?.dimensions,
+      change_description: asset.version_notes,
+      created_by: asset.created_by,
+      created_at: asset.created_at,
+      approved: asset.is_current_version, // Current version is "approved"
+      metadata: asset.metadata
+    }))
     
-    // Set current version to the latest approved or just latest
+    // Set current version to the one marked as current
     currentVersion.value = versions.value.find(v => v.approved) || versions.value[0] || null
     
   } catch (e) {
