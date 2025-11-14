@@ -24,6 +24,9 @@ logs
 .env.*
 !.env.example
 
+# Claude MCP config (contains credentials)
+.claude/mcp.json
+
 # Directus
 directus/database/*
 directus/uploads/*
