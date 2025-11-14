@@ -33,6 +33,26 @@ export interface RequestsData {
   requests: Request[]
 }
 
+export interface Asset {
+  id: string
+  thumbnail: string
+  title: string
+  format: string
+  size: string
+  dimensions: string
+  duration: string
+  commentCount: number
+  status: string
+  figmaUrl?: string
+  videoUrl?: string
+  metadata: {
+    assignee: string | null
+    dueDate: string | null
+    tags: string | null
+    priority: string | null
+  }
+}
+
 export const useRequests = () => {
   const allRequests = ref<Request[]>([])
   const loading = ref(true)
@@ -188,23 +208,7 @@ export const useRequests = () => {
   /**
    * Convert Request to legacy Asset format for backward compatibility
    */
-// Helper to get current asset version for a request
-const getCurrentAssetVersion = async (requestId: string) => {
-  try {
-    const { data } = await supabase
-      .from('assets')
-      .select('thumbnail_url, preview_url')
-      .eq('request_id', requestId)
-      .eq('is_current_version', true)
-      .single()
-    
-    return data
-  } catch (error) {
-    return null
-  }
-}
-
-const requestToAsset = (request: Request): Asset => {
+  const requestToAsset = (request: Request): Asset => {
     return {
       id: request.id,
       thumbnail: request.thumbnail || '',
