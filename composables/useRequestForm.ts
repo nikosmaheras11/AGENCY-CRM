@@ -12,7 +12,7 @@ export interface RequestFormData {
 }
 
 export const useRequestForm = () => {
-  const { supabase, uploadImage, uploadVideo } = useSupabase()
+  const { supabase, uploadImage, uploadVideo, generateVideoThumbnail, uploadFile, getPublicUrl } = useSupabase()
   
   const submitting = ref(false)
   const error = ref<string | null>(null)
@@ -66,9 +66,25 @@ export const useRequestForm = () => {
         } else if (fileType === 'video') {
           console.log('[useRequestForm] Uploading video...')
           assetFileUrl = await uploadVideo(file, 'requests')
-          thumbnailUrl = assetFileUrl // Use video URL as thumbnail (browser can show first frame)
           console.log('[useRequestForm] Video uploaded:', assetFileUrl)
-        } else {
+          
+          // Generate thumbnail from video
+          try {
+            console.log('[useRequestForm] Generating video thumbnail...')
+            const thumbnailBlob = await generateVideoThumbnail(file)
+            const thumbnailFile = new File([thumbnailBlob], `thumbnail-${Date.now()}.jpg`, { type: 'image/jpeg' })
+            
+            // Upload thumbnail
+            const thumbnailPath = `requests/thumbnails/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`
+            await uploadFile('assets', thumbnailPath, thumbnailFile)
+            thumbnailUrl = getPublicUrl('assets', thumbnailPath)
+            console.log('[useRequestForm] Thumbnail generated and uploaded:', thumbnailUrl)
+          } catch (thumbError) {
+            console.error('[useRequestForm] Failed to generate thumbnail:', thumbError)
+            // Fallback: use video URL (browser will show first frame)
+            thumbnailUrl = assetFileUrl
+          }
+        }
           console.log('[useRequestForm] Uploading generic file...')
           // For other file types, use generic upload
           const fileExt = file.name.split('.').pop()

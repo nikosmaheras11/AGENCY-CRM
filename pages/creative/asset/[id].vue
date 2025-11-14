@@ -222,35 +222,32 @@
             </button>
           </div>
           
-          <!-- New comment form (for video) -->
-          <div v-if="showVideoCommentForm && isVideo" class="comment-form-container">
+          <!-- New comment form (for video) - Always visible when on Comments tab -->
+          <div v-if="isVideo" class="comment-form-container">
             <div class="form-header">
               <span class="timestamp-badge">
                 <span class="material-icons">schedule</span>
-                {{ formatTimecode(pendingVideoTimecode) }}
+                {{ formatTimecode(currentTime) }}
               </span>
-              <button class="btn-close" @click="closeVideoCommentForm">
-                <span class="material-icons">close</span>
-              </button>
+              <span class="helper-text">Comment at current time</span>
             </div>
             <textarea
               ref="videoCommentTextarea"
               v-model="videoCommentText"
-              placeholder="Add your comment..."
+              placeholder="Add your comment at this timestamp..."
               class="comment-textarea"
               rows="3"
-              @keydown.meta.enter="submitVideoComment"
-              @keydown.ctrl.enter="submitVideoComment"
-              @keydown.esc="closeVideoCommentForm"
+              @keydown.meta.enter="submitVideoCommentQuick"
+              @keydown.ctrl.enter="submitVideoCommentQuick"
+              @focus="onCommentFocus"
             />
             <div class="form-actions">
-              <button class="btn-cancel" @click="closeVideoCommentForm">Cancel</button>
               <button 
                 class="btn-submit"
                 :disabled="!videoCommentText.trim()"
-                @click="submitVideoComment"
+                @click="submitVideoCommentQuick"
               >
-                Post
+                Post at {{ formatTimecode(currentTime) }}
               </button>
             </div>
           </div>
@@ -398,10 +395,9 @@ const showResolvedComments = ref(false)
 const activeCommentId = ref<string | null>(null)
 
 // Video comment form state
-const showVideoCommentForm = ref(false)
 const videoCommentText = ref('')
-const pendingVideoTimecode = ref(0)
 const videoCommentTextarea = ref<HTMLTextAreaElement | null>(null)
+const capturedTimecode = ref(0) // Capture time when user focuses textarea
 
 // Filter comments based on resolved state
 const displayedComments = computed(() => {
@@ -466,31 +462,30 @@ const handleReply = async ({ parentId, text }: { parentId: string; text: string 
 }
 
 // Video comment functions
+const onCommentFocus = () => {
+  // Capture current video time when user focuses textarea
+  capturedTimecode.value = currentTime.value
+}
+
 const openVideoCommentForm = () => {
-  pendingVideoTimecode.value = currentTime.value
-  showVideoCommentForm.value = true
+  // Open comments tab and focus textarea
   activeTab.value = 'comments'
-  
   nextTick(() => {
     videoCommentTextarea.value?.focus()
   })
 }
 
-const closeVideoCommentForm = () => {
-  showVideoCommentForm.value = false
-  videoCommentText.value = ''
-}
-
-const submitVideoComment = async () => {
+const submitVideoCommentQuick = async () => {
   if (!videoCommentText.value.trim()) return
   
   try {
+    // Use current video time (updates in real-time as they type)
     await addComment({
       content: videoCommentText.value,
-      video_timestamp: pendingVideoTimecode.value
+      video_timestamp: currentTime.value
     })
     
-    closeVideoCommentForm()
+    videoCommentText.value = ''
   } catch (error) {
     console.error('Error adding video comment:', error)
     alert('Failed to add comment')
@@ -1365,6 +1360,11 @@ const getAssetGradient = (id: string) => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.form-header .helper-text {
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .timestamp-badge {
