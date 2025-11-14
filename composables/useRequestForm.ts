@@ -84,7 +84,7 @@ export const useRequestForm = () => {
             // Fallback: use video URL (browser will show first frame)
             thumbnailUrl = assetFileUrl
           }
-        }
+        } else {
           console.log('[useRequestForm] Uploading generic file...')
           // For other file types, use generic upload
           const fileExt = file.name.split('.').pop()
