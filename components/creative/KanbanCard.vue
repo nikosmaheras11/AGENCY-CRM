@@ -1,11 +1,11 @@
 <template>
   <div 
-    class="block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+    class="block bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group overflow-hidden"
     @click="$emit('click', asset)"
   >
     <!-- Thumbnail -->
     <div 
-      class="relative rounded-t-xl overflow-hidden"
+      class="relative w-full overflow-hidden"
       style="aspect-ratio: 16/9; min-height: 180px;"
     >
       <!-- Actual Thumbnail Image (not a video file) -->
