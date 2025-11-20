@@ -282,7 +282,7 @@ function mapRequestStatusToCampaignStatus(status: string): 'Planning' | 'In Prog
 }
 
 // Map request priority to campaign priority
-function mapRequestPriority(priority: string | null): 'Critical' | 'High' | 'Medium' | 'Low' {
+function mapRequestPriority(priority: string | null | undefined): 'Critical' | 'High' | 'Medium' | 'Low' {
   if (!priority) return 'Medium'
   const priorityMap: Record<string, 'Critical' | 'High' | 'Medium' | 'Low'> = {
     'critical': 'Critical',
