@@ -99,11 +99,17 @@ import RequestFormModal from '~/components/creative/RequestFormModal.vue'
 import type { RequestFormModalInstance } from '~/types/components'
 
 const { supabase } = useSupabase()
-const { user, profile, loading: authLoading, getDisplayName } = useAuth()
 
-// User menu state
+// User data
+const user = ref<any>(null)
 const showUserMenu = ref(false)
 const userMenuContainer = ref<HTMLElement | null>(null)
+
+// Get user info on mount
+onMounted(async () => {
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  user.value = currentUser
+})
 
 // Toggle user menu
 function toggleUserMenu() {
@@ -161,11 +167,9 @@ async function signOut() {
 
 // Computed properties for user display
 const userName = computed(() => {
-  if (authLoading.value) return 'Loading...'
-  if (!user.value) return 'User'
-  // Try to get name from profile, then user_metadata (Slack OAuth stores it there)
-  return profile.value?.full_name ||
-         user.value.user_metadata?.full_name || 
+  if (!user.value) return 'Loading...'
+  // Try to get name from user_metadata (Slack OAuth stores it there)
+  return user.value.user_metadata?.full_name || 
          user.value.user_metadata?.name || 
          user.value.email?.split('@')[0] || 
          'User'
@@ -176,16 +180,15 @@ const userEmail = computed(() => {
 })
 
 const userAvatar = computed(() => {
-  // Check profile first, then Slack metadata
-  return profile.value?.avatar_url ||
-         user.value?.user_metadata?.avatar_url || 
+  // Slack stores avatar in user_metadata
+  return user.value?.user_metadata?.avatar_url || 
          user.value?.user_metadata?.picture ||
          null
 })
 
 const userInitials = computed(() => {
   const name = userName.value
-  if (name === 'Loading...' || authLoading.value) return '...'
+  if (name === 'Loading...') return '...'
   const parts = name.split(' ')
   if (parts.length >= 2) {
     return (parts[0][0] + parts[1][0]).toUpperCase()
