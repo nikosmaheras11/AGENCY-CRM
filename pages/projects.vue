@@ -7,7 +7,7 @@
     <CampaignDetailPanel 
       v-model="showCampaignDetail" 
       :campaign="selectedCampaign" 
-      :request-id="selectedRequestId"
+      :request-id="selectedRequestId || undefined"
     />
     
     <div class="p-6 sm:p-8 relative z-10">

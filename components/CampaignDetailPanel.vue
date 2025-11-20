@@ -294,7 +294,12 @@ const tabs = ['Overview', 'Assets']
 
 // Fetch real request data from database
 const { supabase } = useSupabase()
-const user = useSupabaseUser()
+const { user, getCurrentUser } = useAuth()
+
+// Get current user on mount
+onMounted(() => {
+  getCurrentUser()
+})
 const requestData = ref<any>(null)
 const comments = ref<RequestComment[]>([])
 const newCommentText = ref('')
