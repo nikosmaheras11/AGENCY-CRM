@@ -266,6 +266,68 @@
                   </div>
                 </div>
               </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Video URL</label>
+                <div class="flex-1">
+                  <div class="flex gap-2 items-center">
+                    <input
+                      type="url"
+                      :value="displayData?.video_url || ''"
+                      @blur="(e) => updateField('video_url', (e.target as HTMLInputElement).value)"
+                      placeholder="https://..."
+                      class="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                    />
+                    <a v-if="displayData?.video_url" :href="displayData.video_url" target="_blank" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-icons text-sm">open_in_new</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Thumbnail URL</label>
+                <div class="flex-1">
+                  <div class="flex gap-2 items-center">
+                    <input
+                      type="url"
+                      :value="displayData?.thumbnail_url || ''"
+                      @blur="(e) => updateField('thumbnail_url', (e.target as HTMLInputElement).value)"
+                      placeholder="https://..."
+                      class="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                    />
+                    <a v-if="displayData?.thumbnail_url" :href="displayData.thumbnail_url" target="_blank" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-icons text-sm">open_in_new</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Reference URLs</label>
+                <div class="flex-1">
+                  <textarea
+                    :value="displayData?.reference_urls || ''"
+                    @blur="(e) => updateField('reference_urls', (e.target as HTMLTextAreaElement).value)"
+                    placeholder="Add reference links (one per line)..."
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
+                    rows="2"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Inspiration</label>
+                <div class="flex-1">
+                  <textarea
+                    :value="displayData?.inspiration || ''"
+                    @blur="(e) => updateField('inspiration', (e.target as HTMLTextAreaElement).value)"
+                    placeholder="Inspiration notes or references..."
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
+                    rows="2"
+                  />
+                </div>
+              </div>
             </div>
 
             <!-- Campaign Details -->
@@ -317,6 +379,19 @@
                     :value="displayData?.category || ''"
                     @blur="(e) => updateField('category', (e.target as HTMLInputElement).value)"
                     placeholder="e.g., Social Media, Display Ads"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Tags</label>
+                <div class="flex-1">
+                  <input
+                    type="text"
+                    :value="displayData?.tags || ''"
+                    @blur="(e) => updateField('tags', (e.target as HTMLInputElement).value)"
+                    placeholder="Comma-separated tags..."
                     class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
                   />
                 </div>
