@@ -40,13 +40,13 @@ export const useCampaigns = () => {
     const { supabase } = useSupabase()
     try {
       loading.value = true
+      // Removed assigned:assigned_to(email) as it references auth.users which is not directly queryable
+      // Removed ad_sets count for now to simplify the list query
       const { data, error: err } = await supabase
         .from('campaigns')
         .select(`
           *,
-          client:clients(name, logo_url),
-          ad_sets:ad_sets(count),
-          assigned:assigned_to(email)
+          client:clients(name, logo_url)
         `)
         .order('created_at', { ascending: false })
       
@@ -87,6 +87,7 @@ export const useCampaigns = () => {
     const { supabase } = useSupabase()
     try {
       loading.value = true
+      // Removed assigned:assigned_to(email)
       const { data, error: err } = await supabase
         .from('campaigns')
         .select(`
@@ -99,8 +100,7 @@ export const useCampaigns = () => {
               asset:assets(*),
               comments:creative_comments(count)
             )
-          ),
-          assigned:assigned_to(email)
+          )
         `)
         .eq('id', id)
         .single()
