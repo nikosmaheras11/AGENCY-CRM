@@ -24,7 +24,7 @@ export interface SlackMessage {
 }
 
 // Singleton Supabase client - created once and reused
-let supabaseClient: ReturnType<typeof createClient> | null = null
+let supabaseClient: any = null
 
 export const useSupabase = () => {
   const config = useRuntimeConfig()
