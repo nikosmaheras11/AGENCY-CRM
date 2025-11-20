@@ -23,13 +23,21 @@ export interface SlackMessage {
   mentions: any[]
 }
 
+// Singleton Supabase client - created once and reused
+let supabaseClient: ReturnType<typeof createClient> | null = null
+
 export const useSupabase = () => {
   const config = useRuntimeConfig()
   
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.public.supabaseAnonKey
-  )
+  // Create client only once
+  if (!supabaseClient) {
+    supabaseClient = createClient(
+      config.public.supabaseUrl,
+      config.public.supabaseAnonKey
+    )
+  }
+  
+  const supabase = supabaseClient
 
   // Get current user state
   const user = useState<User | null>('supabase-user', () => null)
