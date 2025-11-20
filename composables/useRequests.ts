@@ -53,10 +53,12 @@ export interface Asset {
   }
 }
 
+// Global state - shared across all pages
+const allRequests = ref<Request[]>([])
+const loading = ref(true)
+const error = ref<Error | null>(null)
+
 export const useRequests = () => {
-  const allRequests = ref<Request[]>([])
-  const loading = ref(true)
-  const error = ref<Error | null>(null)
 
   /**
    * Fetch all requests from Supabase database
