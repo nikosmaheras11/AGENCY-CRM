@@ -5,7 +5,7 @@
 
 export interface Request {
   id: string
-  projectType: 'creative' | 'performance' | 'design' | 'ugc'
+  projectType: 'creative' | 'performance' | 'design' | 'ugc' | 'project'
   status: 'new-request' | 'in-progress' | 'needs-review' | 'needs-edit' | 'done'
   title: string
   format?: string | null

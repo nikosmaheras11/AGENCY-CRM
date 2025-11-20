@@ -105,7 +105,7 @@
             <!-- Owner -->
             <div class="col-span-2 flex items-center gap-2">
               <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs">
-                {{ campaign.owner.split(' ').map(n => n[0]).join('') }}
+                {{ campaign.owner.split(' ').map((n: string) => n[0]).join('') }}
               </div>
               <span class="text-sm text-slate-300">{{ campaign.owner }}</span>
             </div>
@@ -249,18 +249,17 @@ onMounted(async () => {
   await fetchRequests()
 })
 
-// Filter only project-type requests and transform to campaign format
+// Show ALL requests from database as projects (no filtering by type)
 const campaigns = computed(() => {
   return allRequests.value
-    .filter(req => req.projectType === 'project')
     .map(req => ({
       id: parseInt(req.id.split('-')[0], 16), // Convert UUID to number for compatibility
       name: req.title || 'Untitled Project',
       status: mapRequestStatusToCampaignStatus(req.status),
-      priority: mapRequestPriority(req.priority),
-      owner: req.assignee || req.createdByName || 'Unassigned',
+      priority: mapRequestPriority(req.metadata.priority),
+      owner: req.metadata.assignee || 'Unassigned',
       progress: calculateProgress(req),
-      dueDate: req.dueDate ? new Date(req.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No due date',
+      dueDate: req.metadata.dueDate ? new Date(req.metadata.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No due date',
       _originalRequest: req // Keep reference to original request data
     }))
 })
