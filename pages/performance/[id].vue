@@ -8,19 +8,20 @@ const route = useRoute()
 const campaignId = route.params.id as string
 
 const { 
-  getCampaignById,
+  fetchCampaignWithHierarchy,
   updateCampaignStatus,
+  updateCampaign,
   loading
-} = useCampaigns() // Importing from usePerformance which exports useCampaigns
+} = useCampaigns()
 
-// We can import createAdSet and createCreative from useAdSets/useCreatives which are also in usePerformance
-// But for clarity I will import everything from the composable if possible or rely on auto-imports
-// Nuxt auto-imports composables. usePerformance.ts exports useCampaigns, useAdSets, useCreatives.
-// So I can just use:
-const { createAdSet } = useAdSets()
-const { createCreative } = useCreatives()
+const { createAdSet, updateAdSet, deleteAdSet } = useAdSets()
+const { createCreative, updateCreative } = useCreatives()
+const { supabase } = useSupabase()
 
 const campaign = ref<any>(null)
+const isEditingDescription = ref(false)
+const isEditingBrief = ref(false)
+const isSaving = ref(false)
 
 // Modals
 const isCreateAdSetModalOpen = ref(false)
@@ -31,11 +32,16 @@ const expandedAdSets = ref(new Set<string>())
 // Load campaign with full hierarchy
 onMounted(async () => {
   await loadCampaign()
+  subscribeToChanges()
+})
+
+onBeforeUnmount(() => {
+  unsubscribeFromChanges()
 })
 
 const loadCampaign = async () => {
   if (campaignId) {
-    const data = await getCampaignById(campaignId)
+    const data = await fetchCampaignWithHierarchy(campaignId)
     if (data) {
       campaign.value = data
       // Auto-expand first ad set if none expanded
@@ -45,6 +51,134 @@ const loadCampaign = async () => {
     }
   }
 }
+
+// Real-time subscription
+let realtimeChannel: any = null
+
+const subscribeToChanges = () => {
+  if (!campaignId) return
+
+  // Subscribe to campaign changes
+  realtimeChannel = supabase
+    .channel(`campaign-${campaignId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'campaigns',
+        filter: `id=eq.${campaignId}`
+      },
+      (payload) => {
+        if (payload.eventType === 'UPDATE' && campaign.value) {
+          campaign.value = { ...campaign.value, ...payload.new }
+        }
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'ad_sets',
+        filter: `campaign_id=eq.${campaignId}`
+      },
+      async () => {
+        // Reload campaign when ad sets change
+        await loadCampaign()
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'creatives'
+      },
+      async (payload) => {
+        // Check if this creative belongs to one of our ad sets
+        const belongsToUs = campaign.value?.ad_sets?.some(
+          (adSet: any) => adSet.id === payload.new?.ad_set_id
+        )
+        if (belongsToUs) {
+          await loadCampaign()
+        }
+      }
+    )
+    .subscribe()
+}
+
+const unsubscribeFromChanges = () => {
+  if (realtimeChannel) {
+    supabase.removeChannel(realtimeChannel)
+  }
+}
+
+// Auto-save functions
+const handleCampaignBlur = async (field: string, value: any) => {
+  if (!campaign.value) return
+  
+  try {
+    isSaving.value = true
+    await updateCampaign(campaignId, { [field]: value })
+  } catch (error) {
+    console.error(`Error updating ${field}:`, error)
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const handleAdSetBlur = async (adSetId: string, field: string, value: any) => {
+  try {
+    isSaving.value = true
+    await updateAdSet(adSetId, { [field]: value })
+  } catch (error) {
+    console.error(`Error updating ad set ${field}:`, error)
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const handleCreativeBlur = async (creativeId: string, field: string, value: any) => {
+  try {
+    isSaving.value = true
+    await updateCreative(creativeId, { [field]: value })
+  } catch (error) {
+    console.error(`Error updating creative ${field}:`, error)
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const handleDeleteAdSet = async (adSet: any) => {
+  if (!confirm('Are you sure you want to delete this ad set?')) return
+  
+  try {
+    await deleteAdSet(adSet.id)
+    await loadCampaign()
+  } catch (error) {
+    console.error('Error deleting ad set:', error)
+  }
+}
+
+const getAdSetActions = (adSet: any) => [
+  [{ 
+    label: 'Edit Ad Set', 
+    icon: 'i-heroicons-pencil',
+    click: () => console.log('Edit', adSet.id)
+  }],
+  [{ 
+    label: 'Duplicate', 
+    icon: 'i-heroicons-document-duplicate',
+    click: () => console.log('Duplicate', adSet.id)
+  }],
+  [{ 
+    label: 'Delete', 
+    icon: 'i-heroicons-trash', 
+    class: 'text-red-500',
+    click: () => handleDeleteAdSet(adSet)
+  }]
+]
 
 const toggleAdSetExpansion = (adSetId: string) => {
   if (expandedAdSets.value.has(adSetId)) {
@@ -133,15 +267,41 @@ const getStatusColor = (status: string) => {
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <div class="flex items-center gap-3 mb-2">
-                <h1 class="text-3xl font-bold text-white">{{ campaign.name }}</h1>
+                <UInput
+                  v-model="campaign.name"
+                  size="xl"
+                  variant="none"
+                  class="text-3xl font-bold text-white bg-transparent border-0 focus:ring-0 p-0 -ml-1"
+                  :ui="{ base: 'text-3xl font-bold', wrapper: 'bg-transparent' }"
+                  @blur="handleCampaignBlur('name', campaign.name)"
+                />
                 <UBadge :color="getStatusColor(campaign.status)" size="lg">
                   {{ campaign.status.replace(/_/g, ' ') }}
                 </UBadge>
+                <div v-if="isSaving" class="flex items-center gap-1 text-xs text-gray-500">
+                  <UIcon name="i-heroicons-arrow-path" class="animate-spin" />
+                  <span>Saving...</span>
+                </div>
               </div>
               
-              <p v-if="campaign.description" class="text-gray-400 mb-4 max-w-3xl">
-                {{ campaign.description }}
-              </p>
+              <div class="relative mb-4 max-w-3xl">
+                <UTextarea
+                  v-if="isEditingDescription || !campaign.description"
+                  v-model="campaign.description"
+                  placeholder="Add campaign description..."
+                  :rows="2"
+                  class="text-gray-400"
+                  @blur="() => { handleCampaignBlur('description', campaign.description); isEditingDescription = false; }"
+                  autofocus
+                />
+                <p
+                  v-else
+                  class="text-gray-400 cursor-pointer hover:bg-gray-800/30 rounded p-2 -ml-2"
+                  @click="isEditingDescription = true"
+                >
+                  {{ campaign.description }}
+                </p>
+              </div>
 
               <div class="flex items-center gap-4 text-sm">
                 <!-- Platforms -->
@@ -204,8 +364,8 @@ const getStatusColor = (status: string) => {
 
       <!-- Main Content - Hierarchical Layout -->
       <div class="flex-1 overflow-auto p-6">
-        <!-- Campaign Brief (if exists) -->
-        <div v-if="campaign.campaign_brief" class="mb-6">
+        <!-- Campaign Brief -->
+        <div class="mb-6">
           <UCard :ui="{ background: 'bg-gray-900', ring: 'ring-1 ring-gray-800' }">
             <template #header>
               <div class="flex items-center gap-2">
@@ -213,7 +373,23 @@ const getStatusColor = (status: string) => {
                 <h3 class="font-semibold">Campaign Brief</h3>
               </div>
             </template>
-            <p class="text-gray-300 whitespace-pre-wrap">{{ campaign.campaign_brief }}</p>
+            <div v-if="isEditingBrief || !campaign.campaign_brief">
+              <UTextarea
+                v-model="campaign.campaign_brief"
+                placeholder="Add detailed campaign brief, strategy, target audience, key messages..."
+                :rows="6"
+                class="text-gray-300"
+                @blur="() => { handleCampaignBlur('campaign_brief', campaign.campaign_brief); isEditingBrief = false; }"
+                autofocus
+              />
+            </div>
+            <p
+              v-else
+              class="text-gray-300 whitespace-pre-wrap cursor-pointer hover:bg-gray-800/30 rounded p-2 -m-2"
+              @click="isEditingBrief = true"
+            >
+              {{ campaign.campaign_brief }}
+            </p>
           </UCard>
         </div>
 
@@ -302,11 +478,7 @@ const getStatusColor = (status: string) => {
                   >
                     Add Creative
                   </UButton>
-                  <UDropdown :items="[
-                    [{ label: 'Edit Ad Set', icon: 'i-heroicons-pencil' }],
-                    [{ label: 'Duplicate', icon: 'i-heroicons-document-duplicate' }],
-                    [{ label: 'Delete', icon: 'i-heroicons-trash', class: 'text-red-500' }]
-                  ]">
+                  <UDropdown :items="getAdSetActions(adSet)">
                     <UButton
                       icon="i-heroicons-ellipsis-vertical"
                       size="sm"

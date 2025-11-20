@@ -73,15 +73,32 @@ export const useCampaigns = () => {
 
   const createCampaign = async (campaignData: any) => {
     const { supabase } = useSupabase()
+    const user = useSupabaseUser()
     try {
       loading.value = true
       const { data, error: err } = await supabase
         .from('campaigns')
-        .insert(campaignData)
+        .insert({
+          ...campaignData,
+          created_by: user.value?.id
+        })
         .select()
         .single()
       
       if (err) throw err
+
+      // Log activity
+      if (user.value?.id) {
+        await supabase.from('activity_log').insert({
+          entity_type: 'campaign',
+          entity_id: data.id,
+          action: 'created',
+          description: `Campaign created: ${data.name}`,
+          actor_id: user.value.id,
+          details: { name: data.name }
+        })
+      }
+
       // Add to local state
       campaignsState.value.unshift(data)
       return data
@@ -94,7 +111,7 @@ export const useCampaigns = () => {
     }
   }
 
-  const getCampaignById = async (id: string) => {
+  const fetchCampaignWithHierarchy = async (id: string) => {
     const { supabase } = useSupabase()
     try {
       loading.value = true
@@ -122,7 +139,7 @@ export const useCampaigns = () => {
       return data
     } catch (e) {
       error.value = e as Error
-      console.error('Error fetching campaign details:', e)
+      console.error('Error fetching campaign hierarchy:', e)
       return null
     } finally {
       loading.value = false
@@ -158,7 +175,33 @@ export const useCampaigns = () => {
     }
   }
 
-  return { campaigns: campaignsState, fetchCampaigns, createCampaign, getCampaignById, updateCampaignStatus, loading, error }
+  const updateCampaign = async (campaignId: string, updates: any) => {
+    const { supabase } = useSupabase()
+    try {
+      const { data, error: err } = await supabase
+        .from('campaigns')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', campaignId)
+        .select()
+        .single()
+      
+      if (err) throw err
+      
+      // Update local state if exists
+      const index = campaignsState.value.findIndex(c => c.id === campaignId)
+      if (index !== -1) {
+        campaignsState.value[index] = { ...campaignsState.value[index], ...data }
+      }
+      
+      return data
+    } catch (e) {
+      error.value = e as Error
+      console.error('Error updating campaign:', e)
+      throw e
+    }
+  }
+
+  return { campaigns: campaignsState, fetchCampaigns, createCampaign, fetchCampaignWithHierarchy, updateCampaignStatus, updateCampaign, loading, error }
 }
 
 // --- Ad Sets Composable ---
@@ -230,7 +273,52 @@ export const useAdSets = () => {
     }
   }
 
-  return { adSets: adSetsState, fetchAdSets, createAdSet, loading, error }
+  const updateAdSet = async (adSetId: string, updates: any) => {
+    const { supabase } = useSupabase()
+    try {
+      const { data, error: err } = await supabase
+        .from('ad_sets')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', adSetId)
+        .select()
+        .single()
+      
+      if (err) throw err
+      
+      // Update local state if exists
+      const index = adSetsState.value.findIndex(a => a.id === adSetId)
+      if (index !== -1) {
+        adSetsState.value[index] = { ...adSetsState.value[index], ...data }
+      }
+      
+      return data
+    } catch (e) {
+      error.value = e as Error
+      console.error('Error updating ad set:', e)
+      throw e
+    }
+  }
+
+  const deleteAdSet = async (adSetId: string) => {
+    const { supabase } = useSupabase()
+    try {
+      const { error: err } = await supabase
+        .from('ad_sets')
+        .delete()
+        .eq('id', adSetId)
+      
+      if (err) throw err
+      
+      // Update local state
+      adSetsState.value = adSetsState.value.filter(a => a.id !== adSetId)
+    } catch (e) {
+      error.value = e as Error
+      console.error('Error deleting ad set:', e)
+      throw e
+    }
+  }
+
+  return { adSets: adSetsState, fetchAdSets, createAdSet, updateAdSet, deleteAdSet, loading, error }
 }
 
 // --- Creatives Composable ---
@@ -291,7 +379,11 @@ export const useCreatives = () => {
           ...creativeData,
           sort_order: nextSortOrder
         })
-        .select()
+        .select(`
+          *,
+          asset:assets(*),
+          comments:creative_comments(count)
+        `)
         .single()
       
       if (err) throw err
@@ -306,7 +398,56 @@ export const useCreatives = () => {
     }
   }
 
-  return { creatives: creativesState, fetchCreatives, createCreative, loading, error }
+  const updateCreative = async (creativeId: string, updates: any) => {
+    const { supabase } = useSupabase()
+    try {
+      const { data, error: err } = await supabase
+        .from('creatives')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', creativeId)
+        .select()
+        .single()
+      
+      if (err) throw err
+      
+      // Update local state if exists
+      const index = creativesState.value.findIndex(c => c.id === creativeId)
+      if (index !== -1) {
+        creativesState.value[index] = { ...creativesState.value[index], ...data }
+      }
+      
+      return data
+    } catch (e) {
+      error.value = e as Error
+      console.error('Error updating creative:', e)
+      throw e
+    }
+  }
+
+  const submitForReview = async (creativeId: string, reviewerId: string) => {
+    const { supabase } = useSupabase()
+    try {
+      const { data, error: err } = await supabase
+        .from('creatives')
+        .update({
+          status: 'ready_for_review',
+          submitted_for_review_at: new Date().toISOString(),
+          review_requested_from: reviewerId
+        })
+        .eq('id', creativeId)
+        .select()
+        .single()
+      
+      if (err) throw err
+      return data
+    } catch (e) {
+      error.value = e as Error
+      console.error('Error submitting creative for review:', e)
+      throw e
+    }
+  }
+
+  return { creatives: creativesState, fetchCreatives, createCreative, updateCreative, submitForReview, loading, error }
 }
 
 // --- Assets Composable (Simple version if not exists) ---
