@@ -71,11 +71,11 @@
           <!-- Brief Details Grid -->
           <div class="space-y-6">
             <!-- Platforms -->
-            <div v-if="displayData?.platform && displayData.platform.length > 0" class="space-y-2">
+            <div v-if="displayData?.platform_array && displayData.platform_array.length > 0" class="space-y-2">
               <label class="text-sm font-medium text-gray-400">Platforms</label>
               <div class="flex flex-wrap gap-2">
                 <span 
-                  v-for="platform in displayData.platform" 
+                  v-for="platform in displayData.platform_array" 
                   :key="platform"
                   class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium"
                 >
@@ -208,7 +208,7 @@
               <div class="flex-1">
                 <p class="text-sm text-blue-300 font-medium mb-1">Brief Stage</p>
                 <p class="text-xs text-blue-400/80">
-                  This request is in the brief stage. When you move it to "Needs Review", it will graduate to the full asset review workflow with version control and comment threads.
+                  This request is in the brief stage. When you move it to "Needs Review", the full asset review workflow with version control and comment threads becomes available.
                 </p>
               </div>
             </div>
@@ -239,7 +239,7 @@ const fetchBriefData = async () => {
   
   try {
     const { data, error } = await supabase
-      .from('new_requests')
+      .from('requests')
       .select('*')
       .eq('id', props.briefId)
       .single()
@@ -260,26 +260,23 @@ watch(() => props.modelValue, (isOpen) => {
 
 const displayData = computed(() => briefData.value)
 
-// Update status (triggers migration if moving to review)
+// Update status (just changes status, no migration needed)
 const updateStatus = async (newStatus: string) => {
   if (!props.briefId) return
   
   try {
     const { error } = await supabase
-      .from('new_requests')
+      .from('requests')
       .update({ status: newStatus, updated_at: new Date().toISOString() })
       .eq('id', props.briefId)
     
     if (error) throw error
     
-    // If moving to needs-review, the trigger will auto-migrate to requests table
-    if (newStatus === 'needs-review') {
-      console.log('✅ Brief graduated to asset workflow')
-      emit('update:modelValue', false)
-      // Refresh the board
-      window.location.reload()
-    } else {
-      // Refresh brief data
+    // Close modal - realtime will update the list and show correct modal next time
+    emit('update:modelValue', false)
+    
+    // Refresh brief data if staying in brief mode
+    if (newStatus === 'in-progress') {
       await fetchBriefData()
     }
   } catch (error) {

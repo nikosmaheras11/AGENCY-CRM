@@ -109,7 +109,7 @@ export const useRequestForm = () => {
         }
       }
       
-      // Parse platform and ad size format as arrays for new_requests table
+      // Parse platform and ad size format as arrays
       const platformArray = formData.platform ? [formData.platform] : []
       const adSizeArray = formData.adSizeFormat ? formData.adSizeFormat.split(',').map(s => s.trim()) : []
       
@@ -121,34 +121,39 @@ export const useRequestForm = () => {
       
       console.log('[useRequestForm] Created by name:', createdByName)
       
-      // Prepare brief data for new_requests table (brief stage)
-      const briefData = {
+      // Prepare request data for requests table
+      const requestData = {
         title: formData.creativeName,
         description: formData.creativeDescription || '',
         project_type: 'creative' as const,
         status: 'new-request' as const,
         priority: formData.priority || 'medium',
-        // Brief-specific array fields:
-        platform: platformArray,  // Array: ["Meta", "TikTok", etc.]
-        ad_size_format: adSizeArray,  // Array: ["1080x1920", "Carousel", etc.]
+        // Single value fields (for backward compatibility)
+        format: formData.platform || null,
+        dimensions: adSizeArray[0] || null,
+        // Array fields (for multi-select support)
+        platform_array: platformArray,
+        ad_size_format: adSizeArray,
         due_date: formData.dueDate || null,
         inspiration: formData.inspiration || null,
         figma_url: formData.figmaAssetLinks || null,
         reference_urls: formData.figmaAssetLinks ? [formData.figmaAssetLinks] : [],
+        asset_file_url: assetFileUrl,
+        thumbnail_url: thumbnailUrl,
         created_by: user?.id || null,
         created_by_name: createdByName,
         assignee: formData.toUser || 'Unassigned',
-        assigned_to: null  // TODO: Map toUser to user ID if needed
+        assigned_to: null
       }
       
-      console.log('[useRequestForm] Inserting brief data to new_requests:', briefData)
+      console.log('[useRequestForm] Inserting request data:', requestData)
       
       // Use REST API directly with proper Prefer header instead of .select()
       // This avoids the .select() hang issue with the JS client
-      console.log('[useRequestForm] Calling REST API insert to new_requests table...')
+      console.log('[useRequestForm] Calling REST API insert to requests table...')
       
       const config = useRuntimeConfig()
-      const restUrl = `${config.public.supabaseUrl}/rest/v1/new_requests`
+      const restUrl = `${config.public.supabaseUrl}/rest/v1/requests`
       const authHeader = await supabase.auth.getSession()
       const token = authHeader.data.session?.access_token || config.public.supabaseAnonKey
       
@@ -160,7 +165,7 @@ export const useRequestForm = () => {
           'Authorization': `Bearer ${token}`,
           'Prefer': 'return=representation'
         },
-        body: JSON.stringify(briefData)
+        body: JSON.stringify(requestData)
       })
       
       console.log('[useRequestForm] Got response status:', response.status)
@@ -172,19 +177,12 @@ export const useRequestForm = () => {
       }
       
       const insertedData = await response.json()
-      console.log('[useRequestForm] Brief inserted successfully to new_requests:', insertedData[0])
+      console.log('[useRequestForm] Request inserted successfully:', insertedData[0])
       
-      // Note: Asset file upload not supported in brief stage
-      // Files will be uploaded when request graduates to asset review stage
-      const briefRecord = insertedData[0] // REST API returns array
-      if (assetFileUrl && briefRecord) {
-        console.warn('[useRequestForm] Asset file uploaded but brief stage does not support file storage yet')
-        console.log('[useRequestForm] File will need to be re-uploaded when moving to review stage')
-        // TODO: Store file temporarily or add to reference_urls
-      }
+      const requestRecord = insertedData[0] // REST API returns array
       
-      console.log('[useRequestForm] Submission complete! Returning:', briefRecord)
-      return briefRecord
+      console.log('[useRequestForm] Submission complete! Returning:', requestRecord)
+      return requestRecord
     } catch (err: any) {
       error.value = err.message || 'Failed to submit request'
       console.error('[useRequestForm] ERROR:', err)

@@ -33,32 +33,21 @@ export const useRealtimeRequests = () => {
   
   const fetchRequests = async () => {
     try {
-      // Fetch from new_requests table (brief stage: new-request, in-progress)
-      const { data: briefData, error: briefError } = await supabase
-        .from('new_requests')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      if (briefError) throw briefError
-      
-      // Fetch from requests table (asset stage: needs-review, needs-edit, done)
-      const { data: assetData, error: assetError } = await supabase
+      // Fetch all requests from single table
+      const { data, error } = await supabase
         .from('requests')
         .select('*')
         .order('created_at', { ascending: false })
       
-      if (assetError) throw assetError
+      if (error) throw error
       
-      // Transform brief data to match Request interface
-      const briefs = (briefData || []).map(brief => ({
-        ...brief,
-        platform: brief.platform?.[0] || null, // Take first platform from array
-        format: brief.platform?.[0] || null,
-        dimensions: brief.ad_size_format?.[0] || null // Take first size from array
+      // Transform array fields for display (use first value for single fields)
+      requests.value = (data || []).map(req => ({
+        ...req,
+        platform: req.platform_array?.[0] || req.format || null,
+        format: req.platform_array?.[0] || req.format || null,
+        dimensions: req.ad_size_format?.[0] || req.dimensions || null
       }))
-      
-      // Combine both arrays (briefs from new_requests + assets from requests)
-      requests.value = [...briefs, ...(assetData || [])]
     } catch (error) {
       console.error('Error fetching requests:', error)
     } finally {
@@ -87,56 +76,40 @@ export const useRealtimeRequests = () => {
   }
   
   const setupRealtime = () => {
-    // Subscribe to BOTH new_requests and requests tables
+    // Subscribe to requests table only
     channel = supabase
-      .channel('all-requests-changes', {
+      .channel('requests-changes', {
         config: { private: true } // Enforce RLS
       })
-      // Listen to new_requests table (brief stage)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'new_requests' },
-        (payload) => {
-          const newBrief = payload.new as any
-          // Transform brief to match Request interface
-          const transformedBrief = {
-            ...newBrief,
-            platform: newBrief.platform?.[0] || null,
-            format: newBrief.platform?.[0] || null,
-            dimensions: newBrief.ad_size_format?.[0] || null
-          }
-          handleInsert({ new: transformedBrief })
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'new_requests' },
-        (payload) => {
-          const updatedBrief = payload.new as any
-          const transformedBrief = {
-            ...updatedBrief,
-            platform: updatedBrief.platform?.[0] || null,
-            format: updatedBrief.platform?.[0] || null,
-            dimensions: updatedBrief.ad_size_format?.[0] || null
-          }
-          handleUpdate({ new: transformedBrief })
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'new_requests' },
-        handleDelete
-      )
-      // Listen to requests table (asset stage)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'requests' },
-        handleInsert
+        (payload) => {
+          const newRequest = payload.new as any
+          // Transform array fields for display
+          const transformed = {
+            ...newRequest,
+            platform: newRequest.platform_array?.[0] || newRequest.format || null,
+            format: newRequest.platform_array?.[0] || newRequest.format || null,
+            dimensions: newRequest.ad_size_format?.[0] || newRequest.dimensions || null
+          }
+          handleInsert({ new: transformed })
+        }
       )
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'requests' },
-        handleUpdate
+        (payload) => {
+          const updatedRequest = payload.new as any
+          // Transform array fields for display
+          const transformed = {
+            ...updatedRequest,
+            platform: updatedRequest.platform_array?.[0] || updatedRequest.format || null,
+            format: updatedRequest.platform_array?.[0] || updatedRequest.format || null,
+            dimensions: updatedRequest.ad_size_format?.[0] || updatedRequest.dimensions || null
+          }
+          handleUpdate({ new: transformed })
+        }
       )
       .on(
         'postgres_changes',
