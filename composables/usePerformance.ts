@@ -47,7 +47,7 @@ export const useCampaigns = () => {
         .from('campaigns')
         .select(`
           *,
-          client:clients(name, logo_url)
+          client:clients!campaigns_client_id_fkey(name, logo_url)
         `)
         .order('created_at', { ascending: false })
       
@@ -98,7 +98,7 @@ export const useCampaigns = () => {
         .from('campaigns')
         .select(`
           *,
-          client:clients(name, logo_url),
+          client:clients!campaigns_client_id_fkey(name, logo_url),
           ad_sets:ad_sets(
             *,
             creatives:creatives(
