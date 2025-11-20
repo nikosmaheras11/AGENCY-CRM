@@ -1,156 +1,148 @@
 <template>
-  <!-- Brief View Modal - Simpler than asset viewer, shows form data as readable brief -->
-  <Transition name="slide">
+  <!-- Brief View Modal - Centered document-style modal -->
+  <Transition name="fade">
     <div
       v-if="modelValue"
-      class="fixed inset-0 z-50 flex"
+      class="fixed inset-0 z-50 flex items-center justify-center p-6"
       @click.self="emit('update:modelValue', false)"
     >
       <!-- Backdrop -->
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="emit('update:modelValue', false)" />
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="emit('update:modelValue', false)" />
 
-      <!-- Modal Panel -->
-      <div class="relative ml-auto w-full max-w-2xl h-full bg-[#1d1d1f] shadow-2xl overflow-y-auto">
-        <div class="sticky top-0 z-10 bg-[#1d1d1f]/95 backdrop-blur-sm border-b border-gray-800">
-          <!-- Header -->
-          <div class="flex items-center justify-between p-6">
-            <div class="flex items-center gap-3">
-              <button
-                @click="emit('update:modelValue', false)"
-                class="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <span class="material-icons text-gray-400">close</span>
-              </button>
-              <h2 class="text-xl font-semibold text-white">Creative Brief</h2>
-            </div>
-            
-            <!-- Status Badge -->
+      <!-- Modal Panel - Centered document -->
+      <div class="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
+          <div class="flex items-center gap-4">
+            <h1 class="text-2xl font-bold text-gray-900">Creative Brief</h1>
             <span 
-              class="px-3 py-1 rounded-full text-xs font-medium"
+              class="px-3 py-1.5 rounded-full text-xs font-semibold"
               :class="getStatusBadge(displayData?.status)"
             >
               {{ formatStatus(displayData?.status) }}
             </span>
           </div>
+          
+          <button
+            @click="emit('update:modelValue', false)"
+            class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <span class="material-icons text-gray-600">close</span>
+          </button>
         </div>
 
-        <!-- Brief Content -->
-        <div class="p-6 space-y-6">
-          <!-- Title -->
-          <div>
-            <h1 class="text-2xl font-semibold text-white mb-2">
-              {{ displayData?.title || 'Untitled Brief' }}
-            </h1>
-            <div class="flex items-center gap-4 text-sm text-gray-400">
-              <span>Created {{ formatDate(displayData?.created_at) }}</span>
-              <span v-if="displayData?.due_date">Due {{ formatDate(displayData?.due_date) }}</span>
+        <!-- Brief Content - Document Style with Rich Text Layout -->
+        <div class="flex-1 overflow-y-auto px-12 py-8 bg-gray-50">
+          <div class="max-w-3xl mx-auto space-y-8">
+            <!-- Info Banner -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4">
+              <div class="flex items-start gap-3">
+                <span class="material-icons text-blue-600 text-lg">info</span>
+                <p class="text-sm text-blue-900 leading-relaxed">
+                  This request is in the brief stage. When you move it to "Needs Review", the full asset review workflow with version control and comment threads becomes available.
+                </p>
+              </div>
             </div>
-          </div>
 
-          <!-- Quick Actions -->
-          <div class="flex gap-3">
-            <button 
-              @click="updateStatus('in-progress')"
-              v-if="displayData?.status === 'new-request'"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Start Working
-            </button>
-            <button 
-              @click="updateStatus('needs-review')"
-              v-if="displayData?.status === 'in-progress'"
-              class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Move to Review
-            </button>
-            <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors">
-              Edit Brief
-            </button>
-          </div>
+            <!-- Request Title -->
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Request Title</h2>
+              <p class="text-base text-gray-700 leading-relaxed">{{ displayData?.title || 'Untitled Request' }}</p>
+            </div>
 
-          <!-- Brief Details Grid -->
-          <div class="space-y-6">
+            <!-- Client -->
+            <div v-if="displayData?.client">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Client</h2>
+              <p class="text-base text-gray-700 leading-relaxed">{{ displayData.client }}</p>
+            </div>
+
+            <!-- Campaign -->
+            <div v-if="displayData?.campaign">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Campaign</h2>
+              <p class="text-base text-gray-700 leading-relaxed">{{ displayData.campaign }}</p>
+            </div>
+
             <!-- Platforms -->
-            <div v-if="displayData?.platform_array && displayData.platform_array.length > 0" class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Platforms</label>
+            <div v-if="displayData?.platform_array && displayData.platform_array.length > 0">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Platform</h2>
               <div class="flex flex-wrap gap-2">
-                <span 
-                  v-for="platform in displayData.platform_array" 
+                <span
+                  v-for="platform in displayData.platform_array"
                   :key="platform"
-                  class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium"
+                  class="px-4 py-2 bg-purple-100 text-purple-800 rounded-lg text-sm font-semibold"
                 >
                   {{ platform }}
                 </span>
               </div>
             </div>
 
-            <!-- Ad Sizes/Formats -->
-            <div v-if="displayData?.ad_size_format && displayData.ad_size_format.length > 0" class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Ad Sizes / Formats</label>
+            <!-- Ad Sizes -->
+            <div v-if="displayData?.ad_size_format && displayData.ad_size_format.length > 0">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Ad Size/Format</h2>
               <div class="flex flex-wrap gap-2">
-                <span 
-                  v-for="format in displayData.ad_size_format" 
-                  :key="format"
-                  class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-medium"
+                <span
+                  v-for="size in displayData.ad_size_format"
+                  :key="size"
+                  class="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-semibold"
                 >
-                  {{ format }}
+                  {{ size }}
                 </span>
               </div>
             </div>
 
             <!-- Priority -->
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Priority</label>
-              <div>
-                <span 
-                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                  :class="getPriorityBadge(displayData?.priority)"
-                >
-                  {{ formatPriority(displayData?.priority) }}
-                </span>
-              </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Priority</h2>
+              <span 
+                class="inline-block px-4 py-2 rounded-lg text-sm font-semibold"
+                :class="getPriorityBadgeLight(displayData?.priority)"
+              >
+                {{ formatPriority(displayData?.priority) }}
+              </span>
             </div>
 
-            <!-- Description -->
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Creative Description</label>
-              <div class="p-4 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 whitespace-pre-wrap">
-                {{ displayData?.description || 'No description provided' }}
-              </div>
+            <!-- Due Date -->
+            <div v-if="displayData?.due_date">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Due Date</h2>
+              <p class="text-base text-gray-700 leading-relaxed">{{ formatDate(displayData.due_date) }}</p>
             </div>
 
-            <!-- Inspiration (if provided) -->
-            <div v-if="displayData?.inspiration" class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Inspiration</label>
-              <div class="p-4 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 whitespace-pre-wrap">
-                {{ displayData.inspiration }}
-              </div>
+            <!-- Creative Description -->
+            <div v-if="displayData?.description">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Creative Description</h2>
+              <p class="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">{{ displayData.description }}</p>
+            </div>
+
+            <!-- Inspiration -->
+            <div v-if="displayData?.inspiration">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Inspiration</h2>
+              <p class="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">{{ displayData.inspiration }}</p>
             </div>
 
             <!-- Figma URL -->
-            <div v-if="displayData?.figma_url" class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Figma Link</label>
+            <div v-if="displayData?.figma_url">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Figma Link</h2>
               <a 
                 :href="displayData.figma_url" 
                 target="_blank" 
-                class="flex items-center gap-2 p-3 bg-gray-900/50 border border-gray-800 hover:border-blue-500 rounded-lg text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:border-blue-500 rounded-lg text-sm text-blue-600 hover:text-blue-700 transition-colors"
               >
                 <span class="material-icons text-base">link</span>
-                <span class="flex-1 truncate">{{ displayData.figma_url }}</span>
+                <span class="truncate">Open in Figma</span>
                 <span class="material-icons text-base">open_in_new</span>
               </a>
             </div>
 
             <!-- Reference URLs -->
-            <div v-if="displayData?.reference_urls && displayData.reference_urls.length > 0" class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Reference Links</label>
+            <div v-if="displayData?.reference_urls && displayData.reference_urls.length > 0">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Reference Links</h2>
               <div class="space-y-2">
                 <a 
                   v-for="(url, index) in displayData.reference_urls" 
                   :key="index"
                   :href="url" 
                   target="_blank" 
-                  class="flex items-center gap-2 p-3 bg-gray-900/50 border border-gray-800 hover:border-blue-500 rounded-lg text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                  class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:border-blue-500 rounded-lg text-sm text-blue-600 hover:text-blue-700 transition-colors"
                 >
                   <span class="material-icons text-base">link</span>
                   <span class="flex-1 truncate">{{ url }}</span>
@@ -159,59 +151,61 @@
               </div>
             </div>
 
-            <!-- Assignment -->
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Assigned To</label>
-              <div class="flex items-center gap-2 p-3 bg-gray-900/50 border border-gray-800 rounded-lg">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs">
-                  {{ getInitials(displayData?.assignee) }}
+            <!-- Assigned To -->
+            <div v-if="displayData?.assignee">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Assigned To</h2>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                  {{ getInitials(displayData.assignee) }}
                 </div>
-                <span class="text-sm text-gray-300">{{ displayData?.assignee || 'Unassigned' }}</span>
-              </div>
-            </div>
-
-            <!-- Client & Campaign -->
-            <div class="grid grid-cols-2 gap-4">
-              <div v-if="displayData?.client" class="space-y-2">
-                <label class="text-sm font-medium text-gray-400">Client</label>
-                <div class="p-3 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300">
-                  {{ displayData.client }}
-                </div>
-              </div>
-              <div v-if="displayData?.campaign" class="space-y-2">
-                <label class="text-sm font-medium text-gray-400">Campaign</label>
-                <div class="p-3 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300">
-                  {{ displayData.campaign }}
-                </div>
+                <span class="text-base text-gray-700">{{ displayData.assignee }}</span>
               </div>
             </div>
 
             <!-- Tags -->
-            <div v-if="displayData?.tags && displayData.tags.length > 0" class="space-y-2">
-              <label class="text-sm font-medium text-gray-400">Tags</label>
+            <div v-if="displayData?.tags && displayData.tags.length > 0">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Tags</h2>
               <div class="flex flex-wrap gap-2">
                 <span 
                   v-for="tag in displayData.tags" 
                   :key="tag"
-                  class="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs"
+                  class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
                 >
                   {{ tag }}
                 </span>
               </div>
             </div>
-          </div>
 
-          <!-- Notice about asset workflow -->
-          <div class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <div class="flex gap-3">
-              <span class="material-icons text-blue-400">info</span>
-              <div class="flex-1">
-                <p class="text-sm text-blue-300 font-medium mb-1">Brief Stage</p>
-                <p class="text-xs text-blue-400/80">
-                  This request is in the brief stage. When you move it to "Needs Review", the full asset review workflow with version control and comment threads becomes available.
-                </p>
-              </div>
+            <!-- Created Date -->
+            <div v-if="displayData?.created_at">
+              <h2 class="text-xl font-bold text-gray-900 mb-3">Created</h2>
+              <p class="text-base text-gray-700 leading-relaxed">{{ formatDate(displayData.created_at) }}</p>
             </div>
+          </div>
+        </div>
+
+        <!-- Footer with Quick Actions -->
+        <div class="px-8 py-6 border-t border-gray-200 bg-white">
+          <div class="max-w-3xl mx-auto flex gap-3">
+            <!-- Start Working (for new-request status) -->
+            <button
+              v-if="displayData?.status === 'new-request'"
+              @click="updateStatus('in-progress')"
+              class="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
+              <span class="material-icons text-lg">play_arrow</span>
+              Start Working
+            </button>
+
+            <!-- Move to Review (for in-progress status) -->
+            <button
+              v-if="displayData?.status === 'in-progress'"
+              @click="updateStatus('needs-review')"
+              class="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
+              <span class="material-icons text-lg">rate_review</span>
+              Move to Review
+            </button>
           </div>
         </div>
       </div>
@@ -310,10 +304,10 @@ const formatPriority = (priority?: string) => {
 
 const getStatusBadge = (status?: string) => {
   const badges: Record<string, string> = {
-    'new-request': 'bg-gray-500/20 text-gray-300',
-    'in-progress': 'bg-blue-500/20 text-blue-300'
+    'new-request': 'bg-gray-200 text-gray-700',
+    'in-progress': 'bg-blue-100 text-blue-700'
   }
-  return badges[status || ''] || 'bg-gray-500/20 text-gray-300'
+  return badges[status || ''] || 'bg-gray-200 text-gray-700'
 }
 
 const getPriorityBadge = (priority?: string) => {
@@ -325,26 +319,26 @@ const getPriorityBadge = (priority?: string) => {
   }
   return badges[priority?.toLowerCase() || 'medium'] || 'bg-yellow-500/20 text-yellow-300'
 }
+
+const getPriorityBadgeLight = (priority?: string) => {
+  const badges: Record<string, string> = {
+    'urgent': 'bg-red-100 text-red-800',
+    'high': 'bg-orange-100 text-orange-800',
+    'medium': 'bg-yellow-100 text-yellow-800',
+    'low': 'bg-green-100 text-green-800'
+  }
+  return badges[priority?.toLowerCase() || 'medium'] || 'bg-yellow-100 text-yellow-800'
+}
 </script>
 
 <style scoped>
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(100%);
-}
-
-.slide-enter-from .absolute,
-.slide-leave-to .absolute {
-  opacity: 0;
-}
-
-.slide-enter-active .absolute,
-.slide-leave-active .absolute {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
