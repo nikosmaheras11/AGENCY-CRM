@@ -2,9 +2,15 @@
  * Composables for Performance/Campaign Management
  */
 
+// Global State
+const clientsState = ref<any[]>([])
+const campaignsState = ref<any[]>([])
+const adSetsState = ref<any[]>([])
+const creativesState = ref<any[]>([])
+const assetsState = ref<any[]>([])
+
 // --- Clients Composable ---
 export const useClients = () => {
-  const clients = ref<any[]>([])
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
@@ -18,7 +24,7 @@ export const useClients = () => {
         .order('name')
       
       if (err) throw err
-      clients.value = data || []
+      clientsState.value = data || []
     } catch (e) {
       error.value = e as Error
       console.error('Error fetching clients:', e)
@@ -27,12 +33,11 @@ export const useClients = () => {
     }
   }
 
-  return { clients, fetchClients, loading, error }
+  return { clients: clientsState, fetchClients, loading, error }
 }
 
 // --- Campaigns Composable ---
 export const useCampaigns = () => {
-  const campaigns = ref<any[]>([])
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
@@ -57,7 +62,7 @@ export const useCampaigns = () => {
       }
       
       console.log('Campaigns fetched:', data)
-      campaigns.value = data || []
+      campaignsState.value = data || []
     } catch (e) {
       error.value = e as Error
       console.error('Error fetching campaigns:', e)
@@ -78,7 +83,7 @@ export const useCampaigns = () => {
       
       if (err) throw err
       // Add to local state
-      campaigns.value.unshift(data)
+      campaignsState.value.unshift(data)
       return data
     } catch (e) {
       error.value = e as Error
@@ -136,6 +141,13 @@ export const useCampaigns = () => {
         .single()
       
       if (err) throw err
+      
+      // Update local state if exists
+      const index = campaignsState.value.findIndex(c => c.id === campaignId)
+      if (index !== -1) {
+        campaignsState.value[index] = { ...campaignsState.value[index], ...data }
+      }
+      
       return data
     } catch (e) {
       error.value = e as Error
@@ -146,12 +158,11 @@ export const useCampaigns = () => {
     }
   }
 
-  return { campaigns, fetchCampaigns, createCampaign, getCampaignById, updateCampaignStatus, loading, error }
+  return { campaigns: campaignsState, fetchCampaigns, createCampaign, getCampaignById, updateCampaignStatus, loading, error }
 }
 
 // --- Ad Sets Composable ---
 export const useAdSets = () => {
-  const adSets = ref<any[]>([])
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
@@ -171,7 +182,7 @@ export const useAdSets = () => {
       const { data, error: err } = await query
       
       if (err) throw err
-      adSets.value = data || []
+      adSetsState.value = data || []
       return data
     } catch (e) {
       error.value = e as Error
@@ -208,7 +219,7 @@ export const useAdSets = () => {
         .single()
       
       if (err) throw err
-      adSets.value.unshift(data)
+      adSetsState.value.unshift(data)
       return data
     } catch (e) {
       error.value = e as Error
@@ -219,12 +230,11 @@ export const useAdSets = () => {
     }
   }
 
-  return { adSets, fetchAdSets, createAdSet, loading, error }
+  return { adSets: adSetsState, fetchAdSets, createAdSet, loading, error }
 }
 
 // --- Creatives Composable ---
 export const useCreatives = () => {
-  const creatives = ref<any[]>([])
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
@@ -248,7 +258,7 @@ export const useCreatives = () => {
       const { data, error: err } = await query
       
       if (err) throw err
-      creatives.value = data || []
+      creativesState.value = data || []
       return data
     } catch (e) {
       error.value = e as Error
@@ -285,7 +295,7 @@ export const useCreatives = () => {
         .single()
       
       if (err) throw err
-      creatives.value.unshift(data)
+      creativesState.value.unshift(data)
       return data
     } catch (e) {
       error.value = e as Error
@@ -296,12 +306,11 @@ export const useCreatives = () => {
     }
   }
 
-  return { creatives, fetchCreatives, createCreative, loading, error }
+  return { creatives: creativesState, fetchCreatives, createCreative, loading, error }
 }
 
 // --- Assets Composable (Simple version if not exists) ---
 export const useAssets = () => {
-  const assets = ref<any[]>([])
   const loading = ref(false)
   const error = ref<Error | null>(null)
 
@@ -316,7 +325,7 @@ export const useAssets = () => {
         .limit(50) // Limit for now
       
       if (err) throw err
-      assets.value = data || []
+      assetsState.value = data || []
     } catch (e) {
       error.value = e as Error
       console.error('Error fetching assets:', e)
@@ -325,10 +334,5 @@ export const useAssets = () => {
     }
   }
 
-  // Fetch on init if empty (optional)
-  // onMounted(() => {
-  //   if (assets.value.length === 0) fetchAssets()
-  // })
-
-  return { assets, fetchAssets, loading, error }
+  return { assets: assetsState, fetchAssets, loading, error }
 }
