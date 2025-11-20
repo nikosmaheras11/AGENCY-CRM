@@ -5,7 +5,7 @@ const emit = defineEmits(['close', 'created'])
 const formData = ref({
   name: '',
   description: '',
-  client_id: '',
+  // client_id removed as unneeded for single-tenant
   platforms: [],
   objective: '',
   campaign_brief: '',
@@ -13,7 +13,7 @@ const formData = ref({
   planned_end_date: null
 })
 
-const { clients, fetchClients } = useClients()
+// const { clients, fetchClients } = useClients() // Not needed
 const { createCampaign, loading } = useCampaigns()
 
 const platformOptions = [
@@ -47,13 +47,12 @@ const togglePlatform = (platform: string) => {
 const handleSubmit = async () => {
   try {
     if (!formData.value.name) throw new Error('Campaign name is required')
-    // Client is now optional
     if (formData.value.platforms.length === 0) throw new Error('Please select at least one platform')
     
-    // Send null if client_id is empty string to match UUID type
+    // Send null for client_id as it's not used
     const payload = {
       ...formData.value,
-      client_id: formData.value.client_id || null
+      client_id: null
     }
 
     const campaign = await createCampaign(payload)
@@ -69,11 +68,7 @@ const handleSubmit = async () => {
   }
 }
 
-onMounted(async () => {
-  if (!clients.value.length) {
-    await fetchClients()
-  }
-})
+// onMounted removed as we don't fetch clients anymore
 </script>
 
 <template>
@@ -97,29 +92,6 @@ onMounted(async () => {
             placeholder="e.g. Summer Sale 2025"
             size="lg"
           />
-        </UFormGroup>
-
-        <!-- Client Selection -->
-        <UFormGroup label="Client">
-          <USelectMenu
-            v-model="formData.client_id"
-            :options="clients"
-            option-attribute="name"
-            value-attribute="id"
-            placeholder="Select client (optional)"
-            size="lg"
-          >
-            <template #label>
-              <div v-if="formData.client_id" class="flex items-center gap-2">
-                <UAvatar
-                  :src="clients.find(c => c.id === formData.client_id)?.logo_url"
-                  size="xs"
-                />
-                <span>{{ clients.find(c => c.id === formData.client_id)?.name }}</span>
-              </div>
-              <span v-else class="text-gray-500">Select client (optional)</span>
-            </template>
-          </USelectMenu>
         </UFormGroup>
 
         <!-- Platform Selection -->
