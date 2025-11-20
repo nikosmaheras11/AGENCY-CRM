@@ -7,6 +7,7 @@
           <span class="material-icons">arrow_back</span>
           <span>Back to Board</span>
         </button>
+        <h2 class="sidebar-title">Items Needing Review</h2>
       </div>
       
       <!-- Asset thumbnails strip -->
@@ -977,6 +978,16 @@ const getAssetGradient = (id: string) => {
 
 .back-button:hover {
   background: #2a2a2a;
+}
+
+.sidebar-title {
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 12px 0 0 0;
+  padding: 0 8px;
 }
 
 .asset-strip {
