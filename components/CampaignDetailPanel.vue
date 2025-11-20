@@ -166,11 +166,73 @@
             <div class="flex items-start gap-4 mb-6">
               <label class="w-32 text-sm text-gray-400 pt-2">Description</label>
               <div class="flex-1">
-                <textarea
-                  placeholder="What is this task about?"
-                  class="w-full px-3 py-2 bg-transparent border border-gray-800 rounded-lg text-sm text-gray-400 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
-                  rows="4"
-                />
+                <div v-if="displayData?.description" class="text-sm text-gray-300 whitespace-pre-wrap">
+                  {{ displayData.description }}
+                </div>
+                <p v-else class="text-sm text-gray-500 italic">No description provided</p>
+              </div>
+            </div>
+
+            <!-- Creative Specs (if creative project_type) -->
+            <div v-if="displayData?.project_type === 'creative'" class="space-y-6 mb-6">
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Platform</label>
+                <div class="flex-1">
+                  <span class="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-medium rounded">
+                    {{ displayData?.format || 'Not specified' }}
+                  </span>
+                </div>
+              </div>
+
+              <div v-if="displayData?.dimensions" class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Dimensions</label>
+                <div class="flex-1">
+                  <span class="text-sm text-gray-300">{{ displayData.dimensions }}</span>
+                </div>
+              </div>
+
+              <div v-if="displayData?.duration" class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Duration</label>
+                <div class="flex-1">
+                  <span class="text-sm text-gray-300">{{ displayData.duration }}</span>
+                </div>
+              </div>
+
+              <div v-if="displayData?.figma_url" class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Figma</label>
+                <div class="flex-1">
+                  <a :href="displayData.figma_url" target="_blank" class="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                    <span class="material-icons text-sm">open_in_new</span>
+                    <span>View in Figma</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Campaign Details (if has campaign) -->
+            <div v-if="displayData?.campaign" class="space-y-6 mb-6">
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Campaign</label>
+                <div class="flex-1">
+                  <span class="text-sm text-gray-300">{{ displayData.campaign }}</span>
+                </div>
+              </div>
+
+              <div v-if="displayData?.target_audience" class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Target Audience</label>
+                <div class="flex-1">
+                  <p class="text-sm text-gray-300 whitespace-pre-wrap">{{ displayData.target_audience }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Review Round -->
+            <div v-if="displayData?.review_round" class="flex items-start gap-4 mb-6">
+              <label class="w-32 text-sm text-gray-400 pt-2">Review Round</label>
+              <div class="flex-1">
+                <span class="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-medium rounded">
+                  Round {{ displayData.review_round }}
+                </span>
               </div>
             </div>
 
