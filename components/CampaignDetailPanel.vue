@@ -59,7 +59,7 @@
         <!-- Content -->
         <div class="px-6 py-6 relative">
           <!-- Title -->
-          <h1 class="text-2xl font-semibold mb-6">{{ campaign?.name || 'Campaign Details' }}</h1>
+          <h1 class="text-2xl font-semibold mb-6">{{ displayData?.title || 'Request Details' }}</h1>
 
           <!-- Tabs -->
           <div class="mb-6 border-b border-white/10">
@@ -90,7 +90,7 @@
                   <div class="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center text-xs font-medium">
                     NM
                   </div>
-                  <span class="text-sm">{{ campaign?.assignee || 'Nikos Maheras' }}</span>
+                  <span class="text-sm">{{ displayData?.assignee || 'Unassigned' }}</span>
                   <button class="ml-auto text-gray-400 hover:text-white">
                     <span class="material-icons text-sm">close</span>
                   </button>
@@ -105,7 +105,7 @@
               <div class="flex-1">
                 <div class="flex items-center gap-2 px-3 py-2 bg-gray-800/50 rounded-lg">
                   <span class="material-icons text-gray-400 text-sm">calendar_today</span>
-                  <span class="text-sm">{{ campaign?.dueDate || 'Today – Nov 11' }}</span>
+                  <span class="text-sm">{{ displayData?.due_date || 'No due date' }}</span>
                   <button class="ml-auto text-gray-400 hover:text-white">
                     <span class="material-icons text-sm">close</span>
                   </button>
@@ -147,7 +147,7 @@
                     <span class="text-sm">Priority</span>
                   </div>
                   <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-medium rounded">
-                    {{ campaign?.priority || 'Low' }}
+                    {{ displayData?.priority || 'Medium' }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between p-3 border border-gray-800 rounded-lg">
@@ -156,7 +156,7 @@
                     <span class="text-sm">Status</span>
                   </div>
                   <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-medium rounded">
-                    {{ campaign?.status || 'On track' }}
+                    {{ displayData?.status || 'new-request' }}
                   </span>
                 </div>
               </div>
@@ -197,16 +197,17 @@
                 </button>
               </div>
 
-              <!-- Activity item -->
-              <div class="flex gap-3 mb-4">
-                <div class="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-xs font-medium flex-shrink-0">
-                  NM
+              <!-- Comments List -->
+              <div v-for="comment in comments" :key="comment.id" class="flex gap-3 mb-4">
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs font-medium flex-shrink-0">
+                  {{ comment.user_name.charAt(0).toUpperCase() }}
                 </div>
                 <div class="flex-1">
-                  <p class="text-sm text-gray-400">
-                    <span class="text-white font-medium">Nikos Maheras</span> created this task
-                    <span class="ml-2">1 minute ago</span>
+                  <p class="text-sm text-gray-300">
+                    <span class="text-white font-medium">{{ comment.user_name }}</span>
+                    <span class="ml-2 text-gray-500">{{ new Date(comment.created_at).toLocaleDateString() }}</span>
                   </p>
+                  <p class="text-sm text-gray-400 mt-1">{{ comment.content }}</p>
                 </div>
               </div>
 
@@ -217,10 +218,22 @@
                 </div>
                 <div class="flex-1">
                   <textarea
+                    v-model="newCommentText"
                     placeholder="Add a comment"
                     class="w-full px-4 py-3 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
                     rows="3"
+                    @keydown.meta.enter="postComment"
+                    @keydown.ctrl.enter="postComment"
                   />
+                  <div class="flex justify-end mt-2">
+                    <button
+                      @click="postComment"
+                      :disabled="!newCommentText.trim() || isSubmitting"
+                      class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
+                    >
+                      {{ isSubmitting ? 'Posting...' : 'Post Comment' }}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -263,18 +276,108 @@
 </template>
 
 <script setup lang="ts">
+import type { RequestComment } from '~/types/request-modal'
+
 interface Props {
   modelValue: boolean
   campaign?: any
+  requestId?: string // Add requestId prop to fetch real data
 }
 
-defineProps<Props>()
-defineEmits<{
+const props = defineProps<Props>()
+const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
 
 const activeTab = ref('Overview')
 const tabs = ['Overview', 'Assets']
+
+// Fetch real request data from database
+const { supabase } = useSupabase()
+const user = useSupabaseUser()
+const requestData = ref<any>(null)
+const comments = ref<RequestComment[]>([])
+const newCommentText = ref('')
+const isSubmitting = ref(false)
+
+// Fetch request data
+const fetchRequestData = async () => {
+  if (!props.requestId) return
+  
+  try {
+    const { data, error } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('id', props.requestId)
+      .single()
+    
+    if (error) throw error
+    requestData.value = data
+    
+    // Fetch comments
+    await fetchComments()
+  } catch (error) {
+    console.error('Failed to fetch request:', error)
+  }
+}
+
+// Fetch comments
+const fetchComments = async () => {
+  if (!props.requestId) return
+  
+  try {
+    const { data, error } = await supabase
+      .from('request_comments')
+      .select('*')
+      .eq('request_id', props.requestId)
+      .order('created_at', { ascending: true })
+    
+    if (error) throw error
+    comments.value = data || []
+  } catch (error) {
+    console.error('Failed to fetch comments:', error)
+  }
+}
+
+// Post new comment
+const postComment = async () => {
+  if (!newCommentText.value.trim() || !user.value || !props.requestId) return
+  
+  try {
+    isSubmitting.value = true
+    
+    const { data, error } = await supabase
+      .from('request_comments')
+      .insert({
+        request_id: props.requestId,
+        content: newCommentText.value.trim(),
+        user_id: user.value.id,
+        user_name: user.value.user_metadata?.full_name || user.value.email || 'Unknown',
+        user_avatar_url: user.value.user_metadata?.avatar_url
+      })
+      .select()
+      .single()
+    
+    if (error) throw error
+    
+    comments.value.push(data)
+    newCommentText.value = ''
+  } catch (error) {
+    console.error('Failed to post comment:', error)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Watch for modal open/close
+watch(() => props.modelValue, (isOpen) => {
+  if (isOpen && props.requestId) {
+    fetchRequestData()
+  }
+}, { immediate: true })
+
+// Display data with fallback to campaign prop
+const displayData = computed(() => requestData.value || props.campaign)
 </script>
 
 <style scoped>

@@ -4,7 +4,11 @@
     <div class="absolute inset-0 bg-pattern opacity-[0.015] pointer-events-none"></div>
     
     <!-- Campaign Detail Panel -->
-    <CampaignDetailPanel v-model="showCampaignDetail" :campaign="selectedCampaign" />
+    <CampaignDetailPanel 
+      v-model="showCampaignDetail" 
+      :campaign="selectedCampaign" 
+      :request-id="selectedRequestId"
+    />
     
     <div class="p-6 sm:p-8 relative z-10">
       <!-- Header -->
@@ -235,9 +239,12 @@ interface Campaign {
 const viewMode = ref('table')
 const showCampaignDetail = ref(false)
 const selectedCampaign = ref<Campaign | null>(null)
+const selectedRequestId = ref<string | null>(null)
 
 function openCampaignDetail(campaign: Campaign) {
   selectedCampaign.value = campaign
+  // Get the actual request ID from the _originalRequest property
+  selectedRequestId.value = (campaign as any)._originalRequest?.id || null
   showCampaignDetail.value = true
 }
 
