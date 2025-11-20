@@ -145,18 +145,33 @@
                     <span class="material-icons text-sm">priority_high</span>
                     <span class="text-sm">Priority</span>
                   </div>
-                  <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-medium rounded">
-                    {{ displayData?.priority || 'Medium' }}
-                  </span>
+                  <select
+                    :value="displayData?.priority || 'medium'"
+                    @change="(e) => updateField('priority', (e.target as HTMLSelectElement).value)"
+                    class="px-3 py-1 bg-gray-900 border border-gray-800 text-cyan-400 text-xs font-medium rounded cursor-pointer focus:outline-none focus:border-gray-700"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
                 </div>
                 <div class="flex items-center justify-between p-3 border border-gray-800 rounded-lg">
                   <div class="flex items-center gap-2 text-gray-400">
                     <span class="material-icons text-sm">info</span>
                     <span class="text-sm">Status</span>
                   </div>
-                  <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-medium rounded">
-                    {{ displayData?.status || 'new-request' }}
-                  </span>
+                  <select
+                    :value="displayData?.status || 'new-request'"
+                    @change="(e) => updateField('status', (e.target as HTMLSelectElement).value)"
+                    class="px-3 py-1 bg-gray-900 border border-gray-800 text-cyan-400 text-xs font-medium rounded cursor-pointer focus:outline-none focus:border-gray-700"
+                  >
+                    <option value="new-request">New Request</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="needs-review">Needs Review</option>
+                    <option value="needs-edit">Needs Edit</option>
+                    <option value="done">Done</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -180,9 +195,18 @@
               <div class="flex items-start gap-4">
                 <label class="w-32 text-sm text-gray-400 pt-2">Platform</label>
                 <div class="flex-1">
-                  <span class="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-medium rounded">
-                    {{ displayData?.format || 'Not specified' }}
-                  </span>
+                  <select
+                    :value="displayData?.format || ''"
+                    @change="(e) => updateField('format', (e.target as HTMLSelectElement).value)"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700 cursor-pointer"
+                  >
+                    <option value="">Select platform...</option>
+                    <option value="Meta">Meta</option>
+                    <option value="Google">Google</option>
+                    <option value="Tik Tok">Tik Tok</option>
+                    <option value="Reddit">Reddit</option>
+                    <option value="X">X</option>
+                  </select>
                 </div>
               </div>
 
@@ -244,30 +268,160 @@
               </div>
             </div>
 
-            <!-- Campaign Details (if has campaign) -->
-            <div v-if="displayData?.campaign" class="space-y-6 mb-6">
+            <!-- Campaign Details -->
+            <div class="space-y-6 mb-6">
               <div class="flex items-start gap-4">
                 <label class="w-32 text-sm text-gray-400 pt-2">Campaign</label>
                 <div class="flex-1">
-                  <span class="text-sm text-gray-300">{{ displayData.campaign }}</span>
+                  <input
+                    type="text"
+                    :value="displayData?.campaign || ''"
+                    @blur="(e) => updateField('campaign', (e.target as HTMLInputElement).value)"
+                    placeholder="Campaign name"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                  />
                 </div>
               </div>
 
-              <div v-if="displayData?.target_audience" class="flex items-start gap-4">
+              <div class="flex items-start gap-4">
                 <label class="w-32 text-sm text-gray-400 pt-2">Target Audience</label>
                 <div class="flex-1">
-                  <p class="text-sm text-gray-300 whitespace-pre-wrap">{{ displayData.target_audience }}</p>
+                  <textarea
+                    :value="displayData?.target_audience || ''"
+                    @blur="(e) => updateField('target_audience', (e.target as HTMLTextAreaElement).value)"
+                    placeholder="Describe the target audience..."
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
+                    rows="3"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Campaign Objectives</label>
+                <div class="flex-1">
+                  <textarea
+                    :value="displayData?.campaign_objectives || ''"
+                    @blur="(e) => updateField('campaign_objectives', (e.target as HTMLTextAreaElement).value)"
+                    placeholder="What are the campaign objectives?"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
+                    rows="3"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Category</label>
+                <div class="flex-1">
+                  <input
+                    type="text"
+                    :value="displayData?.category || ''"
+                    @blur="(e) => updateField('category', (e.target as HTMLInputElement).value)"
+                    placeholder="e.g., Social Media, Display Ads"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                  />
                 </div>
               </div>
             </div>
 
-            <!-- Review Round -->
-            <div v-if="displayData?.review_round" class="flex items-start gap-4 mb-6">
-              <label class="w-32 text-sm text-gray-400 pt-2">Review Round</label>
-              <div class="flex-1">
-                <span class="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-medium rounded">
-                  Round {{ displayData.review_round }}
-                </span>
+            <!-- Project Management -->
+            <div class="space-y-6 mb-6">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="flex items-start gap-4">
+                  <label class="w-32 text-sm text-gray-400 pt-2">Estimate (hrs)</label>
+                  <div class="flex-1">
+                    <input
+                      type="number"
+                      :value="displayData?.estimate_hours || ''"
+                      @blur="(e) => updateField('estimate_hours', parseFloat((e.target as HTMLInputElement).value) || null)"
+                      placeholder="0"
+                      min="0"
+                      step="0.5"
+                      class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                    />
+                  </div>
+                </div>
+                <div class="flex items-start gap-4">
+                  <label class="w-32 text-sm text-gray-400 pt-2">Actual (hrs)</label>
+                  <div class="flex-1">
+                    <input
+                      type="number"
+                      :value="displayData?.actual_hours || ''"
+                      @blur="(e) => updateField('actual_hours', parseFloat((e.target as HTMLInputElement).value) || null)"
+                      placeholder="0"
+                      min="0"
+                      step="0.5"
+                      class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="flex items-start gap-4">
+                  <label class="w-32 text-sm text-gray-400 pt-2">Start Date</label>
+                  <div class="flex-1">
+                    <input
+                      type="date"
+                      :value="displayData?.start_date || ''"
+                      @blur="(e) => updateField('start_date', (e.target as HTMLInputElement).value)"
+                      class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700"
+                    />
+                  </div>
+                </div>
+                <div class="flex items-start gap-4">
+                  <label class="w-32 text-sm text-gray-400 pt-2">Completed</label>
+                  <div class="flex-1">
+                    <input
+                      type="date"
+                      :value="displayData?.completed_date || ''"
+                      @blur="(e) => updateField('completed_date', (e.target as HTMLInputElement).value)"
+                      class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Review Process -->
+            <div class="space-y-6 mb-6">
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Review Round</label>
+                <div class="flex-1">
+                  <input
+                    type="number"
+                    :value="displayData?.review_round || ''"
+                    @blur="(e) => updateField('review_round', parseInt((e.target as HTMLInputElement).value) || null)"
+                    placeholder="1"
+                    min="1"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Review Status</label>
+                <div class="flex-1">
+                  <textarea
+                    :value="displayData?.review_status || ''"
+                    @blur="(e) => updateField('review_status', (e.target as HTMLTextAreaElement).value)"
+                    placeholder="Current review status and feedback..."
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
+                    rows="3"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Brand Guidelines</label>
+                <div class="flex-1">
+                  <textarea
+                    :value="displayData?.brand_guidelines || ''"
+                    @blur="(e) => updateField('brand_guidelines', (e.target as HTMLTextAreaElement).value)"
+                    placeholder="Brand guidelines and requirements..."
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
+                    rows="3"
+                  />
+                </div>
               </div>
             </div>
 
