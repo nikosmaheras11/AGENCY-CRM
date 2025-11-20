@@ -11,10 +11,10 @@
       <div class="mb-8 flex items-center justify-between">
         <div>
           <h1 class="text-4xl font-display font-bold text-white mb-2">
-            Campaign Tracking
+            Project Management
           </h1>
           <p class="text-slate-400 font-light">
-            Main priorities with status tracking
+            Track project timeline, estimates, and deliverables
           </p>
         </div>
         <div class="flex gap-3">
@@ -22,7 +22,7 @@
             Filter
           </button>
           <button class="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white shadow-primary rounded-2xl font-medium transition-all">
-            + New Campaign
+            + New Project
           </button>
         </div>
       </div>
@@ -47,7 +47,7 @@
             </button>
           </div>
           <div class="text-sm text-slate-400 font-light">
-            {{ campaigns.length }} campaigns
+            {{ campaigns.length }} projects
           </div>
         </div>
       </div>
@@ -56,7 +56,7 @@
       <div v-if="viewMode === 'table'" class="card-glass card-elevated overflow-hidden">
         <!-- Table Header -->
         <div class="grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-          <div class="col-span-3">Campaign Name</div>
+          <div class="col-span-3">Project Name</div>
           <div class="col-span-2">Status</div>
           <div class="col-span-2">Priority</div>
           <div class="col-span-2">Owner</div>
@@ -72,9 +72,9 @@
             @click="openCampaignDetail(campaign)"
             class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer"
           >
-            <!-- Campaign Name -->
+            <!-- Project Name -->
             <div class="col-span-3 flex items-center gap-3">
-              <div class="w-8 h-8 rounded bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm">
+              <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
                 {{ campaign.name.charAt(0) }}
               </div>
               <span class="font-medium text-white">{{ campaign.name }}</span>
@@ -241,12 +241,70 @@ function openCampaignDetail(campaign: Campaign) {
   showCampaignDetail.value = true
 }
 
-const campaigns = ref<Campaign[]>([])
+// Use unified request system to fetch project-type requests
+const { fetchRequests, allRequests, loading, error } = useRequests()
+
+// Fetch requests on mount
+onMounted(async () => {
+  await fetchRequests()
+})
+
+// Filter only project-type requests and transform to campaign format
+const campaigns = computed(() => {
+  return allRequests.value
+    .filter(req => req.projectType === 'project')
+    .map(req => ({
+      id: parseInt(req.id.split('-')[0], 16), // Convert UUID to number for compatibility
+      name: req.title || 'Untitled Project',
+      status: mapRequestStatusToCampaignStatus(req.status),
+      priority: mapRequestPriority(req.priority),
+      owner: req.assignee || req.createdByName || 'Unassigned',
+      progress: calculateProgress(req),
+      dueDate: req.dueDate ? new Date(req.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No due date',
+      _originalRequest: req // Keep reference to original request data
+    }))
+})
 
 const planningCampaigns = computed(() => campaigns.value.filter(c => c.status === 'Planning'))
 const inProgressCampaigns = computed(() => campaigns.value.filter(c => c.status === 'In Progress'))
 const reviewCampaigns = computed(() => campaigns.value.filter(c => c.status === 'Review'))
 const completedCampaigns = computed(() => campaigns.value.filter(c => c.status === 'Completed'))
+
+// Map request status to campaign status buckets
+function mapRequestStatusToCampaignStatus(status: string): 'Planning' | 'In Progress' | 'Review' | 'Completed' {
+  const statusMap: Record<string, 'Planning' | 'In Progress' | 'Review' | 'Completed'> = {
+    'new-request': 'Planning',
+    'in-progress': 'In Progress',
+    'needs-review': 'Review',
+    'needs-edit': 'In Progress',
+    'done': 'Completed'
+  }
+  return statusMap[status] || 'Planning'
+}
+
+// Map request priority to campaign priority
+function mapRequestPriority(priority: string | null): 'Critical' | 'High' | 'Medium' | 'Low' {
+  if (!priority) return 'Medium'
+  const priorityMap: Record<string, 'Critical' | 'High' | 'Medium' | 'Low'> = {
+    'critical': 'Critical',
+    'high': 'High',
+    'medium': 'Medium',
+    'low': 'Low'
+  }
+  return priorityMap[priority.toLowerCase()] || 'Medium'
+}
+
+// Calculate progress based on status and review round
+function calculateProgress(req: any): number {
+  const statusProgress: Record<string, number> = {
+    'new-request': 10,
+    'in-progress': 50,
+    'needs-review': 75,
+    'needs-edit': 60,
+    'done': 100
+  }
+  return statusProgress[req.status] || 0
+}
 
 const getStatusBadge = (status: string) => {
   const badges: Record<string, string> = {
