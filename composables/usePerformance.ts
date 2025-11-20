@@ -83,7 +83,40 @@ export const useCampaigns = () => {
     }
   }
 
-  return { campaigns, fetchCampaigns, createCampaign, loading, error }
+  const getCampaignById = async (id: string) => {
+    const { supabase } = useSupabase()
+    try {
+      loading.value = true
+      const { data, error: err } = await supabase
+        .from('campaigns')
+        .select(`
+          *,
+          client:clients(name, logo_url),
+          ad_sets:ad_sets(
+            *,
+            creatives:creatives(
+              *,
+              asset:assets(*),
+              comments:creative_comments(count)
+            )
+          ),
+          assigned:assigned_to(email)
+        `)
+        .eq('id', id)
+        .single()
+      
+      if (err) throw err
+      return data
+    } catch (e) {
+      error.value = e as Error
+      console.error('Error fetching campaign details:', e)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { campaigns, fetchCampaigns, createCampaign, getCampaignById, loading, error }
 }
 
 // --- Ad Sets Composable ---

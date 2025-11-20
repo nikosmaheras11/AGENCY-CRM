@@ -92,6 +92,7 @@
           <div 
             v-for="campaign in campaigns" 
             :key="campaign.id"
+            @click="navigateTo(`/performance/${campaign.id}`)"
             class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer"
           >
             <!-- Campaign Name -->

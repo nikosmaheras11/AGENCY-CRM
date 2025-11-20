@@ -59,6 +59,11 @@ const handleSubmit = async () => {
     const campaign = await createCampaign(payload)
     emit('created', campaign)
     emit('close')
+    
+    // Navigate to the new campaign detail page
+    if (campaign?.id) {
+      await navigateTo(`/performance/${campaign.id}`)
+    }
   } catch (error) {
     console.error('Error creating campaign:', error)
   }
