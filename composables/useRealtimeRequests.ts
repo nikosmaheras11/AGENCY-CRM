@@ -33,13 +33,32 @@ export const useRealtimeRequests = () => {
   
   const fetchRequests = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch from new_requests table (brief stage: new-request, in-progress)
+      const { data: briefData, error: briefError } = await supabase
+        .from('new_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (briefError) throw briefError
+      
+      // Fetch from requests table (asset stage: needs-review, needs-edit, done)
+      const { data: assetData, error: assetError } = await supabase
         .from('requests')
         .select('*')
         .order('created_at', { ascending: false })
       
-      if (error) throw error
-      requests.value = data || []
+      if (assetError) throw assetError
+      
+      // Transform brief data to match Request interface
+      const briefs = (briefData || []).map(brief => ({
+        ...brief,
+        platform: brief.platform?.[0] || null, // Take first platform from array
+        format: brief.platform?.[0] || null,
+        dimensions: brief.ad_size_format?.[0] || null // Take first size from array
+      }))
+      
+      // Combine both arrays (briefs from new_requests + assets from requests)
+      requests.value = [...briefs, ...(assetData || [])]
     } catch (error) {
       console.error('Error fetching requests:', error)
     } finally {
@@ -68,10 +87,47 @@ export const useRealtimeRequests = () => {
   }
   
   const setupRealtime = () => {
+    // Subscribe to BOTH new_requests and requests tables
     channel = supabase
-      .channel('requests-changes', {
+      .channel('all-requests-changes', {
         config: { private: true } // Enforce RLS
       })
+      // Listen to new_requests table (brief stage)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'new_requests' },
+        (payload) => {
+          const newBrief = payload.new as any
+          // Transform brief to match Request interface
+          const transformedBrief = {
+            ...newBrief,
+            platform: newBrief.platform?.[0] || null,
+            format: newBrief.platform?.[0] || null,
+            dimensions: newBrief.ad_size_format?.[0] || null
+          }
+          handleInsert({ new: transformedBrief })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'new_requests' },
+        (payload) => {
+          const updatedBrief = payload.new as any
+          const transformedBrief = {
+            ...updatedBrief,
+            platform: updatedBrief.platform?.[0] || null,
+            format: updatedBrief.platform?.[0] || null,
+            dimensions: updatedBrief.ad_size_format?.[0] || null
+          }
+          handleUpdate({ new: transformedBrief })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'new_requests' },
+        handleDelete
+      )
+      // Listen to requests table (asset stage)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'requests' },
