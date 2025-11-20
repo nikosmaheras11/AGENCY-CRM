@@ -127,8 +127,8 @@ onMounted(async () => {
               @click="togglePlatform(platform.value)"
               class="p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2"
               :class="formData.platforms.includes(platform.value)
-                ? 'border-primary-500 bg-primary-500/10' 
-                : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'"
+                ? 'border-primary-500 bg-primary-500/10 text-white' 
+                : 'border-gray-700 bg-gray-800/50 hover:border-gray-600 text-gray-400 hover:text-gray-200'"
             >
               <UIcon :name="platform.icon" class="text-2xl" />
               <span class="text-xs font-medium">{{ platform.label }}</span>
@@ -146,8 +146,8 @@ onMounted(async () => {
               @click="formData.objective = objective.value"
               class="p-3 rounded-lg border-2 transition-all text-left"
               :class="formData.objective === objective.value
-                ? 'border-primary-500 bg-primary-500/10' 
-                : 'border-gray-700 bg-gray-800/50'"
+                ? 'border-primary-500 bg-primary-500/10 text-white' 
+                : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600 hover:text-gray-200'"
             >
               <div class="flex items-center gap-2">
                 <UIcon :name="objective.icon" class="text-xl" />
