@@ -74,17 +74,23 @@ const handleRequestSubmitted = (requestId: string) => {
 
 // Route to appropriate modal based on status
 const handleViewRequest = (request: any) => {
+  console.log('🔍 handleViewRequest called with:', { id: request.id, status: request.status, request })
+  
   const briefStatuses = ['new-request', 'in-progress']
   const assetStatuses = ['needs-review', 'needs-edit', 'done']
   
   if (briefStatuses.includes(request.status)) {
     // Open brief modal
+    console.log('📋 Opening BriefViewModal for status:', request.status)
     selectedBriefId.value = request.id
     showBriefModal.value = true
   } else if (assetStatuses.includes(request.status)) {
     // Open asset detail modal
+    console.log('🎨 Opening CampaignDetailPanel for status:', request.status)
     selectedRequestId.value = request.id
     showAssetModal.value = true
+  } else {
+    console.warn('⚠️ Unknown status:', request.status)
   }
 }
 
