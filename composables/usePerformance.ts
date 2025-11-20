@@ -99,9 +99,9 @@ export const useCampaigns = () => {
         .select(`
           *,
           client:clients!campaigns_client_id_fkey(name, logo_url),
-          ad_sets:ad_sets(
+          ad_sets(
             *,
-            creatives:creatives(
+            creatives(
               *,
               asset:assets(*),
               comments:creative_comments(count)
@@ -109,6 +109,8 @@ export const useCampaigns = () => {
           )
         `)
         .eq('id', id)
+        .order('sort_order', { foreignTable: 'ad_sets', ascending: true })
+        .order('sort_order', { foreignTable: 'ad_sets.creatives', ascending: true })
         .single()
       
       if (err) throw err
@@ -122,7 +124,29 @@ export const useCampaigns = () => {
     }
   }
 
-  return { campaigns, fetchCampaigns, createCampaign, getCampaignById, loading, error }
+  const updateCampaignStatus = async (campaignId: string, status: string) => {
+    const { supabase } = useSupabase()
+    try {
+      loading.value = true
+      const { data, error: err } = await supabase
+        .from('campaigns')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', campaignId)
+        .select()
+        .single()
+      
+      if (err) throw err
+      return data
+    } catch (e) {
+      error.value = e as Error
+      console.error('Error updating campaign status:', e)
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { campaigns, fetchCampaigns, createCampaign, getCampaignById, updateCampaignStatus, loading, error }
 }
 
 // --- Ad Sets Composable ---
@@ -162,9 +186,24 @@ export const useAdSets = () => {
     const { supabase } = useSupabase()
     try {
       loading.value = true
+      
+      // Get current max sort_order
+      const { data: maxSort } = await supabase
+        .from('ad_sets')
+        .select('sort_order')
+        .eq('campaign_id', adSetData.campaign_id)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .single()
+      
+      const nextSortOrder = (maxSort?.sort_order || 0) + 1
+
       const { data, error: err } = await supabase
         .from('ad_sets')
-        .insert(adSetData)
+        .insert({
+          ...adSetData,
+          sort_order: nextSortOrder
+        })
         .select()
         .single()
       
@@ -224,9 +263,24 @@ export const useCreatives = () => {
     const { supabase } = useSupabase()
     try {
       loading.value = true
+      
+      // Get current max sort_order
+      const { data: maxSort } = await supabase
+        .from('creatives')
+        .select('sort_order')
+        .eq('ad_set_id', creativeData.ad_set_id)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .single()
+      
+      const nextSortOrder = (maxSort?.sort_order || 0) + 1
+
       const { data, error: err } = await supabase
         .from('creatives')
-        .insert(creativeData)
+        .insert({
+          ...creativeData,
+          sort_order: nextSortOrder
+        })
         .select()
         .single()
       

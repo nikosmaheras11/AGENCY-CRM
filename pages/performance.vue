@@ -80,8 +80,7 @@
       <div v-else-if="viewMode === 'table'" class="card-glass card-elevated overflow-hidden">
         <!-- Table Header -->
         <div class="grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-          <div class="col-span-4">Campaign Name</div>
-          <div class="col-span-2">Client</div>
+          <div class="col-span-6">Campaign Name</div>
           <div class="col-span-2">Status</div>
           <div class="col-span-2">Platforms</div>
           <div class="col-span-2">Launch Date</div>
@@ -96,19 +95,9 @@
             class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer"
           >
             <!-- Campaign Name -->
-            <div class="col-span-4">
+            <div class="col-span-6">
               <div class="font-medium text-white">{{ campaign.name }}</div>
               <div class="text-xs text-slate-400 mt-1 truncate">{{ campaign.description || 'No description' }}</div>
-            </div>
-
-            <!-- Client -->
-            <div class="col-span-2 flex items-center gap-2">
-              <UAvatar 
-                v-if="campaign.client?.logo_url"
-                :src="campaign.client.logo_url" 
-                size="xs" 
-              />
-              <span class="text-sm text-slate-300">{{ campaign.client?.name || 'Unknown' }}</span>
             </div>
 
             <!-- Status -->

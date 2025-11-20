@@ -1,331 +1,405 @@
-<template>
-  <DashboardLayout>
-    <div class="h-full flex flex-col bg-[#F5F5F0] overflow-hidden">
-      <!-- Header -->
-      <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-4">
-          <NuxtLink to="/performance" class="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors">
-            <span class="material-icons">arrow_back</span>
-          </NuxtLink>
-          <div>
-            <div class="flex items-center gap-3 mb-1">
-              <h1 class="text-xl font-display font-bold text-slate-900">
-                {{ campaign?.name || 'Loading...' }}
-              </h1>
-              <span 
-                v-if="campaign"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                :class="getStatusBadge(campaign.status)"
-              >
-                {{ formatStatus(campaign.status) }}
-              </span>
-            </div>
-            <div class="flex items-center gap-3 text-xs text-slate-500">
-              <span v-if="campaign?.client" class="flex items-center gap-1">
-                <span class="material-icons text-[14px]">business</span>
-                {{ campaign.client.name }}
-              </span>
-              <span class="flex items-center gap-1">
-                <span class="material-icons text-[14px]">calendar_today</span>
-                {{ formatDate(campaign?.planned_launch_date) }} - {{ formatDate(campaign?.planned_end_date) }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <button class="px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
-            <span class="material-icons text-[18px]">edit</span>
-            Edit Details
-          </button>
-          <button 
-            @click="showCreateAdSet = true"
-            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white shadow-sm rounded-lg text-sm font-medium transition-all flex items-center gap-2"
-          >
-            <span class="material-icons text-[18px]">add</span>
-            Add Ad Set
-          </button>
-        </div>
-      </div>
-
-      <!-- Content -->
-      <div class="flex-1 overflow-y-auto p-6 sm:p-8">
-        <div v-if="loading && !campaign" class="flex justify-center py-12">
-          <div class="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-
-        <div v-else-if="campaign" class="max-w-5xl mx-auto space-y-8">
-          
-          <!-- Campaign Overview Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <h3 class="text-sm font-medium text-slate-500 mb-2">Platforms</h3>
-              <div class="flex flex-wrap gap-2">
-                <span 
-                  v-for="platform in campaign.platforms" 
-                  :key="platform"
-                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-medium"
-                >
-                  <UIcon :name="getPlatformIcon(platform)" />
-                  {{ platform.charAt(0).toUpperCase() + platform.slice(1) }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <h3 class="text-sm font-medium text-slate-500 mb-2">Objective</h3>
-              <div class="flex items-center gap-2">
-                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                  <UIcon :name="getObjectiveIcon(campaign.objective)" class="text-xl" />
-                </div>
-                <span class="font-medium text-slate-900 capitalize">{{ campaign.objective || 'Not set' }}</span>
-              </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <h3 class="text-sm font-medium text-slate-500 mb-2">Stats</h3>
-              <div class="flex justify-between items-end">
-                <div>
-                  <div class="text-2xl font-bold text-slate-900">{{ campaign.ad_sets?.length || 0 }}</div>
-                  <div class="text-xs text-slate-500">Ad Sets</div>
-                </div>
-                <div class="text-right">
-                  <div class="text-2xl font-bold text-slate-900">
-                    {{ campaign.ad_sets?.reduce((acc: number, set: any) => acc + (set.creatives?.length || 0), 0) }}
-                  </div>
-                  <div class="text-xs text-slate-500">Creatives</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Description/Brief if present -->
-          <div v-if="campaign.description || campaign.campaign_brief" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <h3 class="text-lg font-display font-semibold text-slate-900 mb-4">Campaign Brief</h3>
-            <div class="prose prose-sm max-w-none text-slate-600">
-              <p v-if="campaign.description" class="mb-4">{{ campaign.description }}</p>
-              <div v-if="campaign.campaign_brief" class="p-4 bg-slate-50 rounded-xl whitespace-pre-wrap font-mono text-xs">
-                {{ campaign.campaign_brief }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Ad Sets List -->
-          <div class="space-y-6">
-            <div class="flex items-center justify-between">
-              <h2 class="text-xl font-display font-semibold text-slate-900">Ad Sets</h2>
-            </div>
-
-            <div v-if="!campaign.ad_sets || campaign.ad_sets.length === 0" class="bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center">
-              <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="material-icons text-slate-400">layers</span>
-              </div>
-              <h3 class="text-lg font-medium text-slate-900 mb-1">No ad sets yet</h3>
-              <p class="text-slate-500 mb-6 text-sm">Create an ad set to start adding creatives</p>
-              <button 
-                @click="showCreateAdSet = true"
-                class="px-4 py-2 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 rounded-lg text-sm font-medium transition-all"
-              >
-                Create Ad Set
-              </button>
-            </div>
-
-            <div v-else class="space-y-6">
-              <div 
-                v-for="adSet in campaign.ad_sets" 
-                :key="adSet.id"
-                class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
-              >
-                <!-- Ad Set Header -->
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                  <div class="flex items-center gap-4">
-                    <div class="p-2 bg-white border border-slate-100 rounded-lg shadow-sm">
-                      <UIcon :name="getPlatformIcon(adSet.platform)" class="text-xl text-slate-600" />
-                    </div>
-                    <div>
-                      <h3 class="font-semibold text-slate-900">{{ adSet.name }}</h3>
-                      <div class="flex items-center gap-2 text-xs text-slate-500">
-                        <span>{{ adSet.age_range || 'All ages' }}</span>
-                        <span>•</span>
-                        <span>{{ adSet.gender === 'all' ? 'All genders' : adSet.gender }}</span>
-                        <span v-if="adSet.locations?.length">• {{ adSet.locations.length }} locations</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <button 
-                      @click="openCreateCreative(adSet)"
-                      class="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1 px-3 py-1.5 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
-                    >
-                      <span class="material-icons text-sm">add</span>
-                      Add Creative
-                    </button>
-                    <button class="text-slate-400 hover:text-slate-600">
-                      <span class="material-icons">more_horiz</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Creatives Grid -->
-                <div class="p-6">
-                  <div v-if="!adSet.creatives || adSet.creatives.length === 0" class="text-center py-8">
-                    <p class="text-sm text-slate-400">No creatives in this ad set</p>
-                  </div>
-                  <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div 
-                      v-for="creative in adSet.creatives" 
-                      :key="creative.id"
-                      class="group relative bg-white border border-slate-200 rounded-xl hover:shadow-md transition-all overflow-hidden"
-                    >
-                      <!-- Preview Image -->
-                      <div class="aspect-video bg-slate-100 relative overflow-hidden">
-                        <img 
-                          v-if="creative.asset?.thumbnail_url"
-                          :src="creative.asset.thumbnail_url" 
-                          class="w-full h-full object-cover"
-                        />
-                        <div v-else class="w-full h-full flex items-center justify-center text-slate-300">
-                          <span class="material-icons text-4xl">image</span>
-                        </div>
-                        
-                        <!-- Status Overlay -->
-                        <div class="absolute top-2 right-2">
-                          <span 
-                            class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-white/90 shadow-sm backdrop-blur-sm"
-                            :class="getCreativeStatusColor(creative.status)"
-                          >
-                            {{ creative.status }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <!-- Content -->
-                      <div class="p-3">
-                        <div class="font-medium text-slate-900 truncate mb-1">{{ creative.name }}</div>
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                          <span class="capitalize">{{ creative.format?.replace('_', ' ') }}</span>
-                          <span>{{ creative.dimensions }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modals -->
-    <CreateAdSetForm
-      v-if="showCreateAdSet && campaign"
-      :campaign="campaign"
-      @close="showCreateAdSet = false"
-      @created="refreshCampaign"
-    />
-
-    <CreateCreativeForm
-      v-if="showCreateCreative && selectedAdSet"
-      :ad-set="selectedAdSet"
-      @close="showCreateCreative = false"
-      @created="refreshCampaign"
-    />
-  </DashboardLayout>
-</template>
-
 <script setup lang="ts">
+definePageMeta({ 
+  middleware: 'auth',
+  layout: 'dashboard'
+})
+
 const route = useRoute()
-const { getCampaignById, loading } = useCampaigns()
+const campaignId = route.params.id as string
+
+const { 
+  getCampaignById,
+  updateCampaignStatus,
+  loading
+} = useCampaigns() // Importing from usePerformance which exports useCampaigns
+
+// We can import createAdSet and createCreative from useAdSets/useCreatives which are also in usePerformance
+// But for clarity I will import everything from the composable if possible or rely on auto-imports
+// Nuxt auto-imports composables. usePerformance.ts exports useCampaigns, useAdSets, useCreatives.
+// So I can just use:
+const { createAdSet } = useAdSets()
+const { createCreative } = useCreatives()
 
 const campaign = ref<any>(null)
-const showCreateAdSet = ref(false)
-const showCreateCreative = ref(false)
-const selectedAdSet = ref<any>(null)
 
-onMounted(() => {
-  loadCampaign()
+// Modals
+const isCreateAdSetModalOpen = ref(false)
+const isCreateCreativeModalOpen = ref(false)
+const selectedAdSet = ref<any>(null)
+const expandedAdSets = ref(new Set<string>())
+
+// Load campaign with full hierarchy
+onMounted(async () => {
+  await loadCampaign()
 })
 
 const loadCampaign = async () => {
-  const id = route.params.id as string
-  if (id) {
-    const data = await getCampaignById(id)
+  if (campaignId) {
+    const data = await getCampaignById(campaignId)
     if (data) {
       campaign.value = data
+      // Auto-expand first ad set if none expanded
+      if (campaign.value?.ad_sets?.length > 0 && expandedAdSets.value.size === 0) {
+        expandedAdSets.value.add(campaign.value.ad_sets[0].id)
+      }
     }
   }
 }
 
-const refreshCampaign = () => {
-  loadCampaign()
-}
-
-const openCreateCreative = (adSet: any) => {
-  selectedAdSet.value = adSet
-  showCreateCreative.value = true
-}
-
-const getStatusBadge = (status: string) => {
-  const badges: Record<string, string> = {
-    'planning': 'bg-slate-500/20 text-slate-600',
-    'in_review': 'bg-purple-500/20 text-purple-600',
-    'approved': 'bg-blue-500/20 text-blue-600',
-    'live': 'bg-green-500/20 text-green-600',
-    'completed': 'bg-gray-500/20 text-gray-600',
-    'archived': 'bg-red-500/20 text-red-600'
+const toggleAdSetExpansion = (adSetId: string) => {
+  if (expandedAdSets.value.has(adSetId)) {
+    expandedAdSets.value.delete(adSetId)
+  } else {
+    expandedAdSets.value.add(adSetId)
   }
-  return badges[status] || 'bg-slate-100 text-slate-500'
 }
 
-const formatStatus = (status: string) => {
-  if (!status) return ''
-  return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+const handleCreateCreative = (adSet: any) => {
+  selectedAdSet.value = adSet
+  isCreateCreativeModalOpen.value = true
 }
 
-const formatDate = (dateStr: string | null) => {
-  if (!dateStr) return 'TBD'
-  return new Date(dateStr).toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
-  })
+const handleAdSetCreated = () => {
+  loadCampaign()
+  isCreateAdSetModalOpen.value = false
+}
+
+const handleCreativeCreated = () => {
+  loadCampaign()
+  isCreateCreativeModalOpen.value = false
+  selectedAdSet.value = null
+}
+
+const navigateToCreative = (creative: any) => {
+  // TODO: Implement creative detail page
+  // navigateTo(`/performance/${campaignId}/creative/${creative.id}`)
+  console.log('Navigate to creative:', creative.id)
 }
 
 const getPlatformIcon = (platform: string) => {
   const icons: Record<string, string> = {
-    'meta': 'i-simple-icons-meta',
-    'tiktok': 'i-simple-icons-tiktok',
-    'google': 'i-simple-icons-google',
-    'linkedin': 'i-simple-icons-linkedin',
-    'twitter': 'i-simple-icons-x',
-    'pinterest': 'i-simple-icons-pinterest',
-    'snapchat': 'i-simple-icons-snapchat'
+    meta: 'i-simple-icons-meta',
+    tiktok: 'i-simple-icons-tiktok',
+    google: 'i-simple-icons-google',
+    linkedin: 'i-simple-icons-linkedin',
+    twitter: 'i-simple-icons-x',
+    pinterest: 'i-simple-icons-pinterest',
+    snapchat: 'i-simple-icons-snapchat'
   }
-  return icons[platform.toLowerCase()] || 'i-heroicons-globe-alt'
+  return icons[platform?.toLowerCase()] || 'i-heroicons-megaphone'
 }
 
-const getObjectiveIcon = (objective: string) => {
-  const icons: Record<string, string> = {
-    'awareness': 'i-heroicons-light-bulb',
-    'traffic': 'i-heroicons-arrow-trending-up',
-    'engagement': 'i-heroicons-heart',
-    'leads': 'i-heroicons-users',
-    'conversions': 'i-heroicons-cursor-arrow-rays',
-    'sales': 'i-heroicons-shopping-cart'
-  }
-  return icons[objective?.toLowerCase()] || 'i-heroicons-chart-bar'
-}
-
-const getCreativeStatusColor = (status: string) => {
+const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    'draft': 'text-slate-500',
-    'ready_for_review': 'text-purple-500',
-    'in_review': 'text-purple-600',
-    'approved': 'text-green-600',
-    'changes_requested': 'text-orange-600',
-    'ready_to_ship': 'text-blue-600'
+    draft: 'gray',
+    planning: 'blue',
+    ready_for_review: 'yellow',
+    in_review: 'orange',
+    approved: 'green',
+    changes_requested: 'red',
+    ready_to_ship: 'purple',
+    live: 'green',
+    completed: 'gray'
   }
-  return colors[status] || 'text-slate-500'
+  return colors[status] || 'gray'
 }
 </script>
+
+<template>
+  <div class="h-screen flex flex-col bg-gray-950">
+    <!-- Loading State -->
+    <div v-if="loading && !campaign" class="flex items-center justify-center h-full">
+      <div class="text-center">
+        <UIcon name="i-heroicons-arrow-path" class="text-4xl animate-spin text-primary-500 mb-4" />
+        <p class="text-gray-400">Loading campaign...</p>
+      </div>
+    </div>
+
+    <!-- Campaign Content -->
+    <template v-else-if="campaign">
+      <!-- Header -->
+      <div class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-10">
+        <div class="p-6">
+          <!-- Breadcrumb -->
+          <div class="flex items-center gap-2 text-sm text-gray-400 mb-4">
+            <NuxtLink to="/performance" class="hover:text-white transition-colors">
+              Performance
+            </NuxtLink>
+            <UIcon name="i-heroicons-chevron-right" class="text-xs" />
+            <span class="text-white">{{ campaign.name }}</span>
+          </div>
+
+          <!-- Campaign Info -->
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <h1 class="text-3xl font-bold text-white">{{ campaign.name }}</h1>
+                <UBadge :color="getStatusColor(campaign.status)" size="lg">
+                  {{ campaign.status.replace(/_/g, ' ') }}
+                </UBadge>
+              </div>
+              
+              <p v-if="campaign.description" class="text-gray-400 mb-4 max-w-3xl">
+                {{ campaign.description }}
+              </p>
+
+              <div class="flex items-center gap-4 text-sm">
+                <!-- Platforms -->
+                <div class="flex items-center gap-2">
+                  <UIcon 
+                    v-for="platform in campaign.platforms" 
+                    :key="platform"
+                    :name="getPlatformIcon(platform)" 
+                    class="text-xl text-gray-400"
+                  />
+                </div>
+
+                <!-- Client -->
+                <div v-if="campaign.client" class="flex items-center gap-2">
+                  <UIcon name="i-heroicons-building-office" class="text-gray-500" />
+                  <span class="text-gray-400">{{ campaign.client.name }}</span>
+                </div>
+
+                <!-- Objective -->
+                <div v-if="campaign.objective" class="flex items-center gap-2">
+                  <UIcon name="i-heroicons-flag" class="text-gray-500" />
+                  <span class="text-gray-400 capitalize">{{ campaign.objective }}</span>
+                </div>
+
+                <!-- Timeline -->
+                <div v-if="campaign.planned_launch_date" class="flex items-center gap-2">
+                  <UIcon name="i-heroicons-calendar" class="text-gray-500" />
+                  <span class="text-gray-400">
+                    {{ new Date(campaign.planned_launch_date).toLocaleDateString() }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3">
+              <UButton
+                color="primary"
+                icon="i-heroicons-plus"
+                size="lg"
+                @click="isCreateAdSetModalOpen = true"
+              >
+                Add Ad Set
+              </UButton>
+              <UDropdown :items="[
+                [{ label: 'Edit Campaign', icon: 'i-heroicons-pencil' }],
+                [{ label: 'Submit for Review', icon: 'i-heroicons-paper-airplane' }],
+                [{ label: 'Archive', icon: 'i-heroicons-archive-box' }]
+              ]">
+                <UButton
+                  icon="i-heroicons-ellipsis-vertical"
+                  variant="outline"
+                  color="gray"
+                />
+              </UDropdown>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content - Hierarchical Layout -->
+      <div class="flex-1 overflow-auto p-6">
+        <!-- Campaign Brief (if exists) -->
+        <div v-if="campaign.campaign_brief" class="mb-6">
+          <UCard :ui="{ background: 'bg-gray-900', ring: 'ring-1 ring-gray-800' }">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon name="i-heroicons-document-text" />
+                <h3 class="font-semibold">Campaign Brief</h3>
+              </div>
+            </template>
+            <p class="text-gray-300 whitespace-pre-wrap">{{ campaign.campaign_brief }}</p>
+          </UCard>
+        </div>
+
+        <!-- Ad Sets List -->
+        <div class="space-y-4">
+          <div v-if="!campaign.ad_sets || campaign.ad_sets.length === 0">
+            <!-- Empty State -->
+            <div class="border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
+              <UIcon name="i-heroicons-folder-plus" class="text-6xl text-gray-600 mb-4 mx-auto" />
+              <h3 class="text-xl font-semibold mb-2 text-white">No Ad Sets Yet</h3>
+              <p class="text-gray-400 mb-6">Create your first ad set to organize your creatives</p>
+              <UButton
+                color="primary"
+                size="lg"
+                icon="i-heroicons-plus"
+                @click="isCreateAdSetModalOpen = true"
+              >
+                Create Ad Set
+              </UButton>
+            </div>
+          </div>
+
+          <!-- Ad Set Cards -->
+          <UCard
+            v-for="(adSet, index) in campaign.ad_sets"
+            :key="adSet.id"
+            :ui="{ body: { padding: 'p-0' }, background: 'bg-gray-900', ring: 'ring-1 ring-gray-800' }"
+          >
+            <!-- Ad Set Header -->
+            <div 
+              class="p-4 cursor-pointer hover:bg-gray-800/50 transition-colors"
+              @click="toggleAdSetExpansion(adSet.id)"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-3 flex-1">
+                  <!-- Expand/Collapse Icon -->
+                  <UIcon 
+                    :name="expandedAdSets.has(adSet.id) ? 'i-heroicons-chevron-down' : 'i-heroicons-chevron-right'"
+                    class="text-xl text-gray-400 mt-1 transition-transform"
+                  />
+
+                  <!-- Ad Set Info -->
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-3 mb-2">
+                      <UIcon :name="getPlatformIcon(adSet.platform)" class="text-2xl text-gray-400" />
+                      <h3 class="text-lg font-semibold text-white">{{ adSet.name }}</h3>
+                      <UBadge :color="getStatusColor(adSet.status)" size="sm">
+                        {{ adSet.status.replace(/_/g, ' ') }}
+                      </UBadge>
+                    </div>
+
+                    <p v-if="adSet.audience_description" class="text-sm text-gray-400 mb-3">
+                      {{ adSet.audience_description }}
+                    </p>
+
+                    <!-- Ad Set Meta -->
+                    <div class="flex items-center gap-4 text-xs text-gray-500">
+                      <div v-if="adSet.age_range" class="flex items-center gap-1">
+                        <UIcon name="i-heroicons-user-group" />
+                        <span>{{ adSet.age_range }}</span>
+                      </div>
+                      <div v-if="adSet.locations?.length" class="flex items-center gap-1">
+                        <UIcon name="i-heroicons-map-pin" />
+                        <span>{{ adSet.locations.slice(0, 2).join(', ') }}{{ adSet.locations.length > 2 ? '...' : '' }}</span>
+                      </div>
+                      <div v-if="adSet.estimated_daily_budget" class="flex items-center gap-1">
+                        <UIcon name="i-heroicons-currency-dollar" />
+                        <span>${{ adSet.estimated_daily_budget }}/day</span>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <UIcon name="i-heroicons-photo" />
+                        <span>{{ adSet.creatives?.length || 0 }} creative{{ adSet.creatives?.length !== 1 ? 's' : '' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Ad Set Actions -->
+                <div class="flex items-center gap-2" @click.stop>
+                  <UButton
+                    icon="i-heroicons-plus"
+                    size="sm"
+                    color="primary"
+                    variant="soft"
+                    @click="handleCreateCreative(adSet)"
+                  >
+                    Add Creative
+                  </UButton>
+                  <UDropdown :items="[
+                    [{ label: 'Edit Ad Set', icon: 'i-heroicons-pencil' }],
+                    [{ label: 'Duplicate', icon: 'i-heroicons-document-duplicate' }],
+                    [{ label: 'Delete', icon: 'i-heroicons-trash', class: 'text-red-500' }]
+                  ]">
+                    <UButton
+                      icon="i-heroicons-ellipsis-vertical"
+                      size="sm"
+                      variant="ghost"
+                      color="gray"
+                    />
+                  </UDropdown>
+                </div>
+              </div>
+            </div>
+
+            <!-- Creatives Grid (Expandable) -->
+            <div 
+              v-if="expandedAdSets.has(adSet.id)"
+              class="border-t border-gray-800 bg-gray-900/30"
+            >
+              <div v-if="!adSet.creatives || adSet.creatives.length === 0" class="p-8 text-center">
+                <UIcon name="i-heroicons-photo" class="text-4xl text-gray-600 mb-3 mx-auto" />
+                <p class="text-gray-400 mb-4">No creatives in this ad set yet</p>
+                <UButton
+                  icon="i-heroicons-plus"
+                  size="sm"
+                  @click="handleCreateCreative(adSet)"
+                >
+                  Add First Creative
+                </UButton>
+              </div>
+
+              <div v-else class="p-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <!-- Creative Cards -->
+                  <div
+                    v-for="creative in adSet.creatives"
+                    :key="creative.id"
+                    class="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-700 hover:border-primary-500 transition-all cursor-pointer"
+                    @click="navigateToCreative(creative)"
+                  >
+                    <!-- Asset Thumbnail -->
+                    <div class="w-full h-full bg-gray-800">
+                      <img
+                        v-if="creative.asset?.thumbnail_url"
+                        :src="creative.asset.thumbnail_url"
+                        :alt="creative.name"
+                        class="w-full h-full object-cover"
+                      />
+                      <div v-else class="w-full h-full flex items-center justify-center">
+                        <UIcon name="i-heroicons-photo" class="text-4xl text-gray-600" />
+                      </div>
+                    </div>
+
+                    <!-- Status Badge -->
+                    <div class="absolute top-2 right-2">
+                      <UBadge :color="getStatusColor(creative.status)" size="xs">
+                        {{ creative.status.replace(/_/g, ' ') }}
+                      </UBadge>
+                    </div>
+
+                    <!-- Hover Overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                      <h4 class="font-semibold text-sm mb-1 line-clamp-2 text-white">{{ creative.name }}</h4>
+                      <p class="text-xs text-gray-400">{{ creative.dimensions }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Add Creative Button -->
+                  <button
+                    @click="handleCreateCreative(adSet)"
+                    class="aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-primary-500 transition-colors flex flex-col items-center justify-center gap-2 text-gray-500 hover:text-primary-500"
+                  >
+                    <UIcon name="i-heroicons-plus-circle" class="text-3xl" />
+                    <span class="text-xs font-medium">Add Creative</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </UCard>
+        </div>
+      </div>
+    </template>
+
+    <!-- Modals -->
+    <CreateAdSetForm
+      v-if="isCreateAdSetModalOpen && campaign"
+      :campaign="campaign"
+      @close="isCreateAdSetModalOpen = false"
+      @created="handleAdSetCreated"
+    />
+
+    <CreateCreativeForm
+      v-if="isCreateCreativeModalOpen && selectedAdSet"
+      :ad-set="selectedAdSet"
+      @close="isCreateCreativeModalOpen = false; selectedAdSet = null"
+      @created="handleCreativeCreated"
+    />
+  </div>
+</template>
