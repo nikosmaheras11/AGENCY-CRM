@@ -182,10 +182,9 @@ export const useRequestForm = () => {
         console.log('[useRequestForm] File will need to be re-uploaded when moving to review stage')
         // TODO: Store file temporarily or add to reference_urls
       }
-      }
       
-      console.log('[useRequestForm] Submission complete! Returning:', requestRecord)
-      return requestRecord
+      console.log('[useRequestForm] Submission complete! Returning:', briefRecord)
+      return briefRecord
     } catch (err: any) {
       error.value = err.message || 'Failed to submit request'
       console.error('[useRequestForm] ERROR:', err)
