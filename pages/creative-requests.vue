@@ -17,7 +17,10 @@
 
     <!-- Requests List -->
     <div class="max-w-7xl mx-auto">
-      <RequestsList @create-request="showRequestForm = true" />
+      <RequestsList 
+        @create-request="showRequestForm = true"
+        @view-request="handleViewRequest"
+      />
     </div>
 
     <!-- Request Form Modal -->
@@ -25,15 +28,37 @@
       ref="requestFormModal"
       @submitted="handleRequestSubmitted"
     />
+
+    <!-- Brief View Modal (for new-request & in-progress) -->
+    <BriefViewModal 
+      v-model="showBriefModal"
+      :brief-id="selectedBriefId"
+    />
+
+    <!-- Asset Detail Modal (for needs-review, needs-edit, done) -->
+    <CampaignDetailPanel 
+      v-model="showAssetModal"
+      :request-id="selectedRequestId"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import RequestsList from '~/components/creative/RequestsList.vue'
 import RequestFormModal from '~/components/creative/RequestFormModal.vue'
+import BriefViewModal from '~/components/BriefViewModal.vue'
+import CampaignDetailPanel from '~/components/CampaignDetailPanel.vue'
 
 const requestFormModal = ref<any>(null)
 const showRequestForm = ref(false)
+
+// Brief modal state (for new-request & in-progress)
+const showBriefModal = ref(false)
+const selectedBriefId = ref<string | null>(null)
+
+// Asset modal state (for needs-review, needs-edit, done)
+const showAssetModal = ref(false)
+const selectedRequestId = ref<string | null>(null)
 
 watch(showRequestForm, (show) => {
   if (show && requestFormModal.value) {
@@ -45,6 +70,22 @@ watch(showRequestForm, (show) => {
 const handleRequestSubmitted = (requestId: string) => {
   console.log('Request submitted:', requestId)
   // Could show a toast notification here
+}
+
+// Route to appropriate modal based on status
+const handleViewRequest = (request: any) => {
+  const briefStatuses = ['new-request', 'in-progress']
+  const assetStatuses = ['needs-review', 'needs-edit', 'done']
+  
+  if (briefStatuses.includes(request.status)) {
+    // Open brief modal
+    selectedBriefId.value = request.id
+    showBriefModal.value = true
+  } else if (assetStatuses.includes(request.status)) {
+    // Open asset detail modal
+    selectedRequestId.value = request.id
+    showAssetModal.value = true
+  }
 }
 
 // Set page title

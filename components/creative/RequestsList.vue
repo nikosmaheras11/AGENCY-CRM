@@ -48,7 +48,7 @@
         v-for="request in requests" 
         :key="request.id"
         class="request-card group bg-[#1a1d24] border border-white/10 rounded-xl p-5 hover:border-primary-400/50 transition-all cursor-pointer"
-        @click="viewRequest(request.id)"
+        @click="viewRequest(request)"
       >
         <!-- Header -->
         <div class="flex items-start justify-between mb-3">
@@ -123,10 +123,10 @@
 
 <script setup lang="ts">
 const { requests, loading, connectionStatus } = useRealtimeRequests()
-const router = useRouter()
 
 const emit = defineEmits<{
   'create-request': []
+  'view-request': [request: any]
 }>()
 
 const formatDate = (dateString: string) => {
@@ -181,8 +181,8 @@ const statusClasses = (status: string | null) => {
   return classes[key as keyof typeof classes] || classes['new-request']
 }
 
-const viewRequest = (id: string) => {
-  router.push(`/creative/asset/${id}`)
+const viewRequest = (request: any) => {
+  emit('view-request', request)
 }
 </script>
 
