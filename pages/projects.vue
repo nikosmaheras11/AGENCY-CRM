@@ -156,6 +156,7 @@
                 v-for="campaign in planningCampaigns" 
                 :key="campaign.id" 
                 :campaign="campaign"
+                @click="openCampaignDetail(campaign)"
               />
             </div>
           </div>
@@ -176,6 +177,7 @@
                 v-for="campaign in inProgressCampaigns" 
                 :key="campaign.id" 
                 :campaign="campaign"
+                @click="openCampaignDetail(campaign)"
               />
             </div>
           </div>
@@ -196,6 +198,7 @@
                 v-for="campaign in reviewCampaigns" 
                 :key="campaign.id" 
                 :campaign="campaign"
+                @click="openCampaignDetail(campaign)"
               />
             </div>
           </div>
@@ -216,6 +219,7 @@
                 v-for="campaign in completedCampaigns" 
                 :key="campaign.id" 
                 :campaign="campaign"
+                @click="openCampaignDetail(campaign)"
               />
             </div>
           </div>
