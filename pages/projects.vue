@@ -1,8 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-dark text-white relative flex flex-col">
-    <!-- Background pattern overlay -->
-    <div class="absolute inset-0 bg-pattern opacity-[0.015] pointer-events-none"></div>
-    
+  <DashboardLayout>
     <!-- Campaign Detail Panel -->
     <CampaignDetailPanel 
       v-model="showCampaignDetail" 
@@ -10,7 +7,7 @@
       :request-id="selectedRequestId || undefined"
     />
     
-    <div class="p-6 sm:p-8 relative z-10">
+    <div class="p-6 sm:p-8">
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <div>
@@ -229,7 +226,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </DashboardLayout>
 </template>
 
 <script setup lang="ts">
