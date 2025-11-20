@@ -12,7 +12,7 @@
     
     <div class="p-6 sm:p-8 relative z-10">
       <!-- Header -->
-      <div class="mb-8 flex items-center justify-between">
+      <div class="flex items-center justify-between mb-8">
         <div>
           <h1 class="text-4xl font-display font-bold text-white mb-2">
             Project Management
@@ -20,6 +20,9 @@
           <p class="text-slate-400 font-light">
             Track project timeline, estimates, and deliverables
           </p>
+          <p v-if="loading" class="text-xs text-yellow-400 mt-1">Loading requests...</p>
+          <p v-else-if="error" class="text-xs text-red-400 mt-1">Error: {{ error.message }}</p>
+          <p v-else class="text-xs text-green-400 mt-1">Loaded {{ allRequests.length }} requests</p>
         </div>
         <div class="flex gap-3">
           <button class="px-5 py-2.5 card-glass hover:bg-white/10 text-white rounded-2xl font-medium transition-all">
