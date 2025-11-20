@@ -373,10 +373,10 @@ const { fetchFigmaThumbnail, getThumbnail } = useFigmaThumbnails()
 const requestData = getRequestById(assetId)
 const currentAsset = computed(() => requestData.value)
 
-// Get all creative assets for sidebar navigation
+// Get all creative assets for sidebar navigation - only show needs-review items
 const boardAssets = computed(() => {
   return allRequests.value
-    .filter(req => req.projectType === 'creative')
+    .filter(req => req.projectType === 'creative' && req.status === 'needs-review')
     .map(req => ({
       id: req.id,
       title: req.title,
