@@ -5,6 +5,19 @@
     <div v-if="selectedAssetId" class="absolute inset-0 z-50">
       <AssetViewer :asset-id="selectedAssetId" @close="selectedAssetId = null" />
     </div>
+    
+    <!-- Brief View Modal (for new-request & in-progress) -->
+    <BriefViewModal 
+      v-model="showBriefModal"
+      :brief-id="selectedBriefId"
+    />
+
+    <!-- Asset Detail Modal (for needs-review, needs-edit, done) -->
+    <CampaignDetailPanel 
+      v-model="showAssetModal"
+      :request-id="selectedRequestId"
+    />
+    
     <!-- Breadcrumb Navigation -->
     <div class="bg-white border-b border-gray-200 px-6 py-3">
       <div class="flex items-center gap-2 text-xs font-medium text-gray-600">
@@ -217,9 +230,17 @@ import GridView from './components/GridView.vue'
 import FilterPanel from './components/FilterPanel.vue'
 import BulkActionsBar from './components/BulkActionsBar.vue'
 import KanbanCard from '~/components/creative/KanbanCard.vue'
+import BriefViewModal from '~/components/BriefViewModal.vue'
+import CampaignDetailPanel from '~/components/CampaignDetailPanel.vue'
 import draggable from 'vuedraggable'
 
 const selectedAssetId = ref<string | null>(null)
+
+// Modal state for brief and asset views
+const showBriefModal = ref(false)
+const selectedBriefId = ref<string | null>(null)
+const showAssetModal = ref(false)
+const selectedRequestId = ref<string | null>(null)
 
 // Layout toggle state
 type LayoutMode = 'board' | 'grid'
@@ -428,20 +449,36 @@ const router = useRouter()
  * Handle asset card click
  * 
  * ROUTING RULES:
- * - Figma assets: Open directly in Figma (new tab)
- * - All other assets (video, image, etc): Open in asset viewer canvas
+ * - new-request or in-progress: Open BriefViewModal
+ * - needs-review, needs-edit, done: Open CampaignDetailPanel (asset viewer)
+ * - Figma assets: Open directly in Figma (new tab) if figmaUrl exists and in brief stage
  */
 function handleAssetClick(asset: any) {
-  console.log('👁️ Asset clicked:', asset.id, asset.title)
+  console.log('🔍 Asset clicked:', { id: asset.id, status: asset.status, title: asset.title })
   
-  // If it's a Figma link, open directly in new tab
-  if (asset.figmaUrl) {
+  // If it's a Figma link and still in brief stage, open directly in new tab
+  if (asset.figmaUrl && !['needs-review', 'needs-edit', 'done'].includes(asset.status)) {
     console.log('🎨 Figma asset detected - Opening in Figma:', asset.figmaUrl)
     window.open(asset.figmaUrl, '_blank')
+    return
+  }
+  
+  // Route based on status
+  const briefStatuses = ['new-request', 'in-progress']
+  const assetStatuses = ['needs-review', 'needs-edit', 'done']
+  
+  if (briefStatuses.includes(asset.status)) {
+    // Open brief modal
+    console.log('📋 Opening BriefViewModal for status:', asset.status)
+    selectedBriefId.value = asset.id
+    showBriefModal.value = true
+  } else if (assetStatuses.includes(asset.status)) {
+    // Open asset detail modal
+    console.log('🎨 Opening CampaignDetailPanel for status:', asset.status)
+    selectedRequestId.value = asset.id
+    showAssetModal.value = true
   } else {
-    // All other asset types render in preview canvas
-    console.log('📹 Non-Figma asset - Opening in canvas viewer')
-    navigateTo(`/creative/asset/${asset.id}`)
+    console.warn('⚠️ Unknown status:', asset.status)
   }
 }
 
