@@ -42,6 +42,7 @@ export const useCampaigns = () => {
       loading.value = true
       // Removed assigned:assigned_to(email) as it references auth.users which is not directly queryable
       // Removed ad_sets count for now to simplify the list query
+      console.log('Fetching campaigns...')
       const { data, error: err } = await supabase
         .from('campaigns')
         .select(`
@@ -50,7 +51,12 @@ export const useCampaigns = () => {
         `)
         .order('created_at', { ascending: false })
       
-      if (err) throw err
+      if (err) {
+        console.error('Supabase error fetching campaigns:', err)
+        throw err
+      }
+      
+      console.log('Campaigns fetched:', data)
       campaigns.value = data || []
     } catch (e) {
       error.value = e as Error
