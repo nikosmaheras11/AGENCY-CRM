@@ -88,10 +88,10 @@
             <div class="col-span-2 flex items-center">
               <span 
                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                :class="getStatusBadge(campaign.status)"
+                :class="getActualStatusBadge(campaign.actualStatus)"
               >
-                <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getStatusDot(campaign.status)"></span>
-                {{ campaign.status }}
+                <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getActualStatusDot(campaign.actualStatus)"></span>
+                {{ formatStatusLabel(campaign.actualStatus) }}
               </span>
             </div>
 
@@ -99,10 +99,10 @@
             <div class="col-span-2 flex items-center">
               <span 
                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                :class="getPriorityBadge(campaign.priority)"
+                :class="getActualPriorityBadge(campaign.actualPriority)"
               >
-                <span class="material-icons text-sm mr-1">{{ getPriorityIcon(campaign.priority) }}</span>
-                {{ campaign.priority }}
+                <span class="material-icons text-sm mr-1">{{ getPriorityIcon(campaign.actualPriority) }}</span>
+                {{ formatPriorityLabel(campaign.actualPriority) }}
               </span>
             </div>
 
@@ -266,8 +266,10 @@ const campaigns = computed(() => {
     .map(req => ({
       id: parseInt(req.id.split('-')[0], 16), // Convert UUID to number for compatibility
       name: req.title || 'Untitled Project',
-      status: mapRequestStatusToCampaignStatus(req.status),
-      priority: mapRequestPriority(req.metadata.priority),
+      status: mapRequestStatusToCampaignStatus(req.status), // For kanban board
+      priority: mapRequestPriority(req.metadata.priority), // For kanban board
+      actualStatus: req.status, // Real database status for table
+      actualPriority: req.metadata.priority, // Real database priority for table
       owner: req.metadata.assignee || 'Unassigned',
       progress: calculateProgress(req),
       dueDate: req.metadata.dueDate ? new Date(req.metadata.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No due date',
@@ -351,8 +353,61 @@ const getPriorityIcon = (priority: string) => {
     'Critical': 'error',
     'High': 'arrow_upward',
     'Medium': 'remove',
-    'Low': 'arrow_downward'
+    'Low': 'arrow_downward',
+    'urgent': 'error',
+    'high': 'arrow_upward',
+    'medium': 'remove',
+    'low': 'arrow_downward'
   }
   return icons[priority] || 'remove'
+}
+
+// Real database status badges
+const getActualStatusBadge = (status: string) => {
+  const badges: Record<string, string> = {
+    'new-request': 'bg-gray-500/20 text-gray-300',
+    'in-progress': 'bg-blue-500/20 text-blue-300',
+    'needs-review': 'bg-purple-500/20 text-purple-300',
+    'needs-edit': 'bg-orange-500/20 text-orange-300',
+    'done': 'bg-green-500/20 text-green-300'
+  }
+  return badges[status] || 'bg-white/10 text-slate-300'
+}
+
+const getActualStatusDot = (status: string) => {
+  const dots: Record<string, string> = {
+    'new-request': 'bg-gray-400',
+    'in-progress': 'bg-blue-400',
+    'needs-review': 'bg-purple-400',
+    'needs-edit': 'bg-orange-400',
+    'done': 'bg-green-400'
+  }
+  return dots[status] || 'bg-gray-400'
+}
+
+const getActualPriorityBadge = (priority: string | null | undefined) => {
+  const badges: Record<string, string> = {
+    'urgent': 'bg-red-500/20 text-red-300',
+    'high': 'bg-orange-500/20 text-orange-300',
+    'medium': 'bg-yellow-500/20 text-yellow-300',
+    'low': 'bg-green-500/20 text-green-300'
+  }
+  return badges[priority?.toLowerCase() || 'medium'] || 'bg-yellow-500/20 text-yellow-300'
+}
+
+const formatStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    'new-request': 'New Request',
+    'in-progress': 'In Progress',
+    'needs-review': 'Needs Review',
+    'needs-edit': 'Needs Edit',
+    'done': 'Done'
+  }
+  return labels[status] || status
+}
+
+const formatPriorityLabel = (priority: string | null | undefined) => {
+  if (!priority) return 'Medium'
+  return priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase()
 }
 </script>
