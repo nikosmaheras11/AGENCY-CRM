@@ -103,13 +103,12 @@
             <div class="flex items-start gap-4 mb-6">
               <label class="w-32 text-sm text-gray-400 pt-2">Due date</label>
               <div class="flex-1">
-                <div class="flex items-center gap-2 px-3 py-2 bg-gray-800/50 rounded-lg">
-                  <span class="material-icons text-gray-400 text-sm">calendar_today</span>
-                  <span class="text-sm">{{ displayData?.due_date || 'No due date' }}</span>
-                  <button class="ml-auto text-gray-400 hover:text-white">
-                    <span class="material-icons text-sm">close</span>
-                  </button>
-                </div>
+                <input
+                  type="date"
+                  :value="displayData?.due_date || ''"
+                  @change="(e) => updateField('due_date', (e.target as HTMLInputElement).value)"
+                  class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700"
+                />
               </div>
             </div>
 
@@ -166,10 +165,13 @@
             <div class="flex items-start gap-4 mb-6">
               <label class="w-32 text-sm text-gray-400 pt-2">Description</label>
               <div class="flex-1">
-                <div v-if="displayData?.description" class="text-sm text-gray-300 whitespace-pre-wrap">
-                  {{ displayData.description }}
-                </div>
-                <p v-else class="text-sm text-gray-500 italic">No description provided</p>
+                <textarea
+                  :value="displayData?.description || ''"
+                  @blur="(e) => updateField('description', (e.target as HTMLTextAreaElement).value)"
+                  placeholder="What is this task about?"
+                  class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
+                  rows="4"
+                />
               </div>
             </div>
 
@@ -184,27 +186,60 @@
                 </div>
               </div>
 
-              <div v-if="displayData?.dimensions" class="flex items-start gap-4">
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Size</label>
+                <div class="flex-1">
+                  <input
+                    type="text"
+                    :value="displayData?.size || ''"
+                    @blur="(e) => updateField('size', (e.target as HTMLInputElement).value)"
+                    placeholder="e.g., Large, Medium, Small"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
                 <label class="w-32 text-sm text-gray-400 pt-2">Dimensions</label>
                 <div class="flex-1">
-                  <span class="text-sm text-gray-300">{{ displayData.dimensions }}</span>
+                  <input
+                    type="text"
+                    :value="displayData?.dimensions || ''"
+                    @blur="(e) => updateField('dimensions', (e.target as HTMLInputElement).value)"
+                    placeholder="e.g., 1080x1080, 1920x1080"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                  />
                 </div>
               </div>
 
-              <div v-if="displayData?.duration" class="flex items-start gap-4">
+              <div class="flex items-start gap-4">
                 <label class="w-32 text-sm text-gray-400 pt-2">Duration</label>
                 <div class="flex-1">
-                  <span class="text-sm text-gray-300">{{ displayData.duration }}</span>
+                  <input
+                    type="text"
+                    :value="displayData?.duration || ''"
+                    @blur="(e) => updateField('duration', (e.target as HTMLInputElement).value)"
+                    placeholder="e.g., 15s, 30s, 60s"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                  />
                 </div>
               </div>
 
-              <div v-if="displayData?.figma_url" class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Figma</label>
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Figma URL</label>
                 <div class="flex-1">
-                  <a :href="displayData.figma_url" target="_blank" class="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1">
-                    <span class="material-icons text-sm">open_in_new</span>
-                    <span>View in Figma</span>
-                  </a>
+                  <div class="flex gap-2 items-center">
+                    <input
+                      type="url"
+                      :value="displayData?.figma_url || ''"
+                      @blur="(e) => updateField('figma_url', (e.target as HTMLInputElement).value)"
+                      placeholder="https://figma.com/..."
+                      class="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
+                    />
+                    <a v-if="displayData?.figma_url" :href="displayData.figma_url" target="_blank" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-icons text-sm">open_in_new</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -445,6 +480,28 @@ watch(() => props.modelValue, (isOpen) => {
 
 // Display data with fallback to campaign prop
 const displayData = computed(() => requestData.value || props.campaign)
+
+// Update field function for CRUD
+const updateField = async (fieldName: string, value: any) => {
+  if (!props.requestId || !requestData.value) return
+  
+  try {
+    const { error } = await supabase
+      .from('requests')
+      .update({ 
+        [fieldName]: value,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', props.requestId)
+    
+    if (error) throw error
+    
+    // Update local state
+    requestData.value = { ...requestData.value, [fieldName]: value }
+  } catch (error) {
+    console.error(`Failed to update ${fieldName}:`, error)
+  }
+}
 </script>
 
 <style scoped>
