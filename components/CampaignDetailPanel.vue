@@ -621,6 +621,7 @@ const tabs = ['Overview', 'Assets']
 // Fetch real request data from database
 const { supabase } = useSupabase()
 const { user, getCurrentUser } = useAuth()
+const { fetchRequests } = useRequests() // Import to refresh global state
 
 // Get current user on mount
 onMounted(() => {
@@ -725,10 +726,15 @@ const updateField = async (fieldName: string, value: any) => {
     
     if (error) throw error
     
-    // Update local state
+    // Update local state immediately for UI responsiveness
     requestData.value = { ...requestData.value, [fieldName]: value }
+    
+    // Refresh global requests state to update all views (Creative Requests, Projects, etc.)
+    await fetchRequests()
+    
+    console.log(`✅ Updated ${fieldName} to:`, value, '- Global state refreshed')
   } catch (error) {
-    console.error(`Failed to update ${fieldName}:`, error)
+    console.error(`❌ Failed to update ${fieldName}:`, error)
   }
 }
 </script>
