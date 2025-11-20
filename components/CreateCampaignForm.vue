@@ -47,10 +47,16 @@ const togglePlatform = (platform: string) => {
 const handleSubmit = async () => {
   try {
     if (!formData.value.name) throw new Error('Campaign name is required')
-    if (!formData.value.client_id) throw new Error('Please select a client')
+    // Client is now optional
     if (formData.value.platforms.length === 0) throw new Error('Please select at least one platform')
     
-    const campaign = await createCampaign(formData.value)
+    // Send null if client_id is empty string to match UUID type
+    const payload = {
+      ...formData.value,
+      client_id: formData.value.client_id || null
+    }
+
+    const campaign = await createCampaign(payload)
     emit('created', campaign)
     emit('close')
   } catch (error) {
@@ -89,13 +95,13 @@ onMounted(async () => {
         </UFormGroup>
 
         <!-- Client Selection -->
-        <UFormGroup label="Client" required>
+        <UFormGroup label="Client">
           <USelectMenu
             v-model="formData.client_id"
             :options="clients"
             option-attribute="name"
             value-attribute="id"
-            placeholder="Select client"
+            placeholder="Select client (optional)"
             size="lg"
           >
             <template #label>
@@ -106,7 +112,7 @@ onMounted(async () => {
                 />
                 <span>{{ clients.find(c => c.id === formData.client_id)?.name }}</span>
               </div>
-              <span v-else class="text-gray-500">Select client</span>
+              <span v-else class="text-gray-500">Select client (optional)</span>
             </template>
           </USelectMenu>
         </UFormGroup>
