@@ -73,14 +73,14 @@ export const useCampaigns = () => {
 
   const createCampaign = async (campaignData: any) => {
     const { supabase } = useSupabase()
-    const user = useSupabaseUser()
+    const { data: { user } } = await supabase.auth.getUser()
     try {
       loading.value = true
       const { data, error: err } = await supabase
         .from('campaigns')
         .insert({
           ...campaignData,
-          created_by: user.value?.id
+          created_by: user?.id
         })
         .select()
         .single()
@@ -88,13 +88,13 @@ export const useCampaigns = () => {
       if (err) throw err
 
       // Log activity
-      if (user.value?.id) {
+      if (user?.id) {
         await supabase.from('activity_log').insert({
           entity_type: 'campaign',
           entity_id: data.id,
           action: 'created',
           description: `Campaign created: ${data.name}`,
-          actor_id: user.value.id,
+          actor_id: user.id,
           details: { name: data.name }
         })
       }
