@@ -77,7 +77,9 @@ const handleCreateCampaign = async () => {
     }
     
     const campaign = await createCampaign(payload)
+    console.log('Campaign created successfully:', campaign)
     createdCampaign.value = campaign
+    console.log('Setting step to ad-sets')
     step.value = 'ad-sets'
     
     toast.add({ title: 'Campaign created! Now add your ad sets.', color: 'green' })

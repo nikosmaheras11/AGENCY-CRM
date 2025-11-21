@@ -144,7 +144,7 @@ onMounted(() => {
 })
 
 const handleCampaignCreated = () => {
-  // fetchCampaigns() // useCampaigns updates local state automatically
+  fetchCampaigns() 
 }
 
 const getStatusBadge = (status: string) => {

@@ -90,13 +90,16 @@ export const useCampaigns = () => {
         if (error) throw error
 
         // Log activity
-        await supabase.from('activity_log').insert({
+        console.log('Logging activity for campaign creation...')
+        const { error: logError } = await supabase.from('activity_log').insert({
             entity_type: 'campaign',
             entity_id: data.id,
             action: 'created',
             description: `Campaign created: ${data.name}`,
             user_id: user.value.id
         })
+        if (logError) console.error('Error logging activity:', logError)
+        else console.log('Activity logged successfully')
 
         return data
     }
