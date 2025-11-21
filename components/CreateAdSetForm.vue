@@ -8,7 +8,7 @@ const emit = defineEmits(['close', 'created'])
 
 const step = ref(1)
 const uploadedFiles = ref<Array<{ file: File, asset: any | null, uploading: boolean, error: string | null }>>([])
-const creativeData = ref<Array<{ asset: any, title: string, daily_budget: number | null, total_budget: number | null }>>([])
+const creativeData = ref<Array<{ asset: any, title: string }>>([])
 
 const formData = ref({
   name: '',
@@ -59,9 +59,7 @@ const handleNext = () => {
       .filter(f => f.asset)
       .map(f => ({
         asset: f.asset,
-        title: f.file.name.replace(/\.[^/.]+$/, ''), // filename without extension
-        daily_budget: null,
-        total_budget: null
+        title: f.file.name.replace(/\.[^/.]+$/, '') // filename without extension
       }))
   }
   
@@ -132,9 +130,7 @@ const handleSubmit = async () => {
           name: item.title || 'New Creative',
           asset_id: item.asset.id,
           format: item.asset.file_type === 'video' ? 'video' : 'single_image',
-          status: 'draft',
-          daily_budget: item.daily_budget,
-          total_budget: item.total_budget
+          status: 'draft'
         })
       })
 
@@ -332,7 +328,7 @@ const handleSubmit = async () => {
           <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
             <h3 class="text-sm font-medium text-gray-200 mb-2">Upload Creatives</h3>
             <p class="text-sm text-gray-400">
-              Upload the files you want to use as creatives. You'll add titles and budgets in the next step.
+              Upload the files you want to use as creatives. You'll add titles in the next step.
             </p>
           </div>
 
@@ -395,7 +391,7 @@ const handleSubmit = async () => {
           <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
             <h3 class="text-sm font-medium text-gray-200 mb-2">Creative Details</h3>
             <p class="text-sm text-gray-400">
-              Set the title and budget for each creative.
+              Set the title for each creative.
             </p>
           </div>
 
@@ -423,28 +419,6 @@ const handleSubmit = async () => {
                     />
                   </UFormGroup>
                 </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <UFormGroup label="Daily Budget" :ui="{ label: { base: 'text-gray-300' } }">
-                  <UInput
-                    v-model="creativeData[index].daily_budget"
-                    type="number"
-                    placeholder="0.00"
-                  >
-                    <template #leading><span class="text-gray-400">$</span></template>
-                  </UInput>
-                </UFormGroup>
-
-                <UFormGroup label="Total Budget" :ui="{ label: { base: 'text-gray-300' } }">
-                  <UInput
-                    v-model="creativeData[index].total_budget"
-                    type="number"
-                    placeholder="0.00"
-                  >
-                    <template #leading><span class="text-gray-400">$</span></template>
-                  </UInput>
-                </UFormGroup>
               </div>
             </div>
           </div>

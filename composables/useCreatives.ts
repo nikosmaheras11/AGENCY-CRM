@@ -25,8 +25,6 @@ export const useCreatives = () => {
                     asset_id: creativeData.asset_id,
                     format: creativeData.format,
                     status: creativeData.status || 'draft',
-                    daily_budget: creativeData.daily_budget,
-                    total_budget: creativeData.total_budget,
                     sort_order: nextSortOrder,
                 })
                 .select(`
