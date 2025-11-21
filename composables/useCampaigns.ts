@@ -42,7 +42,6 @@ export const useCampaigns = () => {
               *,
               asset:assets(
                 id,
-                file_name,
                 file_type,
                 thumbnail_url,
                 preview_url,
