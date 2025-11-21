@@ -6,6 +6,9 @@ const props = defineProps<{
 
 const emit = defineEmits(['close', 'created'])
 
+const step = ref(1)
+const selectedAssets = ref<string[]>([])
+
 const formData = ref({
   name: '',
   description: '',
@@ -30,7 +33,11 @@ const formData = ref({
   internal_notes: ''
 })
 
-const { createAdSet, loading } = useAdSets()
+const { createAdSet, loading: adSetLoading } = useAdSets()
+const { createCreative, loading: creativeLoading } = useCreatives()
+const { assets } = useAssets()
+
+const loading = computed(() => adSetLoading.value || creativeLoading.value)
 
 const locationInput = ref('')
 const addLocation = () => {
@@ -44,19 +51,44 @@ const removeLocation = (index: number) => {
   formData.value.locations.splice(index, 1)
 }
 
+const handleNext = () => {
+  if (!formData.value.name) {
+    // You might want to add a toast or error state here
+    return
+  }
+  step.value = 2
+}
+
 const handleSubmit = async () => {
   try {
     if (!formData.value.name) throw new Error('Ad set name is required')
     
+    // 1. Create Ad Set
     const adSet = await createAdSet({
       ...formData.value,
       campaign_id: props.campaign.id
     })
+
+    // 2. Create Creatives for selected assets
+    if (selectedAssets.value.length > 0) {
+      const createPromises = selectedAssets.value.map(assetId => {
+        const asset = assets.value.find(a => a.id === assetId)
+        return createCreative({
+          ad_set_id: adSet.id,
+          name: asset?.title || asset?.name || 'New Creative',
+          asset_id: assetId,
+          format: asset?.format || 'single_image', // Default fallback
+          status: 'draft'
+        })
+      })
+
+      await Promise.all(createPromises)
+    }
     
     emit('created', adSet)
     emit('close')
   } catch (error) {
-    console.error('Error creating ad set:', error)
+    console.error('Error creating ad set and creatives:', error)
   }
 }
 </script>
@@ -67,14 +99,19 @@ const handleSubmit = async () => {
       <template #header>
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-2xl font-bold">Create Ad Set</h2>
-            <p class="text-sm text-gray-400 mt-1">Campaign: {{ campaign.name }}</p>
+            <h2 class="text-2xl font-bold">
+              {{ step === 1 ? 'Create Ad Set' : 'Select Creatives' }}
+            </h2>
+            <p class="text-sm text-gray-400 mt-1">
+              {{ step === 1 ? `Campaign: ${campaign.name}` : 'Select assets to create ads from' }}
+            </p>
           </div>
           <UButton icon="i-heroicons-x-mark" variant="ghost" @click="emit('close')" />
         </div>
       </template>
 
-      <form @submit.prevent="handleSubmit" class="space-y-6">
+      <!-- Step 1: Ad Set Details -->
+      <div v-show="step === 1" class="space-y-6">
         <!-- Basic Info -->
         <UFormGroup label="Ad Set Name" required>
           <UInput
@@ -251,15 +288,72 @@ const handleSubmit = async () => {
             size="lg"
           />
         </UFormGroup>
-      </form>
+      </div>
+
+      <!-- Step 2: Creative Selection -->
+      <div v-show="step === 2" class="space-y-6">
+        <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+            <h3 class="text-sm font-medium text-gray-300 mb-2">Instructions</h3>
+            <p class="text-sm text-gray-400">
+                Select the assets you want to include in this ad set. 
+                A draft creative will be automatically created for each selected asset.
+            </p>
+        </div>
+
+        <UFormGroup label="Select Assets">
+            <AssetPicker
+                v-model="selectedAssets"
+                :assets="assets"
+                placeholder="Search and select assets..."
+                :multiple="true"
+            />
+        </UFormGroup>
+
+        <div class="text-sm text-gray-400">
+            {{ selectedAssets.length }} asset{{ selectedAssets.length !== 1 ? 's' : '' }} selected
+        </div>
+      </div>
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <UButton color="gray" variant="ghost" @click="emit('close')" :disabled="loading">
+          <UButton 
+            v-if="step === 1"
+            color="gray" 
+            variant="ghost" 
+            @click="emit('close')" 
+            :disabled="loading"
+          >
             Cancel
           </UButton>
-          <UButton color="primary" size="lg" :loading="loading" @click="handleSubmit">
-            Create Ad Set
+          
+          <UButton 
+            v-if="step === 2"
+            color="gray" 
+            variant="ghost" 
+            @click="step = 1" 
+            :disabled="loading"
+          >
+            Back
+          </UButton>
+
+          <UButton 
+            v-if="step === 1"
+            color="primary" 
+            size="lg" 
+            @click="handleNext"
+            :disabled="!formData.name"
+          >
+            Next: Add Creatives
+          </UButton>
+
+          <UButton 
+            v-if="step === 2"
+            color="primary" 
+            size="lg" 
+            :loading="loading" 
+            @click="handleSubmit"
+          >
+            Create Ad Set & Creatives
           </UButton>
         </div>
       </template>
