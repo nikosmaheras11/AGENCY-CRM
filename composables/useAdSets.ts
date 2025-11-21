@@ -8,15 +8,15 @@ export const useAdSets = () => {
         loading.value = true
         try {
             // Get current max sort_order for this campaign
-            const { data: maxSort } = await supabase
+            const { data: existingAdSets } = await supabase
                 .from('ad_sets')
                 .select('sort_order')
                 .eq('campaign_id', adSetData.campaign_id)
                 .order('sort_order', { ascending: false })
                 .limit(1)
-                .single()
+                .maybeSingle()
 
-            const nextSortOrder = (maxSort?.sort_order || 0) + 1
+            const nextSortOrder = existingAdSets?.sort_order ? existingAdSets.sort_order + 1 : 0
 
             if (!user.value) throw new Error('User not authenticated')
 

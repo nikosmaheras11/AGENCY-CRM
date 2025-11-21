@@ -70,25 +70,34 @@ const handleNext = () => {
 
 const handleFilesUpload = async (files: File[]) => {
   for (const file of files) {
-    const uploadItem = {
+    const index = uploadedFiles.value.length
+    uploadedFiles.value.push({
       file,
       asset: null,
       uploading: true,
       error: null
-    }
-    uploadedFiles.value.push(uploadItem)
+    })
 
     try {
       const asset = await uploadAsset(file, {
         folder: 'creative-assets',
         campaign_id: props.campaign.id
       })
-      uploadItem.asset = asset
-      uploadItem.uploading = false
+      // Update the item directly for reactivity
+      uploadedFiles.value[index] = {
+        file,
+        asset: asset,
+        uploading: false,
+        error: null
+      }
     } catch (error) {
       console.error('Upload failed:', error)
-      uploadItem.error = 'Upload failed'
-      uploadItem.uploading = false
+      uploadedFiles.value[index] = {
+        file,
+        asset: null,
+        uploading: false,
+        error: 'Upload failed'
+      }
     }
   }
 }

@@ -232,6 +232,16 @@
             </div>
           </div>
         </div>
+
+        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-dark border-t border-white/10 flex justify-end gap-3">
+          <UButton
+            color="gray"
+            variant="ghost"
+            @click="$emit('update:modelValue', false)"
+          >
+            Close
+          </UButton>
+        </div>
       </div>
     </div>
   </Transition>

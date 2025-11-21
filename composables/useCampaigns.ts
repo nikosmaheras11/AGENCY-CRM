@@ -36,8 +36,6 @@ export const useCampaigns = () => {
                 .select(`
           *,
           client:clients(id, name, logo_url),
-          creator:auth.users!created_by(id, email, user_metadata),
-          assigned_user:auth.users!assigned_to(id, email, user_metadata),
           ad_sets(
             *,
             creatives(
@@ -47,6 +45,8 @@ export const useCampaigns = () => {
                 file_name,
                 file_type,
                 thumbnail_url,
+                preview_url,
+                public_url,
                 storage_path
               )
             )

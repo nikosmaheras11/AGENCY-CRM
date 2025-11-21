@@ -37,7 +37,7 @@
             <div class="aspect-video bg-gray-800 rounded-lg overflow-hidden">
               <img 
                 v-if="creative.asset.file_type === 'image'"
-                :src="creative.asset.public_url"
+                :src="creative.asset.preview_url || creative.asset.public_url"
                 :alt="creative.name"
                 class="w-full h-full object-cover"
               />

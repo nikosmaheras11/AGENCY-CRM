@@ -8,15 +8,15 @@ export const useCreatives = () => {
         loading.value = true
         try {
             // Get current max sort_order for this ad set
-            const { data: maxSort } = await supabase
+            const { data: existingCreatives } = await supabase
                 .from('creatives')
                 .select('sort_order')
                 .eq('ad_set_id', creativeData.ad_set_id)
                 .order('sort_order', { ascending: false })
                 .limit(1)
-                .single()
+                .maybeSingle()
 
-            const nextSortOrder = (maxSort?.sort_order || 0) + 1
+            const nextSortOrder = existingCreatives?.sort_order ? existingCreatives.sort_order + 1 : 0
 
             if (!user.value) throw new Error('User not authenticated')
 

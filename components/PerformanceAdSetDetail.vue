@@ -149,6 +149,31 @@
       </div>
     </div>
   </Transition>
+<!-- Add Creative Button -->
+<div class="flex items-center justify-between mb-4">
+  <h2 class="text-xl font-semibold">Creatives</h2>
+  <UButton icon="i-heroicons-plus" size="sm" @click="openCreativeDialog">Add Creative</UButton>
+  <input type="file" multiple @change="onCreativeSelect" class="hidden" ref="creativeFileInput" />
+</div>
+
+<!-- Creative List -->
+<div v-if="creatives.length === 0" class="text-center text-gray-400 py-4">
+  No creatives yet. Upload to get started.
+</div>
+<div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div v-for="creative in creatives" :key="creative.id" class="bg-gray-800/30 p-4 rounded-lg border border-gray-700">
+    <div class="flex items-center gap-2 mb-2">
+      <img v-if="creative.thumbnail_url" :src="creative.thumbnail_url" class="w-12 h-12 object-cover rounded" />
+      <div class="flex-1">
+        <UInput v-model="creative.name" @blur="updateCreativeField(creative.id, 'name', creative.name)" placeholder="Creative name" size="sm" />
+      </div>
+      <UButton icon="i-heroicons-trash" color="red" size="xs" @click="deleteCreative(creative.id)" />
+    </div>
+    <UInput v-model="creative.headline" @blur="updateCreativeField(creative.id, 'headline', creative.headline)" placeholder="Headline" size="sm" class="mb-2" />
+    <UTextarea v-model="creative.primary_text" @blur="updateCreativeField(creative.id, 'primary_text', creative.primary_text)" placeholder="Primary text" rows="2" size="sm" />
+  </div>
+</div>
+
 </template>
 
 <script setup lang="ts">
@@ -163,7 +188,12 @@ const emit = defineEmits<{
   (e: 'updated'): void
 }>()
 
+import { useAssets } from '@/composables/useAssets'
+import { useToast } from '@/composables/useToast'
+
 const { supabase } = useSupabase()
+const { uploadAsset, deleteAsset } = useAssets()
+const toast = useToast()
 
 // Update field function
 const updateField = async (fieldName: string, value: any) => {
@@ -185,6 +215,93 @@ const updateField = async (fieldName: string, value: any) => {
     console.log(`✅ Updated ${fieldName}`)
   } catch (error) {
     console.error(`❌ Failed to update ${fieldName}:`, error)
+  }
+}
+
+// ---------- Creative handling ----------
+const creatives = ref<any[]>([])
+
+const loadCreatives = async () => {
+  if (!props.adSet?.id) return
+  const { data, error } = await supabase
+    .from('creatives')
+    .select('*')
+    .eq('ad_set_id', props.adSet.id)
+  if (error) {
+    console.error('Failed to load creatives:', error)
+    return
+  }
+  creatives.value = data || []
+}
+
+watch(() => props.adSet?.id, async (newId) => {
+  if (newId) await loadCreatives()
+}, { immediate: true })
+
+const openCreativeDialog = () => {
+  creativeFileInput.value?.click()
+}
+
+const creativeFileInput = ref<HTMLInputElement | null>(null)
+
+const onCreativeSelect = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const files = Array.from(target.files || [])
+  for (const file of files) {
+    try {
+      const asset = await uploadAsset(file, { folder: 'creative-assets', ad_set_id: props.adSet.id })
+      const { data: creative, error: creativeError } = await supabase
+        .from('creatives')
+        .insert({
+          name: file.name,
+          ad_set_id: props.adSet.id,
+          asset_id: asset.id,
+          format: asset.file_type,
+          primary_text: '',
+          headline: '',
+          cta_type: '',
+          destination_url: ''
+        })
+        .select()
+        .single()
+      if (creativeError) throw creativeError
+      creatives.value.unshift(creative)
+      toast.add({ title: 'Creative added', color: 'green' })
+    } catch (err) {
+      console.error('Error adding creative:', err)
+      toast.add({ title: 'Failed to add creative', color: 'red' })
+    }
+  }
+  // reset input
+  if (creativeFileInput.value) creativeFileInput.value.value = ''
+}
+
+const updateCreativeField = async (creativeId: string, field: string, value: any) => {
+  const { error } = await supabase
+    .from('creatives')
+    .update({ [field]: value, updated_at: new Date().toISOString() })
+    .eq('id', creativeId)
+  if (error) {
+    console.error('Failed to update creative:', error)
+    toast.add({ title: 'Update failed', color: 'red' })
+  } else {
+    toast.add({ title: 'Creative updated', color: 'green' })
+  }
+}
+
+const deleteCreative = async (creativeId: string) => {
+  try {
+    const creative = creatives.value.find(c => c.id === creativeId)
+    if (creative?.asset_id) {
+      await deleteAsset(creative.asset_id, '')
+    }
+    const { error } = await supabase.from('creatives').delete().eq('id', creativeId)
+    if (error) throw error
+    creatives.value = creatives.value.filter(c => c.id !== creativeId)
+    toast.add({ title: 'Creative deleted', color: 'green' })
+  } catch (err) {
+    console.error('Error deleting creative:', err)
+    toast.add({ title: 'Delete failed', color: 'red' })
   }
 }
 </script>
