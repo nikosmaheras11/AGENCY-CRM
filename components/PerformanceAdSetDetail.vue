@@ -189,7 +189,6 @@ const emit = defineEmits<{
 }>()
 
 import { useAssets } from '@/composables/useAssets'
-import { useToast } from '@/composables/useToast'
 
 const { supabase } = useSupabase()
 const { uploadAsset, deleteAsset } = useAssets()
