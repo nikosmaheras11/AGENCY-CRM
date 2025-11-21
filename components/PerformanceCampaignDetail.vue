@@ -50,7 +50,7 @@
         </div>
 
         <!-- Content -->
-        <div v-if="campaign" class="px-6 py-6 relative">
+        <div v-if="campaign" class="px-6 py-6 pb-24 relative">
           <!-- Overview Tab -->
           <div v-if="activeTab === 'overview'">
             <h1 class="text-2xl font-semibold mb-6">{{ campaign.name }}</h1>
