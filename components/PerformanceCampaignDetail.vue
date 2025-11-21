@@ -119,6 +119,40 @@
                 </div>
               </div>
 
+              <!-- Campaign Objective -->
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Objective</label>
+                <div class="flex-1">
+                  <select
+                    :value="campaign.objective"
+                    @change="(e) => updateField('objective', (e.target as HTMLSelectElement).value)"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700 cursor-pointer"
+                  >
+                    <option value="">Select objective...</option>
+                    <option value="awareness">Awareness</option>
+                    <option value="traffic">Traffic</option>
+                    <option value="engagement">Engagement</option>
+                    <option value="leads">Leads</option>
+                    <option value="conversions">Conversions</option>
+                    <option value="sales">Sales</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Campaign Brief -->
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">Campaign Brief</label>
+                <div class="flex-1">
+                  <textarea
+                    :value="campaign.campaign_brief || ''"
+                    @blur="(e) => updateField('campaign_brief', (e.target as HTMLTextAreaElement).value)"
+                    placeholder="Detailed strategy, target audience, key messages, creative direction..."
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
+                    rows="5"
+                  />
+                </div>
+              </div>
+
               <!-- Launch Date -->
               <div class="flex items-start gap-4">
                 <label class="w-32 text-sm text-gray-400 pt-2">Launch Date</label>
@@ -127,6 +161,19 @@
                     type="date"
                     :value="campaign.planned_launch_date || ''"
                     @change="(e) => updateField('planned_launch_date', (e.target as HTMLInputElement).value)"
+                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700"
+                  />
+                </div>
+              </div>
+
+              <!-- End Date -->
+              <div class="flex items-start gap-4">
+                <label class="w-32 text-sm text-gray-400 pt-2">End Date</label>
+                <div class="flex-1">
+                  <input
+                    type="date"
+                    :value="campaign.planned_end_date || ''"
+                    @change="(e) => updateField('planned_end_date', (e.target as HTMLInputElement).value)"
                     class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700"
                   />
                 </div>
@@ -143,34 +190,6 @@
                     placeholder="0.00"
                     step="0.01"
                     class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700"
-                  />
-                </div>
-              </div>
-
-              <!-- Objectives -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Objectives</label>
-                <div class="flex-1">
-                  <textarea
-                    :value="campaign.objectives || ''"
-                    @blur="(e) => updateField('objectives', (e.target as HTMLTextAreaElement).value)"
-                    placeholder="Campaign objectives..."
-                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
-                    rows="3"
-                  />
-                </div>
-              </div>
-
-              <!-- Target Audience -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Target Audience</label>
-                <div class="flex-1">
-                  <textarea
-                    :value="campaign.target_audience || ''"
-                    @blur="(e) => updateField('target_audience', (e.target as HTMLTextAreaElement).value)"
-                    placeholder="Target audience description..."
-                    class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-gray-700 resize-none"
-                    rows="3"
                   />
                 </div>
               </div>
