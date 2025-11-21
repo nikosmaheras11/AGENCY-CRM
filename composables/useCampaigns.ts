@@ -1,6 +1,7 @@
 // composables/useCampaigns.ts
 export const useCampaigns = () => {
-    const { supabase, user } = useSupabase()
+    const { supabase } = useSupabase()
+    const { user } = useAuth()
 
     const campaigns = ref([])
     const campaign = ref(null)
