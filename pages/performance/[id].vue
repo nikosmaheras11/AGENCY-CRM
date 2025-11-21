@@ -284,45 +284,43 @@ const handleDetailUpdated = () => {
                   @click="openAdSetDetail(adSet)"
                   class="flex-1 text-left hover:bg-gray-800/50 rounded p-2 transition-colors"
                 >
-              <div class="flex items-start justify-between">
-                <div class="flex items-start gap-3 flex-1">
-
-                  <!-- Ad Set Info -->
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-3 mb-2">
-                      <UIcon :name="getPlatformIcon(adSet.platform)" class="text-2xl" />
-                      <h3 class="text-lg font-semibold">{{ adSet.name }}</h3>
-                      <UBadge :color="getStatusColor(adSet.status)" size="sm">
-                        {{ adSet.status.replace(/_/g, ' ') }}
-                      </UBadge>
-                    </div>
-
-                    <p v-if="adSet.audience_description" class="text-sm text-gray-400 mb-3">
-                      {{ adSet.audience_description }}
-                    </p>
-
-                    <!-- Ad Set Meta -->
-                    <div class="flex items-center gap-4 text-xs text-gray-500">
-                      <div v-if="adSet.age_range" class="flex items-center gap-1">
-                        <UIcon name="i-heroicons-user-group" />
-                        <span>{{ adSet.age_range }}</span>
+                  <div class="flex items-start gap-3">
+                    <!-- Ad Set Info -->
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-3 mb-2">
+                        <UIcon :name="getPlatformIcon(adSet.platform)" class="text-2xl" />
+                        <h3 class="text-lg font-semibold">{{ adSet.name }}</h3>
+                        <UBadge :color="getStatusColor(adSet.status)" size="sm">
+                          {{ adSet.status.replace(/_/g, ' ') }}
+                        </UBadge>
                       </div>
-                      <div v-if="adSet.locations?.length" class="flex items-center gap-1">
-                        <UIcon name="i-heroicons-map-pin" />
-                        <span>{{ adSet.locations.slice(0, 2).join(', ') }}{{ adSet.locations.length > 2 ? '...' : '' }}</span>
-                      </div>
-                      <div v-if="adSet.estimated_daily_budget" class="flex items-center gap-1">
-                        <UIcon name="i-heroicons-currency-dollar" />
-                        <span>${{ adSet.estimated_daily_budget }}/day</span>
-                      </div>
-                      <div class="flex items-center gap-1">
-                        <UIcon name="i-heroicons-photo" />
-                        <span>{{ adSet.creatives?.length || 0 }} creative{{ adSet.creatives?.length !== 1 ? 's' : '' }}</span>
+
+                      <p v-if="adSet.audience_description" class="text-sm text-gray-400 mb-3">
+                        {{ adSet.audience_description }}
+                      </p>
+
+                      <!-- Ad Set Meta -->
+                      <div class="flex items-center gap-4 text-xs text-gray-500">
+                        <div v-if="adSet.age_range" class="flex items-center gap-1">
+                          <UIcon name="i-heroicons-user-group" />
+                          <span>{{ adSet.age_range }}</span>
+                        </div>
+                        <div v-if="adSet.locations?.length" class="flex items-center gap-1">
+                          <UIcon name="i-heroicons-map-pin" />
+                          <span>{{ adSet.locations.slice(0, 2).join(', ') }}{{ adSet.locations.length > 2 ? '...' : '' }}</span>
+                        </div>
+                        <div v-if="adSet.estimated_daily_budget" class="flex items-center gap-1">
+                          <UIcon name="i-heroicons-currency-dollar" />
+                          <span>${{ adSet.estimated_daily_budget }}/day</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <UIcon name="i-heroicons-photo" />
+                          <span>{{ adSet.creatives?.length || 0 }} creative{{ adSet.creatives?.length !== 1 ? 's' : '' }}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </button>
+                </button>
 
                 <!-- Ad Set Actions -->
                 <div class="flex items-center gap-2" @click.stop>
