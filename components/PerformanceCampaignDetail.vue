@@ -210,23 +210,60 @@
               <div
                 v-for="adSet in campaignData.ad_sets"
                 :key="adSet.id"
-                class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors cursor-pointer"
-                @click="openAdSetDetail(adSet)"
+                class="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden"
               >
-                <div class="flex items-center gap-3 flex-1">
-                  <div class="p-2 bg-gray-700 rounded-md">
-                    <UIcon :name="getPlatformIcon(adSet.platform)" class="text-xl" />
+                <!-- Ad Set Header -->
+                <div class="flex items-center justify-between p-4 hover:bg-gray-800/70 transition-colors">
+                  <div class="flex items-center gap-3 flex-1">
+                    <button
+                      @click="toggleAdSetExpansion(adSet.id)"
+                      class="p-1 hover:bg-gray-700 rounded transition-colors"
+                    >
+                      <UIcon 
+                        :name="expandedAdSets.has(adSet.id) ? 'i-heroicons-chevron-down' : 'i-heroicons-chevron-right'"
+                        class="text-lg text-gray-400"
+                      />
+                    </button>
+                    <div class="p-2 bg-gray-700 rounded-md">
+                      <UIcon :name="getPlatformIcon(adSet.platform)" class="text-xl" />
+                    </div>
+                    <div class="flex-1 min-w-0 cursor-pointer" @click="openAdSetDetail(adSet)">
+                      <h4 class="font-medium truncate">{{ adSet.name }}</h4>
+                      <p class="text-xs text-gray-400 truncate">{{ adSet.audience_description || 'No description' }}</p>
+                    </div>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <h4 class="font-medium truncate">{{ adSet.name }}</h4>
-                    <p class="text-xs text-gray-400 truncate">{{ adSet.audience_description || 'No description' }}</p>
+                  <div class="flex items-center gap-3">
+                    <div class="text-xs text-gray-500">
+                      {{ adSet.creatives?.length || 0 }} creative{{ adSet.creatives?.length !== 1 ? 's' : '' }}
+                    </div>
                   </div>
                 </div>
-                <div class="flex items-center gap-3">
-                  <div class="text-xs text-gray-500">
-                    {{ adSet.creatives?.length || 0 }} creative{{ adSet.creatives?.length !== 1 ? 's' : '' }}
+
+                <!-- Creatives Grid (Expandable) -->
+                <div v-if="expandedAdSets.has(adSet.id) && adSet.creatives?.length > 0" class="border-t border-gray-700 bg-gray-900/30 p-4">
+                  <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                    <div
+                      v-for="creative in adSet.creatives"
+                      :key="creative.id"
+                      class="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-700 hover:border-primary-500 transition-all cursor-pointer"
+                      @click="openCreativeDetail(creative)"
+                    >
+                      <img
+                        v-if="creative.asset?.thumbnail_url"
+                        :src="creative.asset.thumbnail_url"
+                        :alt="creative.name"
+                        class="w-full h-full object-cover"
+                      />
+                      <div v-else class="w-full h-full flex items-center justify-center bg-gray-800">
+                        <UIcon name="i-heroicons-photo" class="text-2xl text-gray-600" />
+                      </div>
+                      
+                      <!-- Hover Overlay -->
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                        <p class="text-xs font-medium text-white truncate w-full">{{ creative.name }}</p>
+                      </div>
+                    </div>
                   </div>
-                  <UIcon name="i-heroicons-chevron-right" class="text-gray-500" />
                 </div>
               </div>
             </div>
@@ -260,6 +297,13 @@
     :ad-set="selectedAdSet"
     @updated="handleAdSetUpdated"
   />
+
+  <!-- Creative Detail Modal -->
+  <PerformanceCreativeDetail
+    v-model="showCreativeDetail"
+    :creative="selectedCreative"
+    @updated="handleCreativeUpdated"
+  />
 </template>
 
 <script setup lang="ts">
@@ -284,6 +328,9 @@ const campaignData = ref<any>(null)
 const isCreateAdSetModalOpen = ref(false)
 const showAdSetDetail = ref(false)
 const selectedAdSet = ref<any>(null)
+const expandedAdSets = ref(new Set<string>())
+const showCreativeDetail = ref(false)
+const selectedCreative = ref<any>(null)
 
 // Load campaign with hierarchy when opened
 watch(() => props.campaign?.id, async (newId) => {
@@ -344,6 +391,24 @@ const openAdSetDetail = (adSet: any) => {
 }
 
 const handleAdSetUpdated = async () => {
+  await loadCampaignData()
+  emit('updated')
+}
+
+const toggleAdSetExpansion = (adSetId: string) => {
+  if (expandedAdSets.value.has(adSetId)) {
+    expandedAdSets.value.delete(adSetId)
+  } else {
+    expandedAdSets.value.add(adSetId)
+  }
+}
+
+const openCreativeDetail = (creative: any) => {
+  selectedCreative.value = creative
+  showCreativeDetail.value = true
+}
+
+const handleCreativeUpdated = async () => {
   await loadCampaignData()
   emit('updated')
 }
