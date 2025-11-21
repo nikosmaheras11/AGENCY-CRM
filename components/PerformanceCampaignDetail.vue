@@ -404,17 +404,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Footer -->
-        <div class="px-6 py-6 bg-gradient-dark border-t border-white/10 flex justify-end gap-3 relative">
-          <UButton
-            color="gray"
-            variant="ghost"
-            @click="$emit('update:modelValue', false)"
-          >
-            Close
-          </UButton>
-        </div>
       </div>
     </div>
   </Transition>
