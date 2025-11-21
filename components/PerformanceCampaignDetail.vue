@@ -239,28 +239,92 @@
                   </div>
                 </div>
 
-                <!-- Creatives Grid (Expandable) -->
-                <div v-if="expandedAdSets.has(adSet.id) && adSet.creatives?.length > 0" class="border-t border-gray-700 bg-gray-900/30 p-4">
-                  <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                    <div
-                      v-for="creative in adSet.creatives"
-                      :key="creative.id"
-                      class="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-700 hover:border-primary-500 transition-all cursor-pointer"
-                      @click="openCreativeDetail(creative)"
+                <!-- Creatives List (Expandable) -->
+                <div v-if="expandedAdSets.has(adSet.id) && adSet.creatives?.length > 0" class="border-t border-gray-700 bg-gray-900/30">
+                  <div
+                    v-for="creative in adSet.creatives"
+                    :key="creative.id"
+                    class="border-b border-gray-700 last:border-b-0"
+                  >
+                    <!-- Creative Header -->
+                    <div 
+                      class="flex items-center gap-3 p-3 hover:bg-gray-800/50 cursor-pointer transition-colors"
+                      @click="toggleCreativeExpansion(creative.id)"
                     >
-                      <img
-                        v-if="creative.asset?.thumbnail_url"
-                        :src="creative.asset.thumbnail_url"
-                        :alt="creative.name"
-                        class="w-full h-full object-cover"
-                      />
-                      <div v-else class="w-full h-full flex items-center justify-center bg-gray-800">
-                        <UIcon name="i-heroicons-photo" class="text-2xl text-gray-600" />
+                      <div class="w-16 h-16 rounded overflow-hidden border border-gray-700 flex-shrink-0">
+                        <img
+                          v-if="creative.asset?.thumbnail_url"
+                          :src="creative.asset.thumbnail_url"
+                          :alt="creative.name"
+                          class="w-full h-full object-cover"
+                        />
+                        <div v-else class="w-full h-full flex items-center justify-center bg-gray-800">
+                          <UIcon name="i-heroicons-photo" class="text-xl text-gray-600" />
+                        </div>
                       </div>
                       
-                      <!-- Hover Overlay -->
-                      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                        <p class="text-xs font-medium text-white truncate w-full">{{ creative.name }}</p>
+                      <div class="flex-1 min-w-0">
+                        <h5 class="font-medium text-sm truncate">{{ creative.name }}</h5>
+                        <p class="text-xs text-gray-500">{{ creative.format || 'No format' }}</p>
+                      </div>
+                      
+                      <UIcon 
+                        :name="expandedCreatives.has(creative.id) ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'"
+                        class="text-gray-500"
+                      />
+                    </div>
+
+                    <!-- Creative Details (Expandable) -->
+                    <div v-if="expandedCreatives.has(creative.id)" class="p-4 bg-gray-900/50 space-y-4">
+                      <!-- Preview Image -->
+                      <div v-if="creative.asset?.thumbnail_url" class="mb-4">
+                        <img
+                          :src="creative.asset.thumbnail_url"
+                          :alt="creative.name"
+                          class="w-full max-h-64 object-contain rounded-lg bg-gray-800"
+                        />
+                      </div>
+
+                      <!-- Editable Fields -->
+                      <div class="grid grid-cols-1 gap-3">
+                        <div>
+                          <label class="text-xs text-gray-400 mb-1 block">Name</label>
+                          <input
+                            type="text"
+                            :value="creative.name"
+                            @blur="(e) => updateCreativeField(creative.id, 'name', (e.target as HTMLInputElement).value)"
+                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm text-gray-300 focus:outline-none focus:border-gray-600"
+                          />
+                        </div>
+
+                        <div>
+                          <label class="text-xs text-gray-400 mb-1 block">Status</label>
+                          <select
+                            :value="creative.status"
+                            @change="(e) => updateCreativeField(creative.id, 'status', (e.target as HTMLSelectElement).value)"
+                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm text-gray-300 focus:outline-none focus:border-gray-600 cursor-pointer"
+                          >
+                            <option value="draft">Draft</option>
+                            <option value="in_review">In Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="live">Live</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label class="text-xs text-gray-400 mb-1 block">Format</label>
+                          <select
+                            :value="creative.format"
+                            @change="(e) => updateCreativeField(creative.id, 'format', (e.target as HTMLSelectElement).value)"
+                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm text-gray-300 focus:outline-none focus:border-gray-600 cursor-pointer"
+                          >
+                            <option value="single_image">Single Image</option>
+                            <option value="video">Video</option>
+                            <option value="carousel">Carousel</option>
+                            <option value="collection">Collection</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -298,12 +362,6 @@
     @updated="handleAdSetUpdated"
   />
 
-  <!-- Creative Detail Modal -->
-  <PerformanceCreativeDetail
-    v-model="showCreativeDetail"
-    :creative="selectedCreative"
-    @updated="handleCreativeUpdated"
-  />
 </template>
 
 <script setup lang="ts">
@@ -329,8 +387,7 @@ const isCreateAdSetModalOpen = ref(false)
 const showAdSetDetail = ref(false)
 const selectedAdSet = ref<any>(null)
 const expandedAdSets = ref(new Set<string>())
-const showCreativeDetail = ref(false)
-const selectedCreative = ref<any>(null)
+const expandedCreatives = ref(new Set<string>())
 
 // Load campaign with hierarchy when opened
 watch(() => props.campaign?.id, async (newId) => {
@@ -403,14 +460,29 @@ const toggleAdSetExpansion = (adSetId: string) => {
   }
 }
 
-const openCreativeDetail = (creative: any) => {
-  selectedCreative.value = creative
-  showCreativeDetail.value = true
+const toggleCreativeExpansion = (creativeId: string) => {
+  if (expandedCreatives.value.has(creativeId)) {
+    expandedCreatives.value.delete(creativeId)
+  } else {
+    expandedCreatives.value.add(creativeId)
+  }
 }
 
-const handleCreativeUpdated = async () => {
-  await loadCampaignData()
-  emit('updated')
+const updateCreativeField = async (creativeId: string, field: string, value: any) => {
+  try {
+    const { error } = await supabase
+      .from('creatives')
+      .update({ [field]: value, updated_at: new Date().toISOString() })
+      .eq('id', creativeId)
+    
+    if (error) throw error
+    
+    await loadCampaignData()
+    toast.add({ title: 'Creative updated', color: 'green' })
+  } catch (error) {
+    console.error('Failed to update creative:', error)
+    toast.add({ title: 'Update failed', color: 'red' })
+  }
 }
 
 const getPlatformIcon = (platform: string) => {
