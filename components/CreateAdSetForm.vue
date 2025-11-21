@@ -7,8 +7,8 @@ const props = defineProps<{
 const emit = defineEmits(['close', 'created'])
 
 const step = ref(1)
-const selectedAssets = ref<string[]>([])
-const creativeConfigs = ref<Record<string, any>>({})
+const uploadedFiles = ref<Array<{ file: File, asset: any | null, uploading: boolean, error: string | null }>>([])
+const creativeData = ref<Array<{ asset: any, title: string, daily_budget: number | null, total_budget: number | null }>>([])
 
 const formData = ref({
   name: '',
@@ -32,9 +32,9 @@ const formData = ref({
 
 const { createAdSet, loading: adSetLoading } = useAdSets()
 const { createCreative, loading: creativeLoading } = useCreatives()
-const { assets } = useAssets()
+const { uploadAsset, deleteAsset, loading: assetUploadLoading } = useAssets()
 
-const loading = computed(() => adSetLoading.value || creativeLoading.value)
+const loading = computed(() => adSetLoading.value || creativeLoading.value || assetUploadLoading.value)
 
 const locationInput = ref('')
 const addLocation = () => {
@@ -54,22 +54,55 @@ const handleNext = () => {
   }
   
   if (step.value === 2) {
-    // Initialize configs for newly selected assets if not exists
-    selectedAssets.value.forEach(assetId => {
-      if (!creativeConfigs.value[assetId]) {
-        creativeConfigs.value[assetId] = {
-          daily_budget: null,
-          total_budget: null
-        }
-      }
-    })
+    // Initialize creative data for uploaded assets
+    creativeData.value = uploadedFiles.value
+      .filter(f => f.asset)
+      .map(f => ({
+        asset: f.asset,
+        title: f.file.name.replace(/\.[^/.]+$/, ''), // filename without extension
+        daily_budget: null,
+        total_budget: null
+      }))
   }
   
   step.value++
 }
 
-const getAssetById = (id: string) => {
-  return assets.value.find(a => a.id === id)
+const handleFilesUpload = async (files: File[]) => {
+  for (const file of files) {
+    const uploadItem = {
+      file,
+      asset: null,
+      uploading: true,
+      error: null
+    }
+    uploadedFiles.value.push(uploadItem)
+
+    try {
+      const asset = await uploadAsset(file, {
+        folder: 'creative-assets',
+        campaign_id: props.campaign.id
+      })
+      uploadItem.asset = asset
+      uploadItem.uploading = false
+    } catch (error) {
+      console.error('Upload failed:', error)
+      uploadItem.error = 'Upload failed'
+      uploadItem.uploading = false
+    }
+  }
+}
+
+const removeUploadedFile = async (index: number) => {
+  const item = uploadedFiles.value[index]
+  if (item.asset) {
+    try {
+      await deleteAsset(item.asset.id, item.asset.storage_path)
+    } catch (error) {
+      console.error('Error deleting asset:', error)
+    }
+  }
+  uploadedFiles.value.splice(index, 1)
 }
 
 const handleSubmit = async () => {
@@ -82,20 +115,17 @@ const handleSubmit = async () => {
       campaign_id: props.campaign.id
     })
 
-    // 2. Create Creatives for selected assets with budget
-    if (selectedAssets.value.length > 0) {
-      const createPromises = selectedAssets.value.map(assetId => {
-        const asset = getAssetById(assetId)
-        const config = creativeConfigs.value[assetId] || {}
-        
+    // 2. Create Creatives for uploaded assets with title and budget
+    if (creativeData.value.length > 0) {
+      const createPromises = creativeData.value.map(item => {
         return createCreative({
           ad_set_id: adSet.id,
-          name: asset?.title || asset?.name || 'New Creative',
-          asset_id: assetId,
-          format: asset?.format || 'single_image',
+          name: item.title || 'New Creative',
+          asset_id: item.asset.id,
+          format: item.asset.file_type === 'video' ? 'video' : 'single_image',
           status: 'draft',
-          daily_budget: config.daily_budget,
-          total_budget: config.total_budget
+          daily_budget: item.daily_budget,
+          total_budget: item.total_budget
         })
       })
 
@@ -288,60 +318,108 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        <!-- Step 2: Creative Selection -->
+        <!-- Step 2: Upload Files -->
         <div v-show="step === 2" class="space-y-6">
           <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-              <h3 class="text-sm font-medium text-gray-200 mb-2">Instructions</h3>
-              <p class="text-sm text-gray-400">
-                  Select the assets you want to include in this ad set. 
-                  You will configure the budget for each creative in the next step.
-              </p>
+            <h3 class="text-sm font-medium text-gray-200 mb-2">Upload Creatives</h3>
+            <p class="text-sm text-gray-400">
+              Upload the files you want to use as creatives. You'll add titles and budgets in the next step.
+            </p>
           </div>
 
-          <UFormGroup label="Select Assets" :ui="{ label: { base: 'text-gray-200' } }">
-              <AssetPicker
-                  v-model="selectedAssets"
-                  :assets="assets"
-                  placeholder="Search and select assets..."
-                  :multiple="true"
-              />
-          </UFormGroup>
+          <FileDropzone 
+            accept="image/*,video/*"
+            :multiple="true"
+            :max-size="50"
+            @upload="handleFilesUpload"
+          />
 
-          <div class="text-sm text-gray-400">
-              {{ selectedAssets.length }} asset{{ selectedAssets.length !== 1 ? 's' : '' }} selected
+          <!-- Uploaded Files Preview -->
+          <div v-if="uploadedFiles.length > 0" class="space-y-3">
+            <h4 class="text-sm font-medium text-gray-200">Uploaded Files</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div 
+                v-for="(item, index) in uploadedFiles"
+                :key="index"
+                class="relative aspect-square rounded-lg overflow-hidden border-2 transition-all"
+                :class="item.uploading ? 'border-yellow-500' : item.error ? 'border-red-500' : 'border-green-500'"
+              >
+                <div class="w-full h-full bg-gray-800 flex items-center justify-center">
+                  <template v-if="item.uploading">
+                    <UIcon name="i-heroicons-arrow-path" class="text-3xl text-yellow-500 animate-spin" />
+                  </template>
+                  <template v-else-if="item.error">
+                    <UIcon name="i-heroicons-exclamation-triangle" class="text-3xl text-red-500" />
+                  </template>
+                  <template v-else-if="item.asset">
+                    <img 
+                      v-if="item.asset.file_type === 'image'"
+                      :src="item.asset.thumbnail_url || item.asset.public_url"
+                      :alt="item.file.name"
+                      class="w-full h-full object-cover"
+                    />
+                    <div v-else class="flex flex-col items-center gap-2">
+                      <UIcon name="i-heroicons-film" class="text-3xl text-gray-400" />
+                      <span class="text-xs text-gray-400">Video</span>
+                    </div>
+                  </template>
+                </div>
+                
+                <button
+                  type="button"
+                  @click="removeUploadedFile(index)"
+                  class="absolute top-1 right-1 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                >
+                  <UIcon name="i-heroicons-x-mark" class="text-white" />
+                </button>
+              </div>
+            </div>
+            
+            <p class="text-sm text-gray-400">
+              {{ uploadedFiles.filter(f => f.asset).length }} / {{ uploadedFiles.length }} files uploaded
+            </p>
           </div>
         </div>
 
-        <!-- Step 3: Creative Configuration -->
+        <!-- Step 3: Title & Budget for Each Creative -->
         <div v-show="step === 3" class="space-y-6">
           <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-              <h3 class="text-sm font-medium text-gray-200 mb-2">Budget Configuration</h3>
-              <p class="text-sm text-gray-400">
-                  Set the daily budget for each creative.
-              </p>
+            <h3 class="text-sm font-medium text-gray-200 mb-2">Creative Details</h3>
+            <p class="text-sm text-gray-400">
+              Set the title and budget for each creative.
+            </p>
           </div>
 
           <div class="space-y-4">
             <div 
-              v-for="assetId in selectedAssets" 
-              :key="assetId"
+              v-for="(item, index) in creativeData" 
+              :key="index"
               class="p-4 border border-gray-700 rounded-lg bg-gray-800/30"
             >
               <div class="flex items-center gap-4 mb-4">
                 <img 
-                  :src="getAssetById(assetId)?.thumbnail_url || getAssetById(assetId)?.thumbnail" 
-                  class="w-12 h-12 rounded object-cover bg-gray-700"
+                  v-if="item.asset.file_type === 'image'"
+                  :src="item.asset.thumbnail_url || item.asset.public_url" 
+                  class="w-16 h-16 rounded object-cover bg-gray-700"
                 />
-                <div>
-                  <div class="font-medium text-white">{{ getAssetById(assetId)?.title || getAssetById(assetId)?.name }}</div>
-                  <div class="text-xs text-gray-400">{{ getAssetById(assetId)?.format }}</div>
+                <div v-else class="w-16 h-16 rounded bg-gray-700 flex items-center justify-center">
+                  <UIcon name="i-heroicons-film" class="text-2xl text-gray-400" />
+                </div>
+                <div class="flex-1">
+                  <UFormGroup label="Creative Title" :ui="{ label: { base: 'text-gray-300 text-xs' } }">
+                    <UInput
+                      v-model="creativeData[index].title"
+                      placeholder="e.g. Summer Sale - Hero Image"
+                      size="lg"
+                    />
+                  </UFormGroup>
                 </div>
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <UFormGroup label="Daily Budget" :ui="{ label: { base: 'text-gray-300' } }">
                   <UInput
-                    v-model="creativeConfigs[assetId].daily_budget"
+                    v-model="creativeData[index].daily_budget"
                     type="number"
                     placeholder="0.00"
                   >
@@ -351,7 +429,7 @@ const handleSubmit = async () => {
 
                 <UFormGroup label="Total Budget" :ui="{ label: { base: 'text-gray-300' } }">
                   <UInput
-                    v-model="creativeConfigs[assetId].total_budget"
+                    v-model="creativeData[index].total_budget"
                     type="number"
                     placeholder="0.00"
                   >

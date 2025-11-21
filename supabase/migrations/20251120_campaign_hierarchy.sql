@@ -1,4 +1,3 @@
--- ============================================
 -- CAMPAIGNS TABLE (Top-Level Planning)
 -- ============================================
 CREATE TABLE IF NOT EXISTS campaigns (

@@ -38,30 +38,3 @@ export const useClients = () => {
   return { clients: clientsState, fetchClients, loading, error }
 }
 
-// --- Assets Composable (Simple version if not exists) ---
-export const useAssets = () => {
-  const loading = ref(false)
-  const error = ref<Error | null>(null)
-
-  const fetchAssets = async () => {
-    const { supabase } = useSupabase()
-    try {
-      loading.value = true
-      const { data, error: err } = await supabase
-        .from('assets')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50) // Limit for now
-
-      if (err) throw err
-      assetsState.value = data || []
-    } catch (e) {
-      error.value = e as Error
-      console.error('Error fetching assets:', e)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  return { assets: assetsState, fetchAssets, loading, error }
-}
