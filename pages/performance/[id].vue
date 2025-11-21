@@ -348,7 +348,6 @@ const handleDetailUpdated = () => {
                 </div>
               </div>
             </div>
-            </div>
 
             <!-- Creatives Grid (Expandable) -->
             <div 
