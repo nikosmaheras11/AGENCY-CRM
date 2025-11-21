@@ -1,3 +1,4 @@
+<!-- pages/performance/[id].vue -->
 <script setup lang="ts">
 definePageMeta({ 
   middleware: 'auth',
@@ -8,177 +9,29 @@ const route = useRoute()
 const campaignId = route.params.id as string
 
 const { 
+  campaign, 
+  loading, 
   fetchCampaignWithHierarchy,
-  updateCampaignStatus,
-  updateCampaign,
-  loading
+  updateCampaignStatus
 } = useCampaigns()
 
-const { createAdSet, updateAdSet, deleteAdSet } = useAdSets()
-const { createCreative, updateCreative } = useCreatives()
-const { supabase } = useSupabase()
-
-const campaign = ref<any>(null)
-const isEditingDescription = ref(false)
-const isEditingBrief = ref(false)
-const isSaving = ref(false)
+const { createAdSet } = useAdSets()
+const { createCreative } = useCreatives()
 
 // Modals
 const isCreateAdSetModalOpen = ref(false)
 const isCreateCreativeModalOpen = ref(false)
-const selectedAdSet = ref<any>(null)
-const expandedAdSets = ref(new Set<string>())
+const selectedAdSet = ref(null)
+const expandedAdSets = ref(new Set())
 
 // Load campaign with full hierarchy
 onMounted(async () => {
-  await loadCampaign()
-  subscribeToChanges()
+  await fetchCampaignWithHierarchy(campaignId)
+  // Auto-expand first ad set
+  if (campaign.value?.ad_sets?.length > 0) {
+    expandedAdSets.value.add(campaign.value.ad_sets[0].id)
+  }
 })
-
-onBeforeUnmount(() => {
-  unsubscribeFromChanges()
-})
-
-const loadCampaign = async () => {
-  if (campaignId) {
-    const data = await fetchCampaignWithHierarchy(campaignId)
-    if (data) {
-      campaign.value = data
-      // Auto-expand first ad set if none expanded
-      if (campaign.value?.ad_sets?.length > 0 && expandedAdSets.value.size === 0) {
-        expandedAdSets.value.add(campaign.value.ad_sets[0].id)
-      }
-    }
-  }
-}
-
-// Real-time subscription
-let realtimeChannel: any = null
-
-const subscribeToChanges = () => {
-  if (!campaignId) return
-
-  // Subscribe to campaign changes
-  realtimeChannel = supabase
-    .channel(`campaign-${campaignId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'campaigns',
-        filter: `id=eq.${campaignId}`
-      },
-      (payload) => {
-        if (payload.eventType === 'UPDATE' && campaign.value) {
-          campaign.value = { ...campaign.value, ...payload.new }
-        }
-      }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'ad_sets',
-        filter: `campaign_id=eq.${campaignId}`
-      },
-      async () => {
-        // Reload campaign when ad sets change
-        await loadCampaign()
-      }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'creatives'
-      },
-      async (payload) => {
-        // Check if this creative belongs to one of our ad sets
-        const belongsToUs = campaign.value?.ad_sets?.some(
-          (adSet: any) => adSet.id === payload.new?.ad_set_id
-        )
-        if (belongsToUs) {
-          await loadCampaign()
-        }
-      }
-    )
-    .subscribe()
-}
-
-const unsubscribeFromChanges = () => {
-  if (realtimeChannel) {
-    supabase.removeChannel(realtimeChannel)
-  }
-}
-
-// Auto-save functions
-const handleCampaignBlur = async (field: string, value: any) => {
-  if (!campaign.value) return
-  
-  try {
-    isSaving.value = true
-    await updateCampaign(campaignId, { [field]: value })
-  } catch (error) {
-    console.error(`Error updating ${field}:`, error)
-  } finally {
-    isSaving.value = false
-  }
-}
-
-const handleAdSetBlur = async (adSetId: string, field: string, value: any) => {
-  try {
-    isSaving.value = true
-    await updateAdSet(adSetId, { [field]: value })
-  } catch (error) {
-    console.error(`Error updating ad set ${field}:`, error)
-  } finally {
-    isSaving.value = false
-  }
-}
-
-const handleCreativeBlur = async (creativeId: string, field: string, value: any) => {
-  try {
-    isSaving.value = true
-    await updateCreative(creativeId, { [field]: value })
-  } catch (error) {
-    console.error(`Error updating creative ${field}:`, error)
-  } finally {
-    isSaving.value = false
-  }
-}
-
-const handleDeleteAdSet = async (adSet: any) => {
-  if (!confirm('Are you sure you want to delete this ad set?')) return
-  
-  try {
-    await deleteAdSet(adSet.id)
-    await loadCampaign()
-  } catch (error) {
-    console.error('Error deleting ad set:', error)
-  }
-}
-
-const getAdSetActions = (adSet: any) => [
-  [{ 
-    label: 'Edit Ad Set', 
-    icon: 'i-heroicons-pencil',
-    click: () => console.log('Edit', adSet.id)
-  }],
-  [{ 
-    label: 'Duplicate', 
-    icon: 'i-heroicons-document-duplicate',
-    click: () => console.log('Duplicate', adSet.id)
-  }],
-  [{ 
-    label: 'Delete', 
-    icon: 'i-heroicons-trash', 
-    class: 'text-red-500',
-    click: () => handleDeleteAdSet(adSet)
-  }]
-]
 
 const toggleAdSetExpansion = (adSetId: string) => {
   if (expandedAdSets.value.has(adSetId)) {
@@ -193,23 +46,6 @@ const handleCreateCreative = (adSet: any) => {
   isCreateCreativeModalOpen.value = true
 }
 
-const handleAdSetCreated = () => {
-  loadCampaign()
-  isCreateAdSetModalOpen.value = false
-}
-
-const handleCreativeCreated = () => {
-  loadCampaign()
-  isCreateCreativeModalOpen.value = false
-  selectedAdSet.value = null
-}
-
-const navigateToCreative = (creative: any) => {
-  // TODO: Implement creative detail page
-  // navigateTo(`/performance/${campaignId}/creative/${creative.id}`)
-  console.log('Navigate to creative:', creative.id)
-}
-
 const getPlatformIcon = (platform: string) => {
   const icons: Record<string, string> = {
     meta: 'i-simple-icons-meta',
@@ -220,7 +56,7 @@ const getPlatformIcon = (platform: string) => {
     pinterest: 'i-simple-icons-pinterest',
     snapchat: 'i-simple-icons-snapchat'
   }
-  return icons[platform?.toLowerCase()] || 'i-heroicons-megaphone'
+  return icons[platform] || 'i-heroicons-megaphone'
 }
 
 const getStatusColor = (status: string) => {
@@ -237,12 +73,27 @@ const getStatusColor = (status: string) => {
   }
   return colors[status] || 'gray'
 }
+
+const handleAdSetCreated = () => {
+  fetchCampaignWithHierarchy(campaignId)
+  isCreateAdSetModalOpen.value = false
+}
+
+const handleCreativeCreated = () => {
+  fetchCampaignWithHierarchy(campaignId)
+  isCreateCreativeModalOpen.value = false
+  selectedAdSet.value = null
+}
+
+const navigateToCreative = (creative: any) => {
+  navigateTo(`/performance/${campaignId}/creative/${creative.id}`)
+}
 </script>
 
 <template>
   <div class="h-screen flex flex-col bg-gray-950">
     <!-- Loading State -->
-    <div v-if="loading && !campaign" class="flex items-center justify-center h-full">
+    <div v-if="loading" class="flex items-center justify-center h-full">
       <div class="text-center">
         <UIcon name="i-heroicons-arrow-path" class="text-4xl animate-spin text-primary-500 mb-4" />
         <p class="text-gray-400">Loading campaign...</p>
@@ -267,41 +118,15 @@ const getStatusColor = (status: string) => {
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <div class="flex items-center gap-3 mb-2">
-                <UInput
-                  v-model="campaign.name"
-                  size="xl"
-                  variant="none"
-                  class="text-3xl font-bold text-white bg-transparent border-0 focus:ring-0 p-0 -ml-1"
-                  :ui="{ base: 'text-3xl font-bold', wrapper: 'bg-transparent' }"
-                  @blur="handleCampaignBlur('name', campaign.name)"
-                />
+                <h1 class="text-3xl font-bold">{{ campaign.name }}</h1>
                 <UBadge :color="getStatusColor(campaign.status)" size="lg">
                   {{ campaign.status.replace(/_/g, ' ') }}
                 </UBadge>
-                <div v-if="isSaving" class="flex items-center gap-1 text-xs text-gray-500">
-                  <UIcon name="i-heroicons-arrow-path" class="animate-spin" />
-                  <span>Saving...</span>
-                </div>
               </div>
               
-              <div class="relative mb-4 max-w-3xl">
-                <UTextarea
-                  v-if="isEditingDescription || !campaign.description"
-                  v-model="campaign.description"
-                  placeholder="Add campaign description..."
-                  :rows="2"
-                  class="text-gray-400"
-                  @blur="() => { handleCampaignBlur('description', campaign.description); isEditingDescription = false; }"
-                  autofocus
-                />
-                <p
-                  v-else
-                  class="text-gray-400 cursor-pointer hover:bg-gray-800/30 rounded p-2 -ml-2"
-                  @click="isEditingDescription = true"
-                >
-                  {{ campaign.description }}
-                </p>
-              </div>
+              <p v-if="campaign.description" class="text-gray-400 mb-4 max-w-3xl">
+                {{ campaign.description }}
+              </p>
 
               <div class="flex items-center gap-4 text-sm">
                 <!-- Platforms -->
@@ -310,7 +135,7 @@ const getStatusColor = (status: string) => {
                     v-for="platform in campaign.platforms" 
                     :key="platform"
                     :name="getPlatformIcon(platform)" 
-                    class="text-xl text-gray-400"
+                    class="text-xl"
                   />
                 </div>
 
@@ -323,7 +148,7 @@ const getStatusColor = (status: string) => {
                 <!-- Objective -->
                 <div v-if="campaign.objective" class="flex items-center gap-2">
                   <UIcon name="i-heroicons-flag" class="text-gray-500" />
-                  <span class="text-gray-400 capitalize">{{ campaign.objective }}</span>
+                  <span class="text-gray-400">{{ campaign.objective }}</span>
                 </div>
 
                 <!-- Timeline -->
@@ -364,32 +189,16 @@ const getStatusColor = (status: string) => {
 
       <!-- Main Content - Hierarchical Layout -->
       <div class="flex-1 overflow-auto p-6">
-        <!-- Campaign Brief -->
-        <div class="mb-6">
-          <UCard :ui="{ background: 'bg-gray-900', ring: 'ring-1 ring-gray-800' }">
+        <!-- Campaign Brief (if exists) -->
+        <div v-if="campaign.campaign_brief" class="mb-6">
+          <UCard>
             <template #header>
               <div class="flex items-center gap-2">
                 <UIcon name="i-heroicons-document-text" />
                 <h3 class="font-semibold">Campaign Brief</h3>
               </div>
             </template>
-            <div v-if="isEditingBrief || !campaign.campaign_brief">
-              <UTextarea
-                v-model="campaign.campaign_brief"
-                placeholder="Add detailed campaign brief, strategy, target audience, key messages..."
-                :rows="6"
-                class="text-gray-300"
-                @blur="() => { handleCampaignBlur('campaign_brief', campaign.campaign_brief); isEditingBrief = false; }"
-                autofocus
-              />
-            </div>
-            <p
-              v-else
-              class="text-gray-300 whitespace-pre-wrap cursor-pointer hover:bg-gray-800/30 rounded p-2 -m-2"
-              @click="isEditingBrief = true"
-            >
-              {{ campaign.campaign_brief }}
-            </p>
+            <p class="text-gray-300 whitespace-pre-wrap">{{ campaign.campaign_brief }}</p>
           </UCard>
         </div>
 
@@ -399,7 +208,7 @@ const getStatusColor = (status: string) => {
             <!-- Empty State -->
             <div class="border-2 border-dashed border-gray-700 rounded-xl p-12 text-center">
               <UIcon name="i-heroicons-folder-plus" class="text-6xl text-gray-600 mb-4 mx-auto" />
-              <h3 class="text-xl font-semibold mb-2 text-white">No Ad Sets Yet</h3>
+              <h3 class="text-xl font-semibold mb-2">No Ad Sets Yet</h3>
               <p class="text-gray-400 mb-6">Create your first ad set to organize your creatives</p>
               <UButton
                 color="primary"
@@ -416,7 +225,7 @@ const getStatusColor = (status: string) => {
           <UCard
             v-for="(adSet, index) in campaign.ad_sets"
             :key="adSet.id"
-            :ui="{ body: { padding: 'p-0' }, background: 'bg-gray-900', ring: 'ring-1 ring-gray-800' }"
+            :ui="{ body: { padding: 'p-0' } }"
           >
             <!-- Ad Set Header -->
             <div 
@@ -434,8 +243,8 @@ const getStatusColor = (status: string) => {
                   <!-- Ad Set Info -->
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-3 mb-2">
-                      <UIcon :name="getPlatformIcon(adSet.platform)" class="text-2xl text-gray-400" />
-                      <h3 class="text-lg font-semibold text-white">{{ adSet.name }}</h3>
+                      <UIcon :name="getPlatformIcon(adSet.platform)" class="text-2xl" />
+                      <h3 class="text-lg font-semibold">{{ adSet.name }}</h3>
                       <UBadge :color="getStatusColor(adSet.status)" size="sm">
                         {{ adSet.status.replace(/_/g, ' ') }}
                       </UBadge>
@@ -478,7 +287,11 @@ const getStatusColor = (status: string) => {
                   >
                     Add Creative
                   </UButton>
-                  <UDropdown :items="getAdSetActions(adSet)">
+                  <UDropdown :items="[
+                    [{ label: 'Edit Ad Set', icon: 'i-heroicons-pencil' }],
+                    [{ label: 'Duplicate', icon: 'i-heroicons-document-duplicate' }],
+                    [{ label: 'Delete', icon: 'i-heroicons-trash', class: 'text-red-500' }]
+                  ]">
                     <UButton
                       icon="i-heroicons-ellipsis-vertical"
                       size="sm"
@@ -538,7 +351,7 @@ const getStatusColor = (status: string) => {
 
                     <!-- Hover Overlay -->
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                      <h4 class="font-semibold text-sm mb-1 line-clamp-2 text-white">{{ creative.name }}</h4>
+                      <h4 class="font-semibold text-sm mb-1 line-clamp-2">{{ creative.name }}</h4>
                       <p class="text-xs text-gray-400">{{ creative.dimensions }}</p>
                     </div>
                   </div>

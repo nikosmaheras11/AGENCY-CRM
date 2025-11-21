@@ -1,11 +1,17 @@
 <!-- components/CreateCampaignForm.vue -->
 <script setup lang="ts">
+import CreateAdSetForm from './CreateAdSetForm.vue'
+
 const emit = defineEmits(['close', 'created'])
 
+const step = ref<'details' | 'ad-sets'>('details')
+const createdCampaign = ref<any>(null)
+const addedAdSets = ref<any[]>([])
+
+// Form Data
 const formData = ref({
   name: '',
   description: '',
-  // client_id removed as unneeded for single-tenant
   platforms: [],
   objective: '',
   campaign_brief: '',
@@ -13,9 +19,14 @@ const formData = ref({
   planned_end_date: null
 })
 
-// const { clients, fetchClients } = useClients() // Not needed
 const { createCampaign, loading } = useCampaigns()
+const toast = useToast()
+const isSubmitting = ref(false)
 
+// Modals
+const isCreateAdSetModalOpen = ref(false)
+
+// Options
 const platformOptions = [
   { value: 'meta', label: 'Meta', icon: 'i-simple-icons-meta' },
   { value: 'tiktok', label: 'TikTok', icon: 'i-simple-icons-tiktok' },
@@ -44,16 +55,11 @@ const togglePlatform = (platform: string) => {
   }
 }
 
-const toast = useToast()
-const isSubmitting = ref(false)
-
-const handleSubmit = async () => {
+const handleCreateCampaign = async () => {
   if (isSubmitting.value) return
   
   try {
     isSubmitting.value = true
-    
-    console.log('Form data:', formData.value)
     
     if (!formData.value.name) {
       toast.add({ title: 'Campaign name is required', color: 'red' })
@@ -64,28 +70,18 @@ const handleSubmit = async () => {
       return
     }
     
-    // Send null for client_id as it's not used
     const payload = {
       ...formData.value,
       client_id: null,
       status: 'planning'
     }
     
-    console.log('Creating campaign with payload:', payload)
-
     const campaign = await createCampaign(payload)
+    createdCampaign.value = campaign
+    step.value = 'ad-sets'
     
-    console.log('Campaign created:', campaign)
-    
-    toast.add({ title: 'Campaign created successfully', color: 'green' })
-    
+    toast.add({ title: 'Campaign created! Now add your ad sets.', color: 'green' })
     emit('created', campaign)
-    emit('close')
-    
-    // Navigate to the new campaign detail page
-    if (campaign?.id) {
-      await navigateTo(`/performance/${campaign.id}`)
-    }
   } catch (error: any) {
     console.error('Error creating campaign:', error)
     toast.add({ 
@@ -98,7 +94,18 @@ const handleSubmit = async () => {
   }
 }
 
-// onMounted removed as we don't fetch clients anymore
+const handleAdSetCreated = (adSet: any) => {
+  addedAdSets.value.push(adSet)
+  isCreateAdSetModalOpen.value = false
+  toast.add({ title: 'Ad Set added successfully', color: 'green' })
+}
+
+const handleFinish = async () => {
+  if (createdCampaign.value?.id) {
+    emit('close')
+    await navigateTo(`/performance/${createdCampaign.value.id}`)
+  }
+}
 </script>
 
 <template>
@@ -107,14 +114,19 @@ const handleSubmit = async () => {
       <template #header>
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-2xl font-bold">Create Campaign</h2>
-            <p class="text-sm text-gray-400 mt-1">Plan a new advertising campaign</p>
+            <h2 class="text-2xl font-bold">
+              {{ step === 'details' ? 'Create Campaign' : 'Add Ad Sets' }}
+            </h2>
+            <p class="text-sm text-gray-400 mt-1">
+              {{ step === 'details' ? 'Plan a new advertising campaign' : `Setup structure for "${createdCampaign?.name}"` }}
+            </p>
           </div>
           <UButton icon="i-heroicons-x-mark" variant="ghost" color="gray" @click="emit('close')" />
         </div>
       </template>
 
-      <form @submit.prevent="handleSubmit" class="space-y-6">
+      <!-- Step 1: Campaign Details -->
+      <form v-if="step === 'details'" @submit.prevent="handleCreateCampaign" class="space-y-6">
         <!-- Campaign Name -->
         <UFormGroup label="Campaign Name" required>
           <UInput
@@ -204,14 +216,69 @@ const handleSubmit = async () => {
         </div>
       </form>
 
+      <!-- Step 2: Add Ad Sets -->
+      <div v-else class="space-y-6">
+        <div v-if="addedAdSets.length === 0" class="text-center py-8 border-2 border-dashed border-gray-700 rounded-xl">
+          <UIcon name="i-heroicons-squares-plus" class="text-5xl text-gray-600 mb-3" />
+          <h3 class="text-lg font-semibold mb-2">No Ad Sets Added Yet</h3>
+          <p class="text-gray-400 mb-6">Create ad sets to define your audience and placements.</p>
+          <UButton
+            icon="i-heroicons-plus"
+            size="lg"
+            color="primary"
+            @click="isCreateAdSetModalOpen = true"
+          >
+            Add First Ad Set
+          </UButton>
+        </div>
+
+        <div v-else class="space-y-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Ad Sets ({{ addedAdSets.length }})</h3>
+            <UButton
+              icon="i-heroicons-plus"
+              size="sm"
+              variant="soft"
+              @click="isCreateAdSetModalOpen = true"
+            >
+              Add Another
+            </UButton>
+          </div>
+
+          <div class="grid gap-3">
+            <div 
+              v-for="adSet in addedAdSets" 
+              :key="adSet.id"
+              class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700"
+            >
+              <div class="flex items-center gap-3">
+                <div class="p-2 bg-gray-700 rounded-md">
+                  <UIcon 
+                    :name="platformOptions.find(p => p.value === adSet.platform)?.icon || 'i-heroicons-megaphone'" 
+                    class="text-xl" 
+                  />
+                </div>
+                <div>
+                  <h4 class="font-medium">{{ adSet.name }}</h4>
+                  <p class="text-xs text-gray-400">{{ adSet.audience_description || 'No description' }}</p>
+                </div>
+              </div>
+              <UBadge color="blue" variant="subtle" size="xs">Draft</UBadge>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <template #footer>
         <div class="flex items-center justify-between">
-          <p class="text-sm text-gray-400">
-            <UIcon name="i-heroicons-information-circle" class="inline" />
-            You'll add ad sets and creatives after creating the campaign
-          </p>
+          <div class="text-sm text-gray-400">
+            <span v-if="step === 'details'">Step 1 of 2</span>
+            <span v-else>Step 2 of 2</span>
+          </div>
+          
           <div class="flex gap-3">
             <UButton
+              v-if="step === 'details'"
               color="gray"
               variant="ghost"
               @click="emit('close')"
@@ -219,19 +286,47 @@ const handleSubmit = async () => {
             >
               Cancel
             </UButton>
+            
             <UButton
+              v-if="step === 'details'"
               type="submit"
               color="primary"
               size="lg"
               :loading="loading || isSubmitting"
               :disabled="loading || isSubmitting"
-              @click="handleSubmit"
+              @click="handleCreateCampaign"
             >
-              Create Campaign
+              Create & Continue
+            </UButton>
+
+            <UButton
+              v-if="step === 'ad-sets'"
+              color="gray"
+              variant="ghost"
+              @click="handleFinish"
+            >
+              Skip & Finish
+            </UButton>
+
+            <UButton
+              v-if="step === 'ad-sets'"
+              color="primary"
+              size="lg"
+              @click="handleFinish"
+            >
+              Finish Setup
             </UButton>
           </div>
         </div>
       </template>
     </UCard>
+
+    <!-- Nested Ad Set Modal -->
+    <CreateAdSetForm
+      v-if="isCreateAdSetModalOpen && createdCampaign"
+      :campaign="createdCampaign"
+      @close="isCreateAdSetModalOpen = false"
+      @created="handleAdSetCreated"
+    />
   </UModal>
 </template>
