@@ -40,14 +40,7 @@ export const useCampaigns = () => {
             *,
             creatives(
               *,
-              asset:assets(
-                id,
-                file_type,
-                thumbnail_url,
-                preview_url,
-                public_url,
-                storage_path
-              )
+              asset:assets(*)
             )
           )
         `)
