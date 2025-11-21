@@ -35,7 +35,7 @@
               :class="activeTab === 'overview' ? 'text-white' : 'text-gray-400 hover:text-gray-200'"
             >
               Overview
-              <div v-if="activeTab === 'overview'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500"></div>
+              <div v-if="activeTab === 'overview'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-secondary"></div>
             </button>
             <button
               @click="activeTab = 'ad-sets'"
@@ -44,7 +44,7 @@
             >
               Ad Sets
               <span v-if="campaignData?.ad_sets?.length" class="ml-1 text-xs text-gray-500">({{ campaignData.ad_sets.length }})</span>
-              <div v-if="activeTab === 'ad-sets'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500"></div>
+              <div v-if="activeTab === 'ad-sets'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-secondary"></div>
             </button>
           </div>
         </div>
@@ -272,7 +272,7 @@
               <h1 class="text-2xl font-semibold">Ad Sets</h1>
               <UButton
                 icon="i-heroicons-plus"
-                color="primary"
+                class="bg-secondary hover:bg-secondary/90 text-white"
                 @click="isCreateAdSetModalOpen = true"
               >
                 Add Ad Set
@@ -286,7 +286,7 @@
               <p class="text-gray-400 mb-6">Create your first ad set to organize your creatives</p>
               <UButton
                 icon="i-heroicons-plus"
-                color="primary"
+                class="bg-secondary hover:bg-secondary/90 text-white"
                 size="lg"
                 @click="isCreateAdSetModalOpen = true"
               >
@@ -333,7 +333,7 @@
                     <UButton
                       v-if="adSet.status !== 'approved' && adSet.status !== 'live'"
                       size="xs"
-                      color="primary"
+                      class="bg-secondary/10 text-secondary hover:bg-secondary/20"
                       variant="soft"
                       @click.stop="quickApprove(adSet.id)"
                     >

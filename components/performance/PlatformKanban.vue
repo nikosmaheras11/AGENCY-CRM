@@ -50,7 +50,7 @@
               v-for="campaign in getCampaignsForPlatform(column.id)" 
               :key="campaign.id"
               @click="$emit('select', campaign)"
-              class="card-glass p-4 hover:bg-white/10 transition-all cursor-pointer group border border-white/5 hover:border-primary-500/30"
+              class="card-glass p-4 hover:bg-white/10 transition-all cursor-pointer group border border-white/5 hover:border-secondary/30"
             >
               <!-- Header: Name & Date -->
               <div class="flex justify-between items-start mb-3">
@@ -117,7 +117,7 @@
           v-for="campaign in getCampaignsForPlatform(selectedPlatform)" 
           :key="campaign.id"
           @click="$emit('select', campaign)"
-          class="card-glass p-5 hover:bg-white/10 transition-all cursor-pointer group border border-white/5 hover:border-primary-500/30 flex flex-col"
+          class="card-glass p-5 hover:bg-white/10 transition-all cursor-pointer group border border-white/5 hover:border-secondary/30 flex flex-col"
         >
           <!-- Header -->
           <div class="flex justify-between items-start mb-4">
