@@ -117,7 +117,7 @@ const handleFinish = async () => {
       <template #header>
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-2xl font-bold">
+            <h2 class="text-2xl font-bold text-white">
               {{ step === 'details' ? 'Create Campaign' : 'Add Ad Sets' }}
             </h2>
             <p class="text-sm text-gray-400 mt-1">
@@ -131,7 +131,7 @@ const handleFinish = async () => {
       <!-- Step 1: Campaign Details -->
       <form v-if="step === 'details'" @submit.prevent="handleCreateCampaign" class="space-y-6">
         <!-- Campaign Name -->
-        <UFormGroup label="Campaign Name" required>
+        <UFormGroup label="Campaign Name" required :ui="{ label: { base: 'text-white' } }">
           <UInput
             v-model="formData.name"
             placeholder="e.g. Summer Sale 2025"
@@ -140,7 +140,7 @@ const handleFinish = async () => {
         </UFormGroup>
 
         <!-- Platform Selection -->
-        <UFormGroup label="Platforms" required>
+        <UFormGroup label="Platforms" required :ui="{ label: { base: 'text-white' } }">
           <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
             <button
               v-for="platform in platformOptions"
@@ -159,7 +159,7 @@ const handleFinish = async () => {
         </UFormGroup>
 
         <!-- Objective -->
-        <UFormGroup label="Campaign Objective">
+        <UFormGroup label="Campaign Objective" :ui="{ label: { base: 'text-white' } }">
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <button
               v-for="objective in objectiveOptions"
@@ -180,7 +180,7 @@ const handleFinish = async () => {
         </UFormGroup>
 
         <!-- Description -->
-        <UFormGroup label="Description">
+        <UFormGroup label="Description" :ui="{ label: { base: 'text-white' } }">
           <UTextarea
             v-model="formData.description"
             placeholder="Brief overview of the campaign..."
@@ -190,7 +190,7 @@ const handleFinish = async () => {
         </UFormGroup>
 
         <!-- Campaign Brief -->
-        <UFormGroup label="Campaign Brief" hint="(optional)">
+        <UFormGroup label="Campaign Brief" hint="(optional)" :ui="{ label: { base: 'text-white' } }">
           <UTextarea
             v-model="formData.campaign_brief"
             placeholder="Detailed strategy, target audience, key messages, creative direction..."
@@ -201,7 +201,7 @@ const handleFinish = async () => {
 
         <!-- Timeline -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <UFormGroup label="Planned Launch Date">
+          <UFormGroup label="Planned Launch Date" :ui="{ label: { base: 'text-white' } }">
             <UInput
               v-model="formData.planned_launch_date"
               type="date"
@@ -209,7 +209,7 @@ const handleFinish = async () => {
             />
           </UFormGroup>
 
-          <UFormGroup label="Planned End Date" hint="(optional)">
+          <UFormGroup label="Planned End Date" hint="(optional)" :ui="{ label: { base: 'text-white' } }">
             <UInput
               v-model="formData.planned_end_date"
               type="date"
@@ -223,7 +223,7 @@ const handleFinish = async () => {
       <div v-else class="space-y-6">
         <div v-if="addedAdSets.length === 0" class="text-center py-8 border-2 border-dashed border-gray-700 rounded-xl">
           <UIcon name="i-heroicons-squares-plus" class="text-5xl text-gray-600 mb-3" />
-          <h3 class="text-lg font-semibold mb-2">No Ad Sets Added Yet</h3>
+          <h3 class="text-lg font-semibold mb-2 text-white">No Ad Sets Added Yet</h3>
           <p class="text-gray-400 mb-6">Create ad sets to define your audience and placements.</p>
           <UButton
             icon="i-heroicons-plus"
@@ -237,7 +237,7 @@ const handleFinish = async () => {
 
         <div v-else class="space-y-4">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold">Ad Sets ({{ addedAdSets.length }})</h3>
+            <h3 class="text-lg font-semibold text-white">Ad Sets ({{ addedAdSets.length }})</h3>
             <UButton
               icon="i-heroicons-plus"
               size="sm"
@@ -262,7 +262,7 @@ const handleFinish = async () => {
                   />
                 </div>
                 <div>
-                  <h4 class="font-medium">{{ adSet.name }}</h4>
+                  <h4 class="font-medium text-white">{{ adSet.name }}</h4>
                   <p class="text-xs text-gray-400">{{ adSet.audience_description || 'No description' }}</p>
                 </div>
               </div>
