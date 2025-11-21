@@ -23,13 +23,21 @@ const isCreateAdSetModalOpen = ref(false)
 const isCreateCreativeModalOpen = ref(false)
 const selectedAdSet = ref(null)
 const expandedAdSets = ref(new Set())
+const error = ref(null)
 
 // Load campaign with full hierarchy
 onMounted(async () => {
-  await fetchCampaignWithHierarchy(campaignId)
-  // Auto-expand first ad set
-  if (campaign.value?.ad_sets?.length > 0) {
-    expandedAdSets.value.add(campaign.value.ad_sets[0].id)
+  try {
+    console.log('Fetching campaign with ID:', campaignId)
+    await fetchCampaignWithHierarchy(campaignId)
+    console.log('Campaign fetched:', campaign.value)
+    // Auto-expand first ad set
+    if (campaign.value?.ad_sets?.length > 0) {
+      expandedAdSets.value.add(campaign.value.ad_sets[0].id)
+    }
+  } catch (e) {
+    console.error('Error loading campaign:', e)
+    error.value = (e as Error)?.message || 'Failed to load campaign'
   }
 })
 
@@ -97,6 +105,23 @@ const navigateToCreative = (creative: any) => {
       <div class="text-center">
         <UIcon name="i-heroicons-arrow-path" class="text-4xl animate-spin text-primary-500 mb-4" />
         <p class="text-gray-400">Loading campaign...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="flex items-center justify-center h-full">
+      <div class="text-center max-w-md">
+        <UIcon name="i-heroicons-exclamation-triangle" class="text-6xl text-red-500 mb-4 mx-auto" />
+        <h2 class="text-2xl font-bold text-white mb-2">Error Loading Campaign</h2>
+        <p class="text-gray-400 mb-6">{{ error }}</p>
+        <div class="flex gap-3 justify-center">
+          <UButton @click="navigateTo('/performance')" variant="outline">
+            Back to Campaigns
+          </UButton>
+          <UButton @click="() => { error = null; fetchCampaignWithHierarchy(campaignId) }" color="primary">
+            Retry
+          </UButton>
+        </div>
       </div>
     </div>
 
