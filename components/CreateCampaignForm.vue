@@ -44,18 +44,41 @@ const togglePlatform = (platform: string) => {
   }
 }
 
+const toast = useToast()
+const isSubmitting = ref(false)
+
 const handleSubmit = async () => {
+  if (isSubmitting.value) return
+  
   try {
-    if (!formData.value.name) throw new Error('Campaign name is required')
-    if (formData.value.platforms.length === 0) throw new Error('Please select at least one platform')
+    isSubmitting.value = true
+    
+    console.log('Form data:', formData.value)
+    
+    if (!formData.value.name) {
+      toast.add({ title: 'Campaign name is required', color: 'red' })
+      return
+    }
+    if (formData.value.platforms.length === 0) {
+      toast.add({ title: 'Please select at least one platform', color: 'red' })
+      return
+    }
     
     // Send null for client_id as it's not used
     const payload = {
       ...formData.value,
-      client_id: null
+      client_id: null,
+      status: 'planning'
     }
+    
+    console.log('Creating campaign with payload:', payload)
 
     const campaign = await createCampaign(payload)
+    
+    console.log('Campaign created:', campaign)
+    
+    toast.add({ title: 'Campaign created successfully', color: 'green' })
+    
     emit('created', campaign)
     emit('close')
     
@@ -63,8 +86,15 @@ const handleSubmit = async () => {
     if (campaign?.id) {
       await navigateTo(`/performance/${campaign.id}`)
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating campaign:', error)
+    toast.add({ 
+      title: 'Failed to create campaign', 
+      description: error.message || 'An error occurred',
+      color: 'red' 
+    })
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -190,9 +220,11 @@ const handleSubmit = async () => {
               Cancel
             </UButton>
             <UButton
+              type="submit"
               color="primary"
               size="lg"
-              :loading="loading"
+              :loading="loading || isSubmitting"
+              :disabled="loading || isSubmitting"
               @click="handleSubmit"
             >
               Create Campaign
