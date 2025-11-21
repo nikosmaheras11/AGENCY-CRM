@@ -34,6 +34,7 @@ MIGRATIONS=(
   "supabase/migrations/20251120_campaign_hierarchy.sql"
   "supabase/migrations/20251120_campaign_rls.sql"
   "supabase/migrations/20251120_cleanup_rls.sql"
+  "supabase/migrations/20251120_add_creative_budget.sql"
 )
 
 for migration in "${MIGRATIONS[@]}"; do
