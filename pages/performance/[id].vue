@@ -73,7 +73,7 @@ const getPlatformIcon = (platform: string) => {
   return icons[platform] || 'i-heroicons-megaphone'
 }
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: string): any => {
   const colors: Record<string, string> = {
     draft: 'gray',
     planning: 'blue',
