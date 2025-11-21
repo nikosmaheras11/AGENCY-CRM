@@ -212,9 +212,9 @@ const getStatusColor = (status: string) => {
     'draft': 'bg-slate-500',
     'ready_for_review': 'bg-purple-500',
     'in_review': 'bg-purple-500',
-    'approved': 'bg-green-500',
+    'approved': 'bg-secondary',
     'changes_requested': 'bg-red-500',
-    'live': 'bg-green-500',
+    'live': 'bg-secondary',
     'completed': 'bg-gray-500',
     'archived': 'bg-red-900'
   }
@@ -225,8 +225,8 @@ const getStatusBadge = (status: string) => {
   const badges: Record<string, string> = {
     'planning': 'bg-slate-500/20 text-slate-300',
     'in_review': 'bg-purple-500/20 text-purple-300',
-    'approved': 'bg-blue-500/20 text-blue-300',
-    'live': 'bg-green-500/20 text-green-300',
+    'approved': 'bg-secondary/20 text-secondary',
+    'live': 'bg-secondary/20 text-secondary',
     'completed': 'bg-gray-500/20 text-gray-300',
     'archived': 'bg-red-500/20 text-red-300'
   }

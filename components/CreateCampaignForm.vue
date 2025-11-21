@@ -82,7 +82,7 @@ const handleCreateCampaign = async () => {
     console.log('Setting step to ad-sets')
     step.value = 'ad-sets'
     
-    toast.add({ title: 'Campaign created! Now add your ad sets.', color: 'green' })
+    toast.add({ title: 'Campaign created! Now add your ad sets.', color: 'blue' })
     emit('created', campaign)
   } catch (error: any) {
     console.error('Error creating campaign:', error)
@@ -100,7 +100,7 @@ const handleCreateCampaign = async () => {
 const handleAdSetCreated = (adSet: any) => {
   addedAdSets.value.push(adSet)
   isCreateAdSetModalOpen.value = false
-  toast.add({ title: 'Ad Set added successfully', color: 'green' })
+  toast.add({ title: 'Ad Set added successfully', color: 'blue' })
 }
 
 const handleFinish = async () => {

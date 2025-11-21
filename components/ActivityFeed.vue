@@ -73,7 +73,7 @@ const getActionIcon = (action: string) => {
 
 const getActionColor = (action: string) => {
   const colors: Record<string, string> = {
-    created: 'bg-green-100 text-green-600',
+    created: 'bg-secondary/10 text-secondary',
     updated: 'bg-blue-100 text-blue-600',
     deleted: 'bg-red-100 text-red-600',
     approved: 'bg-emerald-100 text-emerald-600',
@@ -85,7 +85,7 @@ const getActionColor = (action: string) => {
 const getCollectionBadge = (collection: string) => {
   const badges: Record<string, string> = {
     creative_assets: 'bg-purple-100 text-purple-700',
-    performance_campaigns: 'bg-green-100 text-green-700',
+    performance_campaigns: 'bg-secondary/10 text-secondary',
     design_components: 'bg-orange-100 text-orange-700',
     resources: 'bg-blue-100 text-blue-700',
     projects: 'bg-indigo-100 text-indigo-700'

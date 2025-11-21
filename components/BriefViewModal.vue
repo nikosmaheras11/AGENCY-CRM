@@ -315,7 +315,7 @@ const getPriorityBadge = (priority?: string) => {
     'urgent': 'bg-red-500/20 text-red-300',
     'high': 'bg-orange-500/20 text-orange-300',
     'medium': 'bg-yellow-500/20 text-yellow-300',
-    'low': 'bg-green-500/20 text-green-300'
+    'low': 'bg-secondary/20 text-secondary'
   }
   return badges[priority?.toLowerCase() || 'medium'] || 'bg-yellow-500/20 text-yellow-300'
 }
@@ -325,7 +325,7 @@ const getPriorityBadgeLight = (priority?: string) => {
     'urgent': 'bg-red-100 text-red-800',
     'high': 'bg-orange-100 text-orange-800',
     'medium': 'bg-yellow-100 text-yellow-800',
-    'low': 'bg-green-100 text-green-800'
+    'low': 'bg-secondary/10 text-secondary'
   }
   return badges[priority?.toLowerCase() || 'medium'] || 'bg-yellow-100 text-yellow-800'
 }

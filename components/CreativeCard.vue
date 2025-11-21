@@ -100,7 +100,7 @@ defineProps<{
 const getStatusBadge = (status: string) => {
   const badges: Record<string, string> = {
     pending: 'bg-blue-50 text-blue-700',
-    approved: 'bg-green-50 text-green-700',
+    approved: 'bg-secondary/10 text-secondary',
     rejected: 'bg-orange-50 text-orange-700'
   }
   return badges[status] || 'bg-slate-50 text-slate-700'
@@ -109,7 +109,7 @@ const getStatusBadge = (status: string) => {
 const getStatusDot = (status: string) => {
   const dots: Record<string, string> = {
     pending: 'bg-blue-500',
-    approved: 'bg-green-500',
+    approved: 'bg-secondary',
     rejected: 'bg-orange-500'
   }
   return dots[status] || 'bg-gray-500'

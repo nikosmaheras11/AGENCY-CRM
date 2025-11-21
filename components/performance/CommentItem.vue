@@ -19,7 +19,7 @@
       <!-- Resolved Badge -->
       <span 
         v-if="comment.resolved"
-        class="px-2 py-0.5 text-xs rounded-full bg-green-500/20 text-green-400"
+        class="px-2 py-0.5 text-xs rounded-full bg-secondary/20 text-secondary"
       >
         ✓ Resolved
       </span>

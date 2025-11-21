@@ -28,7 +28,7 @@
       <div class="w-full bg-white/10 rounded-full h-2">
         <div 
           class="h-2 rounded-full transition-all"
-          :class="campaign.progress >= 75 ? 'bg-green-500' : campaign.progress >= 50 ? 'bg-blue-500' : 'bg-orange-500'"
+          :class="campaign.progress >= 75 ? 'bg-secondary' : campaign.progress >= 50 ? 'bg-blue-500' : 'bg-orange-500'"
           :style="{ width: `${campaign.progress}%` }"
         ></div>
       </div>
@@ -73,7 +73,7 @@ const getPriorityBadge = (priority: string) => {
     'Critical': 'bg-red-500/20 text-red-300',
     'High': 'bg-orange-500/20 text-orange-300',
     'Medium': 'bg-yellow-500/20 text-yellow-300',
-    'Low': 'bg-green-500/20 text-green-300'
+    'Low': 'bg-secondary/20 text-secondary'
   }
   return badges[priority] || 'bg-white/10 text-slate-300'
 }

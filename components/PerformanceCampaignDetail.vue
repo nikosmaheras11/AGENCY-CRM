@@ -207,7 +207,7 @@
               <!-- Progress Bar -->
               <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden mb-4">
                 <div 
-                  class="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300"
+                  class="h-full bg-gradient-to-r from-secondary to-blue-400 transition-all duration-300"
                   :style="{ width: `${approvalProgress}%` }"
                 />
               </div>
@@ -324,8 +324,8 @@
                   <div class="flex items-center gap-3">
                     <!-- Status Badge -->
                     <span 
-                      class="px-2 py-1 text-xs font-medium rounded-full"
-                      :class="getStatusBadgeClass(adSet.status)"
+                      class="px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      :class="getStatusBadge(adSet.status)"
                     >
                       {{ formatStatus(adSet.status) }}
                     </span>
@@ -333,7 +333,7 @@
                     <UButton
                       v-if="adSet.status !== 'approved' && adSet.status !== 'live'"
                       size="xs"
-                      color="green"
+                      color="primary"
                       variant="soft"
                       @click.stop="quickApprove(adSet.id)"
                     >
@@ -620,26 +620,26 @@ const approvalProgress = computed(() => {
 // Status formatting
 const formatStatus = (status: string) => {
   const labels: Record<string, string> = {
-    draft: 'Draft',
-    ready_for_review: 'Ready for Review',
-    in_review: 'In Review',
-    approved: 'Approved',
-    changes_requested: 'Changes Requested',
-    live: 'Live'
+    'draft': 'Draft',
+    'ready_for_review': 'Ready for Review',
+    'in_review': 'In Review',
+    'approved': 'Approved',
+    'changes_requested': 'Changes Requested',
+    'live': 'Live'
   }
   return labels[status] || status
 }
 
-const getStatusBadgeClass = (status: string) => {
-  const classes: Record<string, string> = {
-    draft: 'bg-gray-500/20 text-gray-400',
-    ready_for_review: 'bg-blue-500/20 text-blue-400',
-    in_review: 'bg-yellow-500/20 text-yellow-400',
-    approved: 'bg-green-500/20 text-green-400',
-    changes_requested: 'bg-red-500/20 text-red-400',
-    live: 'bg-purple-500/20 text-purple-400'
+const getStatusBadge = (status: string) => {
+  const badges: Record<string, string> = {
+    'planning': 'bg-slate-500/20 text-slate-300',
+    'in_review': 'bg-purple-500/20 text-purple-300',
+    'approved': 'bg-secondary/20 text-secondary',
+    'live': 'bg-secondary/20 text-secondary',
+    'completed': 'bg-gray-500/20 text-gray-300',
+    'archived': 'bg-red-500/20 text-red-300'
   }
-  return classes[status] || 'bg-gray-500/20 text-gray-400'
+  return badges[status] || 'bg-gray-500/20 text-gray-400'
 }
 
 // Quick approve ad set

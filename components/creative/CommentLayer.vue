@@ -22,7 +22,7 @@
       <!-- Comment pin icon -->
       <div 
         class="w-full h-full rounded-full flex items-center justify-center shadow-lg"
-        :class="comment.resolved ? 'bg-green-500' : 'bg-blue-500'"
+        :class="comment.resolved ? 'bg-secondary' : 'bg-blue-500'"
       >
         <span class="material-icons text-white text-sm">
           {{ comment.resolved ? 'check' : 'comment' }}

@@ -63,7 +63,7 @@
           <p class="text-xs text-slate-600 mb-0.5">ROAS</p>
           <p 
             class="text-sm font-semibold"
-            :class="creative.roas >= 3 ? 'text-green-600' : 'text-orange-600'"
+            :class="creative.roas >= 3 ? 'text-secondary' : 'text-orange-600'"
           >
             {{ creative.roas }}x
           </p>
@@ -124,7 +124,7 @@ const getTypeIcon = (type: string) => {
 
 const getPerformanceBadge = (status: string) => {
   const badges: Record<string, string> = {
-    'performing': 'bg-green-500/90 text-white',
+    'performing': 'bg-secondary/90 text-white',
     'in-progress': 'bg-blue-500/90 text-white',
     'underperforming': 'bg-orange-500/90 text-white'
   }

@@ -163,7 +163,7 @@ const priorityClasses = (priority: string | null) => {
     urgent: 'bg-red-500/20 text-red-300 border border-red-500/30',
     high: 'bg-orange-500/20 text-orange-300 border border-orange-500/30',
     medium: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-    low: 'bg-green-500/20 text-green-300 border border-green-500/30'
+    low: 'bg-secondary/20 text-secondary border border-secondary/30'
   }
   const key = priority || 'medium'
   return classes[key as keyof typeof classes] || classes.medium
@@ -175,7 +175,7 @@ const statusClasses = (status: string | null) => {
     'in-progress': 'bg-blue-500/20 text-blue-300',
     'needs-review': 'bg-orange-500/20 text-orange-300',
     'needs-edit': 'bg-red-500/20 text-red-300',
-    'done': 'bg-green-500/20 text-green-300'
+    'done': 'bg-secondary/20 text-secondary'
   }
   const key = status || 'new-request'
   return classes[key as keyof typeof classes] || classes['new-request']

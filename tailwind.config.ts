@@ -19,6 +19,7 @@ export default {
           500: '#4318FF',
           400: '#7551FF',
         },
+        secondary: '#146EF5',
         success: '#01B574',
         error: '#E31A1A',
         teal: {

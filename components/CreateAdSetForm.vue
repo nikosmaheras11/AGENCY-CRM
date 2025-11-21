@@ -347,7 +347,7 @@ const handleSubmit = async () => {
                 v-for="(item, index) in uploadedFiles"
                 :key="index"
                 class="relative aspect-square rounded-lg overflow-hidden border-2 transition-all"
-                :class="item.uploading ? 'border-yellow-500' : item.error ? 'border-red-500' : 'border-green-500'"
+                :class="item.uploading ? 'border-yellow-500' : item.error ? 'border-red-500' : 'border-secondary'"
               >
                 <div class="w-full h-full bg-gray-800 flex items-center justify-center">
                   <template v-if="item.uploading">

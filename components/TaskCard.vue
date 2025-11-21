@@ -54,7 +54,7 @@ const getPriorityBadge = (priority: string) => {
   const badges: Record<string, string> = {
     high: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
     medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-    low: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+    low: 'bg-secondary/10 text-secondary dark:bg-secondary/30 dark:text-secondary'
   }
   return badges[priority] || 'bg-gray-100 text-gray-800'
 }

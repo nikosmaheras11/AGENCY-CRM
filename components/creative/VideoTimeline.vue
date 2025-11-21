@@ -5,7 +5,7 @@
       v-for="comment in videoComments" 
       :key="comment.id"
       class="absolute w-1 h-4 rounded-sm bottom-0 transform -translate-x-1/2 pointer-events-auto cursor-pointer transition-all hover:h-5 hover:w-1.5"
-      :class="comment.resolved ? 'bg-green-500' : 'bg-blue-500'"
+      :class="comment.resolved ? 'bg-secondary' : 'bg-blue-500'"
       :style="{ left: `${getPositionPercent(comment.timecode)}%` }"
       @click.stop="$emit('seek', comment.timecode)"
     ></div>
