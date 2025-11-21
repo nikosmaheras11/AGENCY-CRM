@@ -112,6 +112,29 @@ export const useCampaigns = () => {
         return data
     }
 
+    const fetchLiveCreatives = async () => {
+        try {
+            loading.value = true
+            const { data, error } = await supabase
+                .from('creatives')
+                .select(`
+                    *,
+                    ad_set:ad_sets!inner(platform, campaign_id),
+                    asset:assets(*)
+                `)
+                .eq('status', 'live')
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+            return data
+        } catch (error) {
+            console.error('Error fetching live creatives:', error)
+            throw error
+        } finally {
+            loading.value = false
+        }
+    }
+
     return {
         campaigns: readonly(campaigns),
         campaign: readonly(campaign),
@@ -119,6 +142,7 @@ export const useCampaigns = () => {
         fetchCampaigns,
         fetchCampaignWithHierarchy,
         createCampaign,
-        updateCampaignStatus
+        updateCampaignStatus,
+        fetchLiveCreatives
     }
 }

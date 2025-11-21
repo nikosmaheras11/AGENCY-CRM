@@ -38,28 +38,24 @@
         </div>
       </div>
 
-      <!-- View Switcher -->
-      <div class="card-glass card-elevated p-5 mb-6">
-        <div class="flex items-center justify-between">
-          <div class="flex gap-2">
-            <button 
-              @click="viewMode = 'table'"
-              class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-              :class="viewMode === 'table' ? 'bg-primary-500 text-white shadow-primary' : 'text-slate-300 hover:bg-white/10'"
-            >
-              Table View
-            </button>
-            <button 
-              @click="viewMode = 'kanban'"
-              class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-              :class="viewMode === 'kanban' ? 'bg-primary-500 text-white shadow-primary' : 'text-slate-300 hover:bg-white/10'"
-            >
-              Board View
-            </button>
-          </div>
-          <div class="text-sm text-slate-400 font-light">
-            {{ campaigns.length }} campaigns
-          </div>
+      <!-- View Switcher & Filters -->
+      <div class="flex items-center justify-between mb-6">
+        <!-- Tabs -->
+        <div class="flex p-1 bg-white/5 rounded-2xl border border-white/10">
+          <button 
+            v-for="mode in viewModes" 
+            :key="mode.id"
+            @click="viewMode = mode.id"
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2"
+            :class="viewMode === mode.id ? 'bg-primary-500 text-white shadow-primary' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+          >
+            <UIcon :name="mode.icon" />
+            {{ mode.label }}
+          </button>
+        </div>
+
+        <div class="text-sm text-slate-400 font-light">
+          {{ campaigns.length }} campaigns
         </div>
       </div>
 
@@ -83,59 +79,26 @@
         </button>
       </div>
 
-      <!-- Table View -->
-      <div v-else-if="viewMode === 'table'" class="card-glass card-elevated overflow-hidden">
-        <!-- Table Header -->
-        <div class="grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-          <div class="col-span-6">Campaign Name</div>
-          <div class="col-span-2">Status</div>
-          <div class="col-span-2">Platforms</div>
-          <div class="col-span-2">Launch Date</div>
-        </div>
+      <!-- Views -->
+      <div v-else>
+        <!-- Status Table View -->
+        <PerformanceStatusTable 
+          v-if="viewMode === 'status_table'"
+          :campaigns="campaigns"
+          @select="openCampaignDetail"
+        />
 
-        <!-- Table Rows -->
-        <div class="divide-y divide-white/10">
-          <div 
-            v-for="campaign in campaigns" 
-            :key="campaign.id"
-            @click="openCampaignDetail(campaign)"
-            class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer"
-          >
-            <!-- Campaign Name -->
-            <div class="col-span-6">
-              <div class="font-medium text-white">{{ campaign.name }}</div>
-              <div class="text-xs text-slate-400 mt-1 truncate">{{ campaign.description || 'No description' }}</div>
-            </div>
+        <!-- Platform Kanban View -->
+        <PerformancePlatformKanban
+          v-else-if="viewMode === 'platform_kanban'"
+          :campaigns="campaigns"
+          @select="openCampaignDetail"
+        />
 
-            <!-- Status -->
-            <div class="col-span-2 flex items-center">
-              <span 
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                :class="getStatusBadge(campaign.status)"
-              >
-                {{ formatStatus(campaign.status) }}
-              </span>
-            </div>
-
-            <!-- Platforms -->
-            <div class="col-span-2 flex items-center gap-1">
-              <UIcon 
-                v-for="platform in campaign.platforms.slice(0, 3)" 
-                :key="platform"
-                :name="getPlatformIcon(platform)" 
-                class="text-lg text-slate-400" 
-              />
-              <span v-if="campaign.platforms.length > 3" class="text-xs text-slate-500">
-                +{{ campaign.platforms.length - 3 }}
-              </span>
-            </div>
-
-            <!-- Launch Date -->
-            <div class="col-span-2 flex items-center text-sm text-slate-400">
-              {{ formatDate(campaign.planned_launch_date) }}
-            </div>
-          </div>
-        </div>
+        <!-- Live Creatives View -->
+        <PerformanceLiveCreatives
+          v-else-if="viewMode === 'live_creatives'"
+        />
       </div>
     </div>
   </DashboardLayout>
@@ -145,7 +108,13 @@
 const showCreateModal = ref(false)
 const showCampaignDetail = ref(false)
 const selectedCampaign = ref<any>(null)
-const viewMode = ref('table')
+const viewMode = ref('status_table')
+
+const viewModes = [
+  { id: 'status_table', label: 'Status Blocks', icon: 'i-heroicons-table-cells' },
+  { id: 'platform_kanban', label: 'Platform Board', icon: 'i-heroicons-view-columns' },
+  { id: 'live_creatives', label: 'Live Creatives', icon: 'i-heroicons-play-circle' }
+]
 const { campaigns, fetchCampaigns, loading } = useCampaigns()
 
 onMounted(() => {
