@@ -35,7 +35,7 @@ export const useCampaigns = () => {
                 .from('campaigns')
                 .select(`
           *,
-          client:clients(id, name, logo_url),
+          client:clients!campaigns_client_id_fkey(id, name, logo_url),
           ad_sets(
             *,
             creatives(
