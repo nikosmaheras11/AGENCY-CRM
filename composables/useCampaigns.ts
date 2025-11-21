@@ -49,6 +49,11 @@ export const useCampaigns = () => {
     }
 
     const createCampaign = async (campaignData: any) => {
+        if (!user.value) {
+            console.error('User not authenticated')
+            throw new Error('User not authenticated')
+        }
+
         const { data, error } = await supabase
             .from('campaigns')
             .insert({

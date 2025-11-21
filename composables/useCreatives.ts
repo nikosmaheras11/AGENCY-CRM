@@ -14,12 +14,15 @@ export const useCreatives = () => {
 
         const nextSortOrder = (maxSort?.sort_order || 0) + 1
 
+        if (!user.value) throw new Error('User not authenticated')
+
         const { data, error } = await supabase
             .from('creatives')
             .insert({
                 ...creativeData,
                 sort_order: nextSortOrder,
-                status: 'draft'
+                status: 'draft',
+                // created_by: user.value.id // If needed in schema
             })
             .select(`
         *,
