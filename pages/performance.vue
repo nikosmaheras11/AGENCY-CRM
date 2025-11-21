@@ -31,7 +31,7 @@
           </button>
           <button 
             @click="showCreateModal = true"
-            class="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white shadow-primary rounded-2xl font-medium transition-all"
+            class="px-5 py-2.5 bg-secondary hover:bg-secondary/90 text-white shadow-primary rounded-2xl font-medium transition-all"
           >
             + New Campaign
           </button>
@@ -47,7 +47,7 @@
             :key="mode.id"
             @click="viewMode = mode.id"
             class="px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2"
-            :class="viewMode === mode.id ? 'bg-primary-500 text-white shadow-primary' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+            :class="viewMode === mode.id ? 'bg-secondary text-white shadow-primary' : 'text-slate-400 hover:text-white hover:bg-white/5'"
           >
             <UIcon :name="mode.icon" />
             {{ mode.label }}
@@ -73,7 +73,7 @@
         <p class="text-slate-400 mb-6">Create your first campaign to get started</p>
         <button 
           @click="showCreateModal = true"
-          class="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white shadow-primary rounded-2xl font-medium transition-all"
+          class="px-5 py-2.5 bg-secondary hover:bg-secondary/90 text-white shadow-primary rounded-2xl font-medium transition-all"
         >
           Create Campaign
         </button>

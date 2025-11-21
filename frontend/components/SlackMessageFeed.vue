@@ -139,7 +139,7 @@ function getInitials(name: string): string {
 </script>
 
 <template>
-  <div class="slack-message-feed">
+  <div class="slack-message-feed w-full">
     <!-- Loading State -->
     <div v-if="loading && messages.length === 0" class="space-y-2">
       <div v-for="i in 3" :key="i" class="bg-white/5 border border-white/10 rounded-lg p-3 animate-pulse">
@@ -195,8 +195,4 @@ function getInitials(name: string): string {
   </div>
 </template>
 
-<style scoped>
-.slack-message-feed {
-  @apply w-full;
-}
-</style>
+

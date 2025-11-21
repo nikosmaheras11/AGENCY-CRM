@@ -12,7 +12,7 @@
         <!-- New Request Button -->
         <button 
           @click="openRequestForm"
-          class="flex items-center gap-2 px-4 py-2 bg-success hover:bg-success/90 rounded-lg font-medium transition-colors"
+          class="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/90 rounded-lg font-medium transition-colors"
         >
           <span class="material-icons text-lg">add</span>
           <span class="hidden sm:inline">New Request</span>

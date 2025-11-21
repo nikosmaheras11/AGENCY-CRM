@@ -25,7 +25,7 @@
           <button class="px-5 py-2.5 card-glass hover:bg-white/10 text-white rounded-2xl font-medium transition-all">
             Filter
           </button>
-          <button class="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white shadow-primary rounded-2xl font-medium transition-all">
+          <button class="px-5 py-2.5 bg-secondary hover:bg-secondary/90 text-white shadow-primary rounded-2xl font-medium transition-all">
             + New Project
           </button>
         </div>
@@ -38,14 +38,14 @@
             <button 
               @click="viewMode = 'table'"
               class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-              :class="viewMode === 'table' ? 'bg-primary-500 text-white shadow-primary' : 'text-slate-300 hover:bg-white/10'"
+              :class="viewMode === 'table' ? 'bg-secondary text-white shadow-primary' : 'text-slate-300 hover:bg-white/10'"
             >
               Table View
             </button>
             <button 
               @click="viewMode = 'kanban'"
               class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-              :class="viewMode === 'kanban' ? 'bg-primary-500 text-white shadow-primary' : 'text-slate-300 hover:bg-white/10'"
+              :class="viewMode === 'kanban' ? 'bg-secondary text-white shadow-primary' : 'text-slate-300 hover:bg-white/10'"
             >
               Board View
             </button>
