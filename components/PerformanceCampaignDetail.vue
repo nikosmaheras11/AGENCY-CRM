@@ -296,7 +296,10 @@ const loadCampaignData = async () => {
   if (!props.campaign?.id) return
   
   try {
+    console.log('Loading campaign data for:', props.campaign.id)
     const data = await fetchCampaignWithHierarchy(props.campaign.id)
+    console.log('Campaign data loaded:', data)
+    console.log('Ad sets:', data?.ad_sets)
     campaignData.value = data
   } catch (error) {
     console.error('Failed to load campaign data:', error)
