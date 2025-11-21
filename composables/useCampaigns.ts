@@ -89,6 +89,7 @@ export const useCampaigns = () => {
             .single()
 
         if (error) throw error
+        if (!data) throw new Error('Campaign created but no data returned. Possible RLS issue.')
 
         // Log activity
         console.log('Logging activity for campaign creation...')
