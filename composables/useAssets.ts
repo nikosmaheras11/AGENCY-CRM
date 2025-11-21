@@ -44,13 +44,19 @@ export const useAssets = () => {
         uploadProgress.value = 0
 
         try {
-            if (!user.value) throw new Error('User not authenticated')
+            if (!user.value) {
+                throw new Error('User not authenticated')
+            }
+
+            console.log('📤 Starting upload for:', file.name, 'Size:', file.size, 'Type:', file.type)
 
             // Generate unique file path
             const fileExt = file.name.split('.').pop()
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
             const folder = metadata?.folder || 'creative-assets'
             const filePath = `${folder}/${fileName}`
+
+            console.log('📁 Upload path:', filePath)
 
             // Upload file to storage
             const { data: uploadData, error: uploadError } = await supabase.storage
@@ -60,12 +66,19 @@ export const useAssets = () => {
                     upsert: false,
                 })
 
-            if (uploadError) throw uploadError
+            if (uploadError) {
+                console.error('❌ Storage upload error:', uploadError)
+                throw new Error(`Storage upload failed: ${uploadError.message}`)
+            }
+
+            console.log('✅ File uploaded to storage:', uploadData)
 
             // Get public URL
             const { data: { publicUrl } } = supabase.storage
                 .from('assets')
                 .getPublicUrl(filePath)
+
+            console.log('🔗 Public URL:', publicUrl)
 
             // Determine file type
             const fileType = file.type.startsWith('image/') ? 'image'
@@ -73,31 +86,46 @@ export const useAssets = () => {
                     : 'other'
 
             // Create asset record in database
+            const assetPayload = {
+                file_name: file.name,
+                file_type: fileType,
+                file_size: file.size,
+                storage_path: filePath,
+                public_url: publicUrl,
+                thumbnail_url: fileType === 'image' ? publicUrl : null,
+                campaign_id: metadata?.campaign_id || null,
+                client_id: metadata?.client_id || null,
+                uploaded_by: user.value.id,
+                mime_type: file.type,
+            }
+
+            console.log('💾 Creating asset record:', assetPayload)
+
             const { data: assetData, error: assetError } = await supabase
                 .from('assets')
-                .insert({
-                    file_name: file.name,
-                    file_type: fileType,
-                    file_size: file.size,
-                    storage_path: filePath,
-                    public_url: publicUrl,
-                    thumbnail_url: fileType === 'image' ? publicUrl : null,
-                    campaign_id: metadata?.campaign_id,
-                    client_id: metadata?.client_id,
-                    uploaded_by: user.value.id,
-                    mime_type: file.type,
-                })
+                .insert(assetPayload)
                 .select()
                 .single()
 
-            if (assetError) throw assetError
+            if (assetError) {
+                console.error('❌ Database insert error:', assetError)
+                throw new Error(`Database insert failed: ${assetError.message}`)
+            }
+
+            console.log('✅ Asset record created:', assetData)
 
             // Add to local state
             assetsState.value.unshift(assetData)
 
             return assetData
-        } catch (error) {
-            console.error('Error uploading asset:', error)
+        } catch (error: any) {
+            console.error('❌ Upload failed:', error)
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            })
             throw error
         } finally {
             loading.value = false
