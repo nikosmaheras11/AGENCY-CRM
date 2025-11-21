@@ -354,7 +354,7 @@ const handleSubmit = async () => {
                   <template v-else-if="item.asset">
                     <img 
                       v-if="item.asset.file_type === 'image'"
-                      :src="item.asset.thumbnail_url || item.asset.public_url"
+                      :src="item.asset.thumbnail_url || item.asset.preview_url"
                       :alt="item.file.name"
                       class="w-full h-full object-cover"
                     />
