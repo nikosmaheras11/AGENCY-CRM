@@ -85,7 +85,7 @@ export const useCampaigns = () => {
                 status: 'planning',
                 created_by: user.value.id
             })
-
+            .select()
             .single()
 
         if (error) throw error
