@@ -25,6 +25,12 @@ const selectedAdSet = ref(null)
 const expandedAdSets = ref(new Set())
 const error = ref(null)
 
+// Detail Panels
+const showAdSetDetail = ref(false)
+const showCreativeDetail = ref(false)
+const selectedAdSetForDetail = ref<any>(null)
+const selectedCreativeForDetail = ref<any>(null)
+
 // Load campaign with full hierarchy
 onMounted(async () => {
   try {
@@ -93,8 +99,18 @@ const handleCreativeCreated = () => {
   selectedAdSet.value = null
 }
 
-const navigateToCreative = (creative: any) => {
-  navigateTo(`/performance/${campaignId}/creative/${creative.id}`)
+const openAdSetDetail = (adSet: any) => {
+  selectedAdSetForDetail.value = adSet
+  showAdSetDetail.value = true
+}
+
+const openCreativeDetail = (creative: any) => {
+  selectedCreativeForDetail.value = creative
+  showCreativeDetail.value = true
+}
+
+const handleDetailUpdated = () => {
+  fetchCampaignWithHierarchy(campaignId)
 }
 </script>
 
@@ -253,17 +269,23 @@ const navigateToCreative = (creative: any) => {
             :ui="{ body: { padding: 'p-0' } }"
           >
             <!-- Ad Set Header -->
-            <div 
-              class="p-4 cursor-pointer hover:bg-gray-800/50 transition-colors"
-              @click="toggleAdSetExpansion(adSet.id)"
-            >
-              <div class="flex items-start justify-between">
-                <div class="flex items-start gap-3 flex-1">
-                  <!-- Expand/Collapse Icon -->
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <button
+                  @click="toggleAdSetExpansion(adSet.id)"
+                  class="p-1 hover:bg-gray-700 rounded transition-colors"
+                >
                   <UIcon 
                     :name="expandedAdSets.has(adSet.id) ? 'i-heroicons-chevron-down' : 'i-heroicons-chevron-right'"
-                    class="text-xl text-gray-400 mt-1 transition-transform"
+                    class="text-xl text-gray-400 transition-transform"
                   />
+                </button>
+                <button
+                  @click="openAdSetDetail(adSet)"
+                  class="flex-1 text-left hover:bg-gray-800/50 rounded p-2 transition-colors"
+                >
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-3 flex-1">
 
                   <!-- Ad Set Info -->
                   <div class="flex-1 min-w-0">
@@ -300,6 +322,7 @@ const navigateToCreative = (creative: any) => {
                     </div>
                   </div>
                 </div>
+              </button>
 
                 <!-- Ad Set Actions -->
                 <div class="flex items-center gap-2" @click.stop>
@@ -327,6 +350,7 @@ const navigateToCreative = (creative: any) => {
                 </div>
               </div>
             </div>
+            </div>
 
             <!-- Creatives Grid (Expandable) -->
             <div 
@@ -352,7 +376,7 @@ const navigateToCreative = (creative: any) => {
                     v-for="creative in adSet.creatives"
                     :key="creative.id"
                     class="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-700 hover:border-primary-500 transition-all cursor-pointer"
-                    @click="navigateToCreative(creative)"
+                    @click="openCreativeDetail(creative)"
                   >
                     <!-- Asset Thumbnail -->
                     <div class="w-full h-full bg-gray-800">
@@ -410,6 +434,19 @@ const navigateToCreative = (creative: any) => {
       :ad-set="selectedAdSet"
       @close="isCreateCreativeModalOpen = false; selectedAdSet = null"
       @created="handleCreativeCreated"
+    />
+
+    <!-- Detail Panels -->
+    <PerformanceAdSetDetail
+      v-model="showAdSetDetail"
+      :ad-set="selectedAdSetForDetail"
+      @updated="handleDetailUpdated"
+    />
+
+    <PerformanceCreativeDetail
+      v-model="showCreativeDetail"
+      :creative="selectedCreativeForDetail"
+      @updated="handleDetailUpdated"
     />
   </div>
 </template>

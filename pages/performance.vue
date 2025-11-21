@@ -1,5 +1,12 @@
 <template>
   <DashboardLayout>
+    <!-- Campaign Detail Panel -->
+    <PerformanceCampaignDetail 
+      v-model="showCampaignDetail" 
+      :campaign="selectedCampaign"
+      @updated="handleCampaignUpdated"
+    />
+
     <!-- Create Campaign Modal -->
     <CreateCampaignForm
       v-if="showCreateModal"
@@ -91,7 +98,7 @@
           <div 
             v-for="campaign in campaigns" 
             :key="campaign.id"
-            @click="navigateTo(`/performance/${campaign.id}`)"
+            @click="openCampaignDetail(campaign)"
             class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer"
           >
             <!-- Campaign Name -->
@@ -136,6 +143,8 @@
 
 <script setup lang="ts">
 const showCreateModal = ref(false)
+const showCampaignDetail = ref(false)
+const selectedCampaign = ref<any>(null)
 const viewMode = ref('table')
 const { campaigns, fetchCampaigns, loading } = useCampaigns()
 
@@ -145,6 +154,15 @@ onMounted(() => {
 
 const handleCampaignCreated = () => {
   fetchCampaigns() 
+}
+
+const openCampaignDetail = (campaign: any) => {
+  selectedCampaign.value = campaign
+  showCampaignDetail.value = true
+}
+
+const handleCampaignUpdated = () => {
+  fetchCampaigns()
 }
 
 const getStatusBadge = (status: string) => {
