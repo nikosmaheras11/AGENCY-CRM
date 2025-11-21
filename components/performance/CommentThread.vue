@@ -14,7 +14,7 @@
         @click="isCollapsed = !isCollapsed"
       >
         {{ isCollapsed ? 'Expand' : 'Collapse' }}
-      </UIcon>
+      </UButton>
     </div>
 
     <div v-if="!isCollapsed">
