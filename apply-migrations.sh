@@ -32,6 +32,7 @@ MIGRATIONS=(
   "supabase/migrations/20250112_add_client_guests.sql"
   "supabase/migrations/20250112_add_description_column.sql"
   "supabase/migrations/20251120_campaign_hierarchy.sql"
+  "supabase/migrations/20251120_campaign_rls.sql"
 )
 
 for migration in "${MIGRATIONS[@]}"; do

@@ -6,6 +6,26 @@ export const useCampaigns = () => {
     const campaign = ref(null)
     const loading = ref(false)
 
+    const fetchCampaigns = async () => {
+        try {
+            loading.value = true
+            const { data, error } = await supabase
+                .from('campaigns')
+                .select('*')
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+
+            campaigns.value = data
+            return data
+        } catch (error) {
+            console.error('Error fetching campaigns:', error)
+            throw error
+        } finally {
+            loading.value = false
+        }
+    }
+
     const fetchCampaignWithHierarchy = async (campaignId: string) => {
         try {
             loading.value = true
@@ -102,6 +122,7 @@ export const useCampaigns = () => {
         campaigns: readonly(campaigns),
         campaign: readonly(campaign),
         loading: readonly(loading),
+        fetchCampaigns,
         fetchCampaignWithHierarchy,
         createCampaign,
         updateCampaignStatus
