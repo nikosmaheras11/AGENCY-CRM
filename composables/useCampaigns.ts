@@ -54,6 +54,9 @@ export const useCampaigns = () => {
             throw new Error('User not authenticated')
         }
 
+        console.log('Creating campaign with user:', user.value.id)
+        console.log('Supabase client:', !!supabase, typeof supabase.from)
+
         const { data, error } = await supabase
             .from('campaigns')
             .insert({

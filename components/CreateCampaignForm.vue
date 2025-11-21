@@ -84,6 +84,7 @@ const handleCreateCampaign = async () => {
     emit('created', campaign)
   } catch (error: any) {
     console.error('Error creating campaign:', error)
+    console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)))
     toast.add({ 
       title: 'Failed to create campaign', 
       description: error.message || 'An error occurred',

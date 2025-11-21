@@ -12,10 +12,11 @@ export interface UserProfile {
 
 export const useAuth = () => {
   const { supabase } = useSupabase()
-  
-  const user = ref<any>(null)
-  const profile = ref<UserProfile | null>(null)
-  const loading = ref(true)
+
+  // Use global state for user and profile to persist across components/pages
+  const user = useState<any>('auth-user', () => null)
+  const profile = useState<UserProfile | null>('auth-profile', () => null)
+  const loading = useState<boolean>('auth-loading', () => true)
 
   /**
    * Get current authenticated user
@@ -23,16 +24,16 @@ export const useAuth = () => {
   const getCurrentUser = async () => {
     try {
       const { data: { user: authUser }, error } = await supabase.auth.getUser()
-      
+
       if (error) throw error
-      
+
       user.value = authUser
-      
+
       // Fetch user profile
       if (authUser) {
         await fetchProfile(authUser.id)
       }
-      
+
       return authUser
     } catch (e) {
       console.error('Error getting current user:', e)
@@ -51,10 +52,10 @@ export const useAuth = () => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
-      
+        .maybeSingle()
+
       if (error) throw error
-      
+
       profile.value = data
       return data
     } catch (e) {
@@ -72,15 +73,15 @@ export const useAuth = () => {
         email,
         password
       })
-      
+
       if (error) throw error
-      
+
       user.value = data.user
-      
+
       if (data.user) {
         await fetchProfile(data.user.id)
       }
-      
+
       return { data, error: null }
     } catch (e: any) {
       console.error('Sign in error:', e)
@@ -102,9 +103,9 @@ export const useAuth = () => {
           }
         }
       })
-      
+
       if (error) throw error
-      
+
       return { data, error: null }
     } catch (e: any) {
       console.error('Sign up error:', e)
@@ -119,7 +120,7 @@ export const useAuth = () => {
     try {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
-      
+
       user.value = null
       profile.value = null
     } catch (e) {
@@ -132,7 +133,7 @@ export const useAuth = () => {
    */
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user.value) return { data: null, error: new Error('No user logged in') }
-    
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -140,9 +141,9 @@ export const useAuth = () => {
         .eq('id', user.value.id)
         .select()
         .single()
-      
+
       if (error) throw error
-      
+
       profile.value = data
       return { data, error: null }
     } catch (e: any) {
@@ -157,7 +158,7 @@ export const useAuth = () => {
   const initAuthListener = () => {
     supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event)
-      
+
       if (session?.user) {
         user.value = session.user
         await fetchProfile(session.user.id)
@@ -190,7 +191,7 @@ export const useAuth = () => {
     if (!profile.value?.full_name) {
       return user.value?.email?.substring(0, 2).toUpperCase() || 'U'
     }
-    
+
     return profile.value.full_name
       .split(' ')
       .map(n => n[0])
