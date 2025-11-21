@@ -87,15 +87,17 @@ export const useAssets = () => {
 
             // Create asset record in database
             const assetPayload = {
-                file_name: file.name,
+                name: file.name,
+                original_filename: file.name,
                 file_type: fileType,
                 file_size: file.size,
                 storage_path: filePath,
-                public_url: publicUrl,
+                preview_url: publicUrl,
                 thumbnail_url: fileType === 'image' ? publicUrl : null,
+                request_id: null, // Not linked to a request
                 campaign_id: metadata?.campaign_id || null,
                 client_id: metadata?.client_id || null,
-                uploaded_by: user.value.id,
+                created_by: user.value.id,
                 mime_type: file.type,
             }
 
