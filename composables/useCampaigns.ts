@@ -12,7 +12,10 @@ export const useCampaigns = () => {
             loading.value = true
             const { data, error } = await supabase
                 .from('campaigns')
-                .select('*')
+                .select(`
+                    *,
+                    ad_sets(id, name, platform, status)
+                `)
                 .order('created_at', { ascending: false })
 
             if (error) throw error
