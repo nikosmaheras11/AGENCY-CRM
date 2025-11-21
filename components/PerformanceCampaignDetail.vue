@@ -197,27 +197,62 @@
 
             <!-- Approval Status Section -->
             <div v-if="campaignData?.ad_sets?.length > 0" class="mt-8 p-6 bg-gray-800/30 border border-gray-700 rounded-lg">
-              <h3 class="text-lg font-semibold mb-4">Approval Status</h3>
-              <div class="grid grid-cols-3 gap-4 mb-4">
-                <div class="text-center">
-                  <div class="text-3xl font-bold text-white">{{ campaignData.ad_sets.length }}</div>
-                  <div class="text-sm text-gray-400">Total Ad Sets</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-3xl font-bold text-green-400">{{ approvedCount }}</div>
-                  <div class="text-sm text-gray-400">Approved</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-3xl font-bold text-yellow-400">{{ pendingCount }}</div>
-                  <div class="text-sm text-gray-400">Pending</div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Approval Status</h3>
+                <div class="text-sm text-gray-400">
+                  {{ approvedCount }} / {{ campaignData.ad_sets.length }} Approved
                 </div>
               </div>
+              
               <!-- Progress Bar -->
-              <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+              <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden mb-4">
                 <div 
                   class="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300"
                   :style="{ width: `${approvalProgress}%` }"
                 />
+              </div>
+
+              <!-- Approved Ad Sets Cards -->
+              <div v-if="approvedAdSets.length > 0" class="space-y-3">
+                <h4 class="text-sm font-medium text-gray-400 mb-2">Approved</h4>
+                <div class="grid grid-cols-1 gap-2">
+                  <div
+                    v-for="adSet in approvedAdSets"
+                    :key="adSet.id"
+                    class="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg hover:bg-green-500/20 transition-colors cursor-pointer"
+                    @click="activeTab = 'ad-sets'"
+                  >
+                    <div class="p-2 bg-green-500/20 rounded-md flex-shrink-0">
+                      <UIcon :name="getPlatformIcon(adSet.platform)" class="text-lg text-green-400" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-medium text-sm text-white truncate">{{ adSet.name }}</div>
+                      <div class="text-xs text-gray-400 truncate">{{ adSet.creatives?.length || 0 }} creative{{ adSet.creatives?.length !== 1 ? 's' : '' }}</div>
+                    </div>
+                    <div class="flex-shrink-0">
+                      <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-400">
+                        ✓ Approved
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pending Ad Sets Summary -->
+              <div v-if="pendingAdSets.length > 0" class="mt-4">
+                <h4 class="text-sm font-medium text-gray-400 mb-2">Pending Approval</h4>
+                <div class="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-300">{{ pendingAdSets.length }} ad set{{ pendingAdSets.length !== 1 ? 's' : '' }} awaiting review</span>
+                    <UButton
+                      size="xs"
+                      variant="soft"
+                      @click="activeTab = 'ad-sets'"
+                    >
+                      Review Now
+                    </UButton>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -560,12 +595,20 @@ const getPlatformIcon = (platform: string) => {
 }
 
 // Approval status computed properties
+const approvedAdSets = computed(() => {
+  return campaignData.value?.ad_sets?.filter((as: any) => as.status === 'approved' || as.status === 'live') || []
+})
+
+const pendingAdSets = computed(() => {
+  return campaignData.value?.ad_sets?.filter((as: any) => as.status !== 'approved' && as.status !== 'live') || []
+})
+
 const approvedCount = computed(() => {
-  return campaignData.value?.ad_sets?.filter((as: any) => as.status === 'approved' || as.status === 'live').length || 0
+  return approvedAdSets.value.length
 })
 
 const pendingCount = computed(() => {
-  return campaignData.value?.ad_sets?.filter((as: any) => as.status !== 'approved' && as.status !== 'live').length || 0
+  return pendingAdSets.value.length
 })
 
 const approvalProgress = computed(() => {
