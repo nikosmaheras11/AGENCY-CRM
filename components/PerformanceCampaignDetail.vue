@@ -50,7 +50,7 @@
         </div>
 
         <!-- Content -->
-        <div v-if="campaign" class="px-6 py-6 pb-24 relative">
+        <div v-if="campaign" class="px-6 py-6 relative">
           <!-- Overview Tab -->
           <div v-if="activeTab === 'overview'">
             <h1 class="text-2xl font-semibold mb-6">{{ campaign.name }}</h1>
@@ -405,7 +405,8 @@
           </div>
         </div>
 
-        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-dark border-t border-white/10 flex justify-end gap-3">
+        <!-- Footer -->
+        <div class="px-6 py-6 bg-gradient-dark border-t border-white/10 flex justify-end gap-3 relative">
           <UButton
             color="gray"
             variant="ghost"
