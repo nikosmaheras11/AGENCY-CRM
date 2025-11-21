@@ -1,7 +1,6 @@
 // composables/useCreatives.ts
 export const useCreatives = () => {
-    const supabase = useSupabaseClient()
-    const user = useSupabaseUser()
+    const { supabase, user } = useSupabase()
 
     const createCreative = async (creativeData: any) => {
         // Get current max sort_order for this ad set

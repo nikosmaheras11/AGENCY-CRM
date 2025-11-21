@@ -1,7 +1,6 @@
 // composables/useAdSets.ts
 export const useAdSets = () => {
-    const supabase = useSupabaseClient()
-    const user = useSupabaseUser()
+    const { supabase, user } = useSupabase()
 
     const createAdSet = async (adSetData: any) => {
         // Get current max sort_order for this campaign
