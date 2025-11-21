@@ -194,6 +194,41 @@
                 </div>
               </div>
             </div>
+
+            <!-- Approval Status Section -->
+            <div v-if="campaignData?.ad_sets?.length > 0" class="mt-8 p-6 bg-gray-800/30 border border-gray-700 rounded-lg">
+              <h3 class="text-lg font-semibold mb-4">Approval Status</h3>
+              <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="text-center">
+                  <div class="text-3xl font-bold text-white">{{ campaignData.ad_sets.length }}</div>
+                  <div class="text-sm text-gray-400">Total Ad Sets</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-3xl font-bold text-green-400">{{ approvedCount }}</div>
+                  <div class="text-sm text-gray-400">Approved</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-3xl font-bold text-yellow-400">{{ pendingCount }}</div>
+                  <div class="text-sm text-gray-400">Pending</div>
+                </div>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                <div 
+                  class="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300"
+                  :style="{ width: `${approvalProgress}%` }"
+                />
+              </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="mt-8 p-6 bg-gray-800/30 border border-gray-700 rounded-lg">
+              <PerformanceCommentThread
+                v-if="campaign.id"
+                entity-type="campaign"
+                :entity-id="campaign.id"
+              />
+            </div>
           </div>
 
           <!-- Ad Sets Tab -->
@@ -252,6 +287,23 @@
                     </div>
                   </div>
                   <div class="flex items-center gap-3">
+                    <!-- Status Badge -->
+                    <span 
+                      class="px-2 py-1 text-xs font-medium rounded-full"
+                      :class="getStatusBadgeClass(adSet.status)"
+                    >
+                      {{ formatStatus(adSet.status) }}
+                    </span>
+                    <!-- Quick Approve Button -->
+                    <UButton
+                      v-if="adSet.status !== 'approved' && adSet.status !== 'live'"
+                      size="xs"
+                      color="green"
+                      variant="soft"
+                      @click.stop="quickApprove(adSet.id)"
+                    >
+                      Approve
+                    </UButton>
                     <div class="text-xs text-gray-500">
                       {{ adSet.creatives?.length || 0 }} creative{{ adSet.creatives?.length !== 1 ? 's' : '' }}
                     </div>
@@ -515,6 +567,65 @@ const getPlatformIcon = (platform: string) => {
     snapchat: 'i-simple-icons-snapchat'
   }
   return icons[platform] || 'i-heroicons-megaphone'
+}
+
+// Approval status computed properties
+const approvedCount = computed(() => {
+  return campaignData.value?.ad_sets?.filter((as: any) => as.status === 'approved' || as.status === 'live').length || 0
+})
+
+const pendingCount = computed(() => {
+  return campaignData.value?.ad_sets?.filter((as: any) => as.status !== 'approved' && as.status !== 'live').length || 0
+})
+
+const approvalProgress = computed(() => {
+  const total = campaignData.value?.ad_sets?.length || 0
+  if (total === 0) return 0
+  return Math.round((approvedCount.value / total) * 100)
+})
+
+// Status formatting
+const formatStatus = (status: string) => {
+  const labels: Record<string, string> = {
+    draft: 'Draft',
+    ready_for_review: 'Ready for Review',
+    in_review: 'In Review',
+    approved: 'Approved',
+    changes_requested: 'Changes Requested',
+    live: 'Live'
+  }
+  return labels[status] || status
+}
+
+const getStatusBadgeClass = (status: string) => {
+  const classes: Record<string, string> = {
+    draft: 'bg-gray-500/20 text-gray-400',
+    ready_for_review: 'bg-blue-500/20 text-blue-400',
+    in_review: 'bg-yellow-500/20 text-yellow-400',
+    approved: 'bg-green-500/20 text-green-400',
+    changes_requested: 'bg-red-500/20 text-red-400',
+    live: 'bg-purple-500/20 text-purple-400'
+  }
+  return classes[status] || 'bg-gray-500/20 text-gray-400'
+}
+
+// Quick approve ad set
+const quickApprove = async (adSetId: string) => {
+  try {
+    const { error } = await supabase
+      .from('ad_sets')
+      .update({ status: 'approved', updated_at: new Date().toISOString() })
+      .eq('id', adSetId)
+    
+    if (error) throw error
+    
+    await loadCampaignData()
+    emit('updated')
+    toast.add({ title: 'Ad Set approved', color: 'green' })
+  } catch (error) {
+    console.error('Failed to approve ad set:', error)
+    toast.add({ title: 'Approval failed', color: 'red' })
+  }
 }
 </script>
 
