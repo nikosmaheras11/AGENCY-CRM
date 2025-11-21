@@ -1,7 +1,6 @@
 // composables/useCreatives.ts
 export const useCreatives = () => {
     const { supabase } = useSupabase()
-    const { user } = useAuth()
     const loading = ref(false)
 
     const createCreative = async (creativeData: any) => {
@@ -18,8 +17,6 @@ export const useCreatives = () => {
 
             const nextSortOrder = existingCreatives?.sort_order ? existingCreatives.sort_order + 1 : 0
 
-            if (!user.value) throw new Error('User not authenticated')
-
             const { data, error } = await supabase
                 .from('creatives')
                 .insert({
@@ -30,7 +27,6 @@ export const useCreatives = () => {
                     status: creativeData.status || 'draft',
                     daily_budget: creativeData.daily_budget,
                     total_budget: creativeData.total_budget,
-                    created_by: user.value.id,
                     sort_order: nextSortOrder,
                 })
                 .select(`
