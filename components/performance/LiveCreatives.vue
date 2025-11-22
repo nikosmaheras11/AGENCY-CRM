@@ -1,5 +1,17 @@
 <template>
   <div class="space-y-8">
+    <!-- Header with Refresh -->
+    <div class="flex justify-end">
+      <button 
+        @click="refresh" 
+        class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-slate-400 hover:text-white transition-colors"
+        :disabled="loading"
+      >
+        <UIcon name="i-heroicons-arrow-path" :class="{ 'animate-spin': loading }" />
+        Refresh
+      </button>
+    </div>
+
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
@@ -61,6 +73,11 @@ const loading = ref(true)
 const creatives = ref<any[]>([])
 
 onMounted(async () => {
+  await refresh()
+})
+
+const refresh = async () => {
+  loading.value = true
   try {
     creatives.value = await fetchLiveCreatives()
   } catch (e) {
@@ -68,7 +85,7 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
 
 const groupedCreatives = computed(() => {
   const groups: Record<string, any[]> = {}

@@ -98,6 +98,7 @@
         <!-- Live Creatives View -->
         <PerformanceLiveCreatives
           v-else-if="viewMode === 'live_creatives'"
+          :key="liveCreativesKey"
         />
       </div>
     </div>
@@ -109,6 +110,7 @@ const showCreateModal = ref(false)
 const showCampaignDetail = ref(false)
 const selectedCampaign = ref<any>(null)
 const viewMode = ref('status_table')
+const liveCreativesKey = ref(0)
 
 const viewModes = [
   { id: 'status_table', label: 'Status Blocks', icon: 'i-heroicons-table-cells' },
@@ -123,6 +125,7 @@ onMounted(() => {
 
 const handleCampaignCreated = () => {
   fetchCampaigns() 
+  liveCreativesKey.value++
 }
 
 const openCampaignDetail = (campaign: any) => {
@@ -132,6 +135,7 @@ const openCampaignDetail = (campaign: any) => {
 
 const handleCampaignUpdated = () => {
   fetchCampaigns()
+  liveCreativesKey.value++
 }
 
 const getStatusBadge = (status: string) => {
