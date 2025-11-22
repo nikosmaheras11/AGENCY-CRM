@@ -61,6 +61,27 @@
               </div>
             </div>
 
+            <!-- Status -->
+            <div class="flex items-start gap-4">
+              <label class="w-32 text-sm text-gray-400 pt-2">Status</label>
+              <div class="flex-1">
+                <select
+                  :value="adSet.status || 'draft'"
+                  @change="(e) => updateField('status', (e.target as HTMLSelectElement).value)"
+                  class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700 cursor-pointer"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="ready_for_review">Ready for Review</option>
+                  <option value="in_review">In Review</option>
+                  <option value="approved">Approved</option>
+                  <option value="changes_requested">Changes Requested</option>
+                  <option value="live">Live</option>
+                  <option value="completed">Completed</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+            </div>
+
             <!-- Platform -->
             <div class="flex items-start gap-4">
               <label class="w-32 text-sm text-gray-400 pt-2">Platform</label>

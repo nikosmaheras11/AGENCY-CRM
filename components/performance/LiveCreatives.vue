@@ -2,7 +2,7 @@
   <div class="space-y-8">
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center py-12">
-      <div class="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      <div class="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
     </div>
 
     <!-- Empty State -->
@@ -26,12 +26,12 @@
         <div 
           v-for="creative in creatives" 
           :key="creative.id"
-          class="group relative aspect-[4/5] rounded-xl overflow-hidden bg-slate-800 border border-white/5 hover:border-primary-500/50 transition-all"
+          class="group relative aspect-[4/5] rounded-xl overflow-hidden bg-slate-800 border border-white/5 hover:border-secondary/50 transition-all"
         >
           <!-- Image/Video Preview -->
           <img 
-            v-if="creative.asset?.preview_url" 
-            :src="creative.asset.preview_url" 
+            v-if="creative.asset?.thumbnail_url || creative.asset?.url" 
+            :src="creative.asset.thumbnail_url || creative.asset.url" 
             class="w-full h-full object-cover"
             alt=""
           />
@@ -44,7 +44,7 @@
             <h4 class="text-white font-medium truncate">{{ creative.name }}</h4>
             <div class="flex items-center justify-between mt-2">
               <span class="text-xs text-slate-300 capitalize">{{ creative.format }}</span>
-              <button class="p-1.5 bg-white/10 hover:bg-primary-500 rounded-lg text-white transition-colors">
+              <button class="p-1.5 bg-white/10 hover:bg-secondary rounded-lg text-white transition-colors">
                 <UIcon name="i-heroicons-arrow-top-right-on-square" class="text-xs" />
               </button>
             </div>
