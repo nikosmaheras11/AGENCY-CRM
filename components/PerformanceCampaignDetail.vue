@@ -94,9 +94,8 @@
                     class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700 cursor-pointer"
                   >
                     <option value="planning">Planning</option>
-                    <option value="in_review">In Review</option>
+                    <option value="in_progress">In-Progress</option>
                     <option value="approved">Approved</option>
-                    <option value="live">Live</option>
                     <option value="completed">Completed</option>
                     <option value="archived">Archived</option>
                   </select>
@@ -621,11 +620,11 @@ const approvalProgress = computed(() => {
 const formatStatus = (status: string) => {
   const labels: Record<string, string> = {
     'draft': 'Draft',
-    'ready_for_review': 'Ready for Review',
-    'in_review': 'In Review',
+    'planning': 'Planning',
+    'in_progress': 'In-Progress',
     'approved': 'Approved',
-    'changes_requested': 'Changes Requested',
-    'live': 'Live'
+    'completed': 'Completed',
+    'archived': 'Archived'
   }
   return labels[status] || status
 }
@@ -633,9 +632,8 @@ const formatStatus = (status: string) => {
 const getStatusBadge = (status: string) => {
   const badges: Record<string, string> = {
     'planning': 'bg-slate-500/20 text-slate-300',
-    'in_review': 'bg-purple-500/20 text-purple-300',
+    'in_progress': 'bg-blue-500/20 text-blue-300',
     'approved': 'bg-secondary/20 text-secondary',
-    'live': 'bg-secondary/20 text-secondary',
     'completed': 'bg-gray-500/20 text-gray-300',
     'archived': 'bg-red-500/20 text-red-300'
   }

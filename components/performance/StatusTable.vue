@@ -87,9 +87,9 @@ const props = defineProps<{
 
 defineEmits(['select'])
 
-const expandedGroups = ref(new Set(['planning', 'in_review', 'approved', 'live']))
+const expandedGroups = ref(new Set(['planning', 'in_progress', 'approved']))
 
-const statusOrder = ['live', 'approved', 'in_review', 'planning', 'completed', 'archived']
+const statusOrder = ['approved', 'in_progress', 'planning', 'completed', 'archived']
 
 const statusGroups = computed(() => {
   const groups: Record<string, any[]> = {}

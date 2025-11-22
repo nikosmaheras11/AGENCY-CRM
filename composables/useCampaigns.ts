@@ -118,18 +118,38 @@ export const useCampaigns = () => {
     const fetchLiveCreatives = async () => {
         try {
             loading.value = true
-            const { data, error } = await supabase
+
+            // 1. Fetch creatives explicitly marked as live
+            const { data: liveCreatives, error: error1 } = await supabase
                 .from('creatives')
                 .select(`
                     *,
-                    ad_set:ad_sets!inner(platform, campaign_id),
+                    ad_set:ad_sets!inner(platform, campaign_id, status),
                     asset:assets(*)
                 `)
                 .eq('status', 'live')
-                .order('created_at', { ascending: false })
 
-            if (error) throw error
-            return data
+            if (error1) throw error1
+
+            // 2. Fetch approved creatives in live ad sets
+            const { data: approvedInLiveAdSets, error: error2 } = await supabase
+                .from('creatives')
+                .select(`
+                    *,
+                    ad_set:ad_sets!inner(platform, campaign_id, status),
+                    asset:assets(*)
+                `)
+                .eq('status', 'approved')
+                .eq('ad_sets.status', 'live')
+
+            if (error2) throw error2
+
+            // Merge and deduplicate
+            const allCreatives = [...(liveCreatives || []), ...(approvedInLiveAdSets || [])]
+            const uniqueCreatives = Array.from(new Map(allCreatives.map(c => [c.id, c])).values())
+
+            // Sort by created_at desc
+            return uniqueCreatives.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         } catch (error) {
             console.error('Error fetching live creatives:', error)
             throw error
