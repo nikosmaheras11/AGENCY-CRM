@@ -173,7 +173,7 @@ interface Props {
   entityType: string
   entityId: string
   currentTime?: number | null
-  pendingSpatialComment?: { x: number; y: number } | null
+  pendingSpatialComment?: { x: number; y: number; text?: string } | null
   activeCommentId?: string | null
 }
 
@@ -210,12 +210,24 @@ const filteredComments = computed(() => {
   return allComments.value
 })
 
-// Watch for pending spatial comment to focus input
+// Watch for pending spatial comment to focus input and pre-fill text
 watch(() => props.pendingSpatialComment, (newVal) => {
   if (newVal) {
-    nextTick(() => {
-      commentInput.value?.focus()
-    })
+    console.log('👁️ pendingSpatialComment changed:', newVal)
+    // Pre-fill comment text if provided from canvas
+    if (newVal.text) {
+      newCommentContent.value = newVal.text
+      console.log('✍️ Auto-filled comment text:', newVal.text)
+      // Auto-submit since the user already typed and clicked "Post" on the canvas
+      nextTick(() => {
+        submitComment()
+      })
+    } else {
+      // Just focus for manual input
+      nextTick(() => {
+        commentInput.value?.focus()
+      })
+    }
   }
 })
 

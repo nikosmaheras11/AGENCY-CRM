@@ -319,7 +319,7 @@ const currentTime = ref(0)
 const duration = ref(0)
 const currentChapter = ref(2)
 const activeTab = ref<'info' | 'comments'>('comments')
-const pendingSpatialComment = ref<{ x: number; y: number } | null>(null)
+const pendingSpatialComment = ref<{ x: number; y: number; text?: string } | null>(null)
 const activeCommentId = ref<string | null>(null)
 const spatialComments = ref<any[]>([])
 
@@ -339,10 +339,12 @@ const loadSpatialComments = async () => {
 
 // Handle new spatial comment from InteractiveImageViewer
 const handleSpatialComment = (payload: { x: number; y: number; text: string }) => {
+  console.log('📍 handleSpatialComment received:', payload)
   // Switch to comments tab
   activeTab.value = 'comments'
-  // Set pending comment to be picked up by CommentThread
-  pendingSpatialComment.value = { x: payload.x, y: payload.y }
+  // Set pending comment with text to be picked up by CommentThread
+  pendingSpatialComment.value = { x: payload.x, y: payload.y, text: payload.text }
+  console.log('📍 pendingSpatialComment set:', pendingSpatialComment.value)
 }
 
 // Handle selecting a comment (from pin or list)
