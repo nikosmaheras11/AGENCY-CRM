@@ -35,8 +35,8 @@
           <!-- Ad Set Details -->
           <div class="space-y-6">
             <!-- Name -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Name</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Name</label>
               <div class="flex-1">
                 <input
                   type="text"
@@ -48,8 +48,8 @@
             </div>
 
             <!-- Description -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Description</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Description</label>
               <div class="flex-1">
                 <textarea
                   :value="adSet.description || ''"
@@ -62,8 +62,8 @@
             </div>
 
             <!-- Status -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Status</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Status</label>
               <div class="flex-1">
                 <select
                   :value="adSet.status || 'draft'"
@@ -83,8 +83,8 @@
             </div>
 
             <!-- Platform -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Platform</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Platform</label>
               <div class="flex-1">
                 <input
                   type="text"
@@ -96,8 +96,8 @@
             </div>
 
             <!-- Audience Description -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Audience</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Audience</label>
               <div class="flex-1">
                 <textarea
                   :value="adSet.audience_description || ''"
@@ -110,8 +110,8 @@
             </div>
 
             <!-- Age Range -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Age Range</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Age Range</label>
               <div class="flex-1">
                 <input
                   type="text"
@@ -124,8 +124,8 @@
             </div>
 
             <!-- Gender -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Gender</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Gender</label>
               <div class="flex-1">
                 <select
                   :value="adSet.gender || 'all'"
@@ -141,8 +141,8 @@
 
             <!-- Dates -->
             <div class="grid grid-cols-2 gap-4">
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Start Date</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Start Date</label>
                 <div class="flex-1">
                   <input
                     type="date"
@@ -153,8 +153,8 @@
                 </div>
               </div>
 
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">End Date</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">End Date</label>
                 <div class="flex-1">
                   <input
                     type="date"

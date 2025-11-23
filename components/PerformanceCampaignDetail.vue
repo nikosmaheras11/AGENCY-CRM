@@ -58,8 +58,8 @@
             <!-- Campaign Details -->
             <div class="space-y-6">
               <!-- Name -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Name</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Name</label>
                 <div class="flex-1">
                   <input
                     type="text"
@@ -71,8 +71,8 @@
               </div>
 
               <!-- Description -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Description</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Description</label>
                 <div class="flex-1">
                   <textarea
                     :value="campaign.description || ''"
@@ -85,8 +85,8 @@
               </div>
 
               <!-- Status -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Status</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Status</label>
                 <div class="flex-1">
                   <select
                     :value="campaign.status"
@@ -96,6 +96,7 @@
                     <option value="planning">Planning</option>
                     <option value="in_progress">In-Progress</option>
                     <option value="approved">Approved</option>
+                    <option value="live">Live</option>
                     <option value="completed">Completed</option>
                     <option value="archived">Archived</option>
                   </select>
@@ -103,8 +104,8 @@
               </div>
 
               <!-- Platforms -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Platforms</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Platforms</label>
                 <div class="flex-1">
                   <div class="flex flex-wrap gap-2">
                     <span 
@@ -119,8 +120,8 @@
               </div>
 
               <!-- Campaign Objective -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Objective</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Objective</label>
                 <div class="flex-1">
                   <select
                     :value="campaign.objective"
@@ -139,8 +140,8 @@
               </div>
 
               <!-- Campaign Brief -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Campaign Brief</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Campaign Brief</label>
                 <div class="flex-1">
                   <textarea
                     :value="campaign.campaign_brief || ''"
@@ -153,8 +154,8 @@
               </div>
 
               <!-- Launch Date -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Launch Date</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Launch Date</label>
                 <div class="flex-1">
                   <input
                     type="date"
@@ -166,8 +167,8 @@
               </div>
 
               <!-- End Date -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">End Date</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">End Date</label>
                 <div class="flex-1">
                   <input
                     type="date"
@@ -179,8 +180,8 @@
               </div>
 
               <!-- Budget -->
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Budget</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Budget</label>
                 <div class="flex-1">
                   <input
                     type="number"
@@ -623,6 +624,7 @@ const formatStatus = (status: string) => {
     'planning': 'Planning',
     'in_progress': 'In-Progress',
     'approved': 'Approved',
+    'live': 'Live',
     'completed': 'Completed',
     'archived': 'Archived'
   }
@@ -634,6 +636,7 @@ const getStatusBadge = (status: string) => {
     'planning': 'bg-slate-500/20 text-slate-300',
     'in_progress': 'bg-blue-500/20 text-blue-300',
     'approved': 'bg-secondary/20 text-secondary',
+    'live': 'bg-secondary/20 text-secondary',
     'completed': 'bg-gray-500/20 text-gray-300',
     'archived': 'bg-red-500/20 text-red-300'
   }

@@ -144,8 +144,40 @@ export const useCampaigns = () => {
 
             if (error2) throw error2
 
+            // 3. Fetch approved creatives in live campaigns
+            // First get IDs of live campaigns
+            const { data: liveCampaigns, error: campaignError } = await supabase
+                .from('campaigns')
+                .select('id')
+                .eq('status', 'live')
+
+            if (campaignError) throw campaignError
+
+            let approvedInLiveCampaigns: any[] = []
+
+            if (liveCampaigns && liveCampaigns.length > 0) {
+                const liveCampaignIds = liveCampaigns.map(c => c.id)
+
+                const { data: creativesInLiveCampaigns, error: error3 } = await supabase
+                    .from('creatives')
+                    .select(`
+                        *,
+                        ad_set:ad_sets!inner(platform, campaign_id, status),
+                        asset:assets(*)
+                    `)
+                    .eq('status', 'approved')
+                    .in('ad_set.campaign_id', liveCampaignIds)
+
+                if (error3) throw error3
+                approvedInLiveCampaigns = creativesInLiveCampaigns || []
+            }
+
             // Merge and deduplicate
-            const allCreatives = [...(liveCreatives || []), ...(approvedInLiveAdSets || [])]
+            const allCreatives = [
+                ...(liveCreatives || []),
+                ...(approvedInLiveAdSets || []),
+                ...(approvedInLiveCampaigns || [])
+            ]
             const uniqueCreatives = Array.from(new Map(allCreatives.map(c => [c.id, c])).values())
 
             // Sort by created_at desc

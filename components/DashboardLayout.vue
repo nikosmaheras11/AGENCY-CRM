@@ -4,7 +4,7 @@
     <div class="absolute inset-0 bg-pattern opacity-[0.015] pointer-events-none"></div>
     
     <!-- Persistent Header Navigation -->
-    <header class="h-16 bg-white/5 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6 relative z-10">
+    <header class="h-16 bg-white/5 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 sm:px-6 relative z-10">
       <div class="flex items-center">
         <h1 class="text-xl font-semibold text-white">Client Dashboard</h1>
       </div>

@@ -14,9 +14,9 @@
       @created="handleCampaignCreated"
     />
 
-    <div class="p-6 sm:p-8">
+    <div class="p-4 sm:p-8">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 class="text-4xl font-display font-bold text-white mb-2">
             Campaign Planning
@@ -39,9 +39,9 @@
       </div>
 
       <!-- View Switcher & Filters -->
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <!-- Tabs -->
-        <div class="flex p-1 bg-white/5 rounded-2xl border border-white/10">
+        <div class="flex p-1 bg-white/5 rounded-2xl border border-white/10 overflow-x-auto max-w-full">
           <button 
             v-for="mode in viewModes" 
             :key="mode.id"

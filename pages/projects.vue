@@ -7,9 +7,9 @@
       :request-id="selectedRequestId || undefined"
     />
     
-    <div class="p-6 sm:p-8">
+    <div class="p-4 sm:p-8">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 class="text-4xl font-display font-bold text-white mb-2">
             Project Management
@@ -33,7 +33,7 @@
 
       <!-- View Switcher -->
       <div class="card-glass card-elevated p-5 mb-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex gap-2">
             <button 
               @click="viewMode = 'table'"
@@ -57,83 +57,85 @@
       </div>
 
       <!-- Table View -->
-      <div v-if="viewMode === 'table'" class="card-glass card-elevated overflow-hidden">
-        <!-- Table Header -->
-        <div class="grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-          <div class="col-span-3">Project Name</div>
-          <div class="col-span-2">Status</div>
-          <div class="col-span-2">Priority</div>
-          <div class="col-span-2">Owner</div>
-          <div class="col-span-1">Progress</div>
-          <div class="col-span-2">Due Date</div>
-        </div>
+      <div v-if="viewMode === 'table'" class="card-glass card-elevated overflow-hidden overflow-x-auto">
+        <div class="min-w-[800px]">
+          <!-- Table Header -->
+          <div class="grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            <div class="col-span-3">Project Name</div>
+            <div class="col-span-2">Status</div>
+            <div class="col-span-2">Priority</div>
+            <div class="col-span-2">Owner</div>
+            <div class="col-span-1">Progress</div>
+            <div class="col-span-2">Due Date</div>
+          </div>
 
-        <!-- Table Rows -->
-        <div class="divide-y divide-white/10">
-          <div 
-            v-for="campaign in campaigns" 
-            :key="campaign.id"
-            @click="openCampaignDetail(campaign)"
-            class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer"
-          >
-            <!-- Project Name -->
-            <div class="col-span-3 flex items-center gap-3">
-              <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
-                {{ campaign.name.charAt(0) }}
-              </div>
-              <span class="font-medium text-white">{{ campaign.name }}</span>
-            </div>
-
-            <!-- Status -->
-            <div class="col-span-2 flex items-center">
-              <span 
-                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                :class="getActualStatusBadge(campaign.actualStatus)"
-              >
-                <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getActualStatusDot(campaign.actualStatus)"></span>
-                {{ formatStatusLabel(campaign.actualStatus) }}
-              </span>
-            </div>
-
-            <!-- Priority -->
-            <div class="col-span-2 flex items-center">
-              <span 
-                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                :class="getActualPriorityBadge(campaign.actualPriority)"
-              >
-                <span class="material-icons text-sm mr-1">{{ getPriorityIcon(campaign.actualPriority) }}</span>
-                {{ formatPriorityLabel(campaign.actualPriority) }}
-              </span>
-            </div>
-
-            <!-- Owner -->
-            <div class="col-span-2 flex items-center gap-2">
-              <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs">
-                {{ campaign.owner.split(' ').map((n: string) => n[0]).join('') }}
-              </div>
-              <span class="text-sm text-slate-300">{{ campaign.owner }}</span>
-            </div>
-
-            <!-- Progress -->
-            <div class="col-span-1 flex items-center">
-              <div class="flex-1">
-                <div class="flex justify-between text-xs text-slate-400 mb-1">
-                  <span>{{ campaign.progress }}%</span>
+          <!-- Table Rows -->
+          <div class="divide-y divide-white/10">
+            <div 
+              v-for="campaign in campaigns" 
+              :key="campaign.id"
+              @click="openCampaignDetail(campaign)"
+              class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <!-- Project Name -->
+              <div class="col-span-3 flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+                  {{ campaign.name.charAt(0) }}
                 </div>
-                <div class="w-full bg-white/10 rounded-full h-2">
-                  <div 
-                    class="h-2 rounded-full transition-all"
-                    :class="campaign.progress >= 75 ? 'bg-green-500' : campaign.progress >= 50 ? 'bg-blue-500' : 'bg-orange-500'"
-                    :style="{ width: `${campaign.progress}%` }"
-                  ></div>
+                <span class="font-medium text-white">{{ campaign.name }}</span>
+              </div>
+
+              <!-- Status -->
+              <div class="col-span-2 flex items-center">
+                <span 
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+                  :class="getActualStatusBadge(campaign.actualStatus)"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="getActualStatusDot(campaign.actualStatus)"></span>
+                  {{ formatStatusLabel(campaign.actualStatus) }}
+                </span>
+              </div>
+
+              <!-- Priority -->
+              <div class="col-span-2 flex items-center">
+                <span 
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+                  :class="getActualPriorityBadge(campaign.actualPriority)"
+                >
+                  <span class="material-icons text-sm mr-1">{{ getPriorityIcon(campaign.actualPriority) }}</span>
+                  {{ formatPriorityLabel(campaign.actualPriority) }}
+                </span>
+              </div>
+
+              <!-- Owner -->
+              <div class="col-span-2 flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs">
+                  {{ campaign.owner.split(' ').map((n: string) => n[0]).join('') }}
+                </div>
+                <span class="text-sm text-slate-300">{{ campaign.owner }}</span>
+              </div>
+
+              <!-- Progress -->
+              <div class="col-span-1 flex items-center">
+                <div class="flex-1">
+                  <div class="flex justify-between text-xs text-slate-400 mb-1">
+                    <span>{{ campaign.progress }}%</span>
+                  </div>
+                  <div class="w-full bg-white/10 rounded-full h-2">
+                    <div 
+                      class="h-2 rounded-full transition-all"
+                      :class="campaign.progress >= 75 ? 'bg-green-500' : campaign.progress >= 50 ? 'bg-blue-500' : 'bg-orange-500'"
+                      :style="{ width: `${campaign.progress}%` }"
+                    ></div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Due Date -->
-            <div class="col-span-2 flex items-center text-sm text-slate-400">
-              <span class="material-icons text-sm mr-1.5">calendar_today</span>
-              {{ campaign.dueDate }}
+              <!-- Due Date -->
+              <div class="col-span-2 flex items-center text-sm text-slate-400">
+                <span class="material-icons text-sm mr-1.5">calendar_today</span>
+                {{ campaign.dueDate }}
+              </div>
             </div>
           </div>
         </div>

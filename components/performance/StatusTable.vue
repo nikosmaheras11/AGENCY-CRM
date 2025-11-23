@@ -21,52 +21,54 @@
       </button>
 
       <!-- Group Content -->
-      <div v-show="expandedGroups.has(group.status)">
-        <!-- Table Header (only for first item or if we want it per group) -->
-        <div class="grid grid-cols-12 gap-4 px-6 py-3 bg-black/20 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-          <div class="col-span-6">Campaign Name</div>
-          <div class="col-span-2">Platforms</div>
-          <div class="col-span-2">Launch Date</div>
-          <div class="col-span-2 text-right">Actions</div>
-        </div>
+      <div v-show="expandedGroups.has(group.status)" class="overflow-x-auto">
+        <div class="min-w-[800px]">
+          <!-- Table Header (only for first item or if we want it per group) -->
+          <div class="grid grid-cols-12 gap-4 px-6 py-3 bg-black/20 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            <div class="col-span-6">Campaign Name</div>
+            <div class="col-span-2">Platforms</div>
+            <div class="col-span-2">Launch Date</div>
+            <div class="col-span-2 text-right">Actions</div>
+          </div>
 
-        <!-- Table Rows -->
-        <div class="divide-y divide-white/10">
-          <div 
-            v-for="campaign in group.campaigns" 
-            :key="campaign.id"
-            @click="$emit('select', campaign)"
-            class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer group"
-          >
-            <!-- Campaign Name -->
-            <div class="col-span-6">
-              <div class="font-medium text-white group-hover:text-primary-400 transition-colors">{{ campaign.name }}</div>
-              <div class="text-xs text-slate-400 mt-1 truncate">{{ campaign.description || 'No description' }}</div>
-            </div>
+          <!-- Table Rows -->
+          <div class="divide-y divide-white/10">
+            <div 
+              v-for="campaign in group.campaigns" 
+              :key="campaign.id"
+              @click="$emit('select', campaign)"
+              class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors cursor-pointer group"
+            >
+              <!-- Campaign Name -->
+              <div class="col-span-6">
+                <div class="font-medium text-white group-hover:text-primary-400 transition-colors">{{ campaign.name }}</div>
+                <div class="text-xs text-slate-400 mt-1 truncate">{{ campaign.description || 'No description' }}</div>
+              </div>
 
-            <!-- Platforms -->
-            <div class="col-span-2 flex items-center gap-1">
-              <UIcon 
-                v-for="platform in campaign.platforms.slice(0, 3)" 
-                :key="platform"
-                :name="getPlatformIcon(platform)" 
-                class="text-lg text-slate-400" 
-              />
-              <span v-if="campaign.platforms.length > 3" class="text-xs text-slate-500">
-                +{{ campaign.platforms.length - 3 }}
-              </span>
-            </div>
+              <!-- Platforms -->
+              <div class="col-span-2 flex items-center gap-1">
+                <UIcon 
+                  v-for="platform in campaign.platforms.slice(0, 3)" 
+                  :key="platform"
+                  :name="getPlatformIcon(platform)" 
+                  class="text-lg text-slate-400" 
+                />
+                <span v-if="campaign.platforms.length > 3" class="text-xs text-slate-500">
+                  +{{ campaign.platforms.length - 3 }}
+                </span>
+              </div>
 
-            <!-- Launch Date -->
-            <div class="col-span-2 flex items-center text-sm text-slate-400">
-              {{ formatDate(campaign.planned_launch_date) }}
-            </div>
+              <!-- Launch Date -->
+              <div class="col-span-2 flex items-center text-sm text-slate-400">
+                {{ formatDate(campaign.planned_launch_date) }}
+              </div>
 
-            <!-- Actions -->
-            <div class="col-span-2 flex items-center justify-end">
-              <button class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
-                <UIcon name="i-heroicons-arrow-right" />
-              </button>
+              <!-- Actions -->
+              <div class="col-span-2 flex items-center justify-end">
+                <button class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+                  <UIcon name="i-heroicons-arrow-right" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -87,9 +89,9 @@ const props = defineProps<{
 
 defineEmits(['select'])
 
-const expandedGroups = ref(new Set(['planning', 'in_progress', 'approved']))
+const expandedGroups = ref(new Set(['live', 'planning', 'in_progress', 'approved']))
 
-const statusOrder = ['approved', 'in_progress', 'planning', 'completed', 'archived']
+const statusOrder = ['live', 'approved', 'in_progress', 'planning', 'completed', 'archived']
 
 const statusGroups = computed(() => {
   const groups: Record<string, any[]> = {}

@@ -1,4 +1,3 @@
--- ============================================
 -- POLYMORPHIC COMMENTS MIGRATION
 -- ============================================
 -- Extends comments table to support campaigns, ad_sets, and creatives
