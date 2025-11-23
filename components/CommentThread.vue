@@ -249,6 +249,7 @@ const submitComment = async () => {
   try {
     console.log(`Submitting comment to ${props.entityType}:${props.entityId}`)
     const { supabase } = useSupabase()
+    const config = useRuntimeConfig()
     
     const commentData = {
       request_id: props.entityId, // Map entityId to request_id for DB schema
@@ -266,16 +267,30 @@ const submitComment = async () => {
     
     console.log('Comment data:', commentData)
     
-    const { data, error: insertError } = await supabase
-      .from('comments')
-      .insert(commentData)
-      .select()
-      .single()
+    // Use REST API directly to avoid Supabase JS client .select() hang issue
+    const restUrl = `${config.public.supabaseUrl}/rest/v1/comments`
+    const authSession = await supabase.auth.getSession()
+    const token = authSession.data.session?.access_token || config.public.supabaseAnonKey
     
-    if (insertError) {
-      console.error('Supabase insert error:', insertError)
-      throw insertError
+    const response = await fetch(restUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': config.public.supabaseAnonKey,
+        'Authorization': `Bearer ${token}`,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(commentData)
+    })
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('REST API error:', response.status, errorText)
+      throw new Error(`Failed to post comment: ${response.status} ${errorText}`)
     }
+    
+    const insertedData = await response.json()
+    const data = Array.isArray(insertedData) ? insertedData[0] : insertedData
     
     console.log('Comment posted successfully:', data)
     
