@@ -19,6 +19,14 @@
             
             <div class="flex items-center gap-2">
               <button 
+                @click="deleteCampaign"
+                class="w-9 h-9 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors"
+                title="Delete Campaign"
+              >
+                <UIcon name="i-heroicons-trash" class="text-xl" />
+              </button>
+              
+              <button 
                 @click="$emit('update:modelValue', false)"
                 class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors"
               >
@@ -263,6 +271,25 @@
                 entity-type="campaign"
                 :entity-id="campaign.id"
               />
+            </div>
+
+            <!-- Delete Campaign Section -->
+            <div class="mt-8 pt-6 border-t border-white/10">
+              <h3 class="text-lg font-semibold text-red-500 mb-4">Danger Zone</h3>
+              <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center justify-between">
+                <div>
+                  <h4 class="font-medium text-red-400">Delete Campaign</h4>
+                  <p class="text-sm text-red-400/70">Permanently delete this campaign and all its data.</p>
+                </div>
+                <UButton
+                  color="red"
+                  variant="solid"
+                  :loading="deleting"
+                  @click="deleteCampaign"
+                >
+                  Delete Campaign
+                </UButton>
+              </div>
             </div>
           </div>
 
@@ -688,6 +715,37 @@ const quickApproveCreative = async (creativeId: string) => {
   } catch (error) {
     console.error('Failed to approve creative:', error)
     toast.add({ title: 'Approval failed', color: 'red' })
+    toast.add({ title: 'Approval failed', color: 'red' })
+  }
+}
+
+const deleting = ref(false)
+
+const deleteCampaign = async () => {
+  if (!props.campaign?.id) return
+  
+  if (!window.confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+    return
+  }
+  
+  try {
+    deleting.value = true
+    const { error } = await supabase
+      .from('campaigns')
+      .delete()
+      .eq('id', props.campaign.id)
+    
+    if (error) throw error
+    
+    toast.add({ title: 'Campaign deleted', color: 'green' })
+    emit('update:modelValue', false)
+    await fetchCampaigns() // Refresh the list
+    
+  } catch (error) {
+    console.error('Failed to delete campaign:', error)
+    toast.add({ title: 'Delete failed', color: 'red' })
+  } finally {
+    deleting.value = false
   }
 }
 </script>

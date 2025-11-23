@@ -19,6 +19,14 @@
             
             <div class="flex items-center gap-2">
               <button 
+                @click="deleteAdSet"
+                class="w-9 h-9 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors"
+                title="Delete Ad Set"
+              >
+                <UIcon name="i-heroicons-trash" class="text-xl" />
+              </button>
+
+              <button 
                 @click="$emit('update:modelValue', false)"
                 class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors"
               >
@@ -206,6 +214,33 @@ const updateField = async (fieldName: string, value: any) => {
     console.log(`✅ Updated ${fieldName}`)
   } catch (error) {
     console.error(`❌ Failed to update ${fieldName}:`, error)
+  }
+}
+
+const toast = useToast()
+
+const deleteAdSet = async () => {
+  if (!props.adSet?.id) return
+  
+  if (!window.confirm('Are you sure you want to delete this ad set? All creatives within it will also be deleted. This action cannot be undone.')) {
+    return
+  }
+  
+  try {
+    const { error } = await supabase
+      .from('ad_sets')
+      .delete()
+      .eq('id', props.adSet.id)
+    
+    if (error) throw error
+    
+    toast.add({ title: 'Ad Set deleted', color: 'green' })
+    emit('update:modelValue', false)
+    emit('updated')
+    
+  } catch (error) {
+    console.error('Failed to delete ad set:', error)
+    toast.add({ title: 'Delete failed', color: 'red' })
   }
 }
 </script>

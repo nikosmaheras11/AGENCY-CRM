@@ -27,6 +27,14 @@
               </button>
               
               <button 
+                @click="deleteCreative"
+                class="w-9 h-9 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors"
+                title="Delete Creative"
+              >
+                <UIcon name="i-heroicons-trash" class="text-xl" />
+              </button>
+
+              <button 
                 @click="$emit('update:modelValue', false)"
                 class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors"
               >
@@ -257,6 +265,33 @@ const updateField = async (fieldName: string, value: any) => {
     console.log(`✅ Updated ${fieldName}`)
   } catch (error) {
     console.error(`❌ Failed to update ${fieldName}:`, error)
+  }
+}
+
+const toast = useToast()
+
+const deleteCreative = async () => {
+  if (!props.creative?.id) return
+  
+  if (!window.confirm('Are you sure you want to delete this creative? This action cannot be undone.')) {
+    return
+  }
+  
+  try {
+    const { error } = await supabase
+      .from('creatives')
+      .delete()
+      .eq('id', props.creative.id)
+    
+    if (error) throw error
+    
+    toast.add({ title: 'Creative deleted', color: 'green' })
+    emit('update:modelValue', false)
+    emit('updated')
+    
+  } catch (error) {
+    console.error('Failed to delete creative:', error)
+    toast.add({ title: 'Delete failed', color: 'red' })
   }
 }
 </script>
