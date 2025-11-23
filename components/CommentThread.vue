@@ -126,7 +126,11 @@
       ></textarea>
       <div class="input-actions">
         <button @click="clearComment" class="btn-secondary">Cancel</button>
-        <button @click="submitComment" class="btn-primary" :disabled="!newCommentContent.trim()">
+        <button 
+          @click="() => { console.log('Button clicked!'); submitComment(); }" 
+          class="btn-primary" 
+          :disabled="!newCommentContent.trim()"
+        >
           Post Comment
         </button>
       </div>
