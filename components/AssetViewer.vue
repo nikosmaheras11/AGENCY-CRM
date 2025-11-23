@@ -72,20 +72,6 @@
             </div>
           </div>
 
-          <!-- Image Display with Interactive Comments -->
-          <div v-else class="w-full h-full flex items-center justify-center relative">
-            <InteractiveImageViewer
-              v-if="asset.imageUrl"
-              :image-url="asset.imageUrl"
-              :spatial-comments="spatialComments"
-              :active-comment-id="activeCommentId"
-              :is-commenting-enabled="enableAnnotation"
-              @add-comment="handleSpatialComment"
-              @select-comment="handleSelectComment"
-            />
-            <img v-else src="/placeholder.jpg" alt="Asset" class="max-w-full max-h-full object-contain rounded-lg" />
-          </div>
-
           <!-- Figma Display -->
           <div v-else-if="asset.type === 'figma'" class="w-full h-full flex flex-col items-center justify-center bg-[#1E1E1E] gap-4">
             <div class="text-center">
@@ -109,6 +95,20 @@
                 <span class="material-icons text-sm">open_in_new</span>
               </a>
             </div>
+          </div>
+
+          <!-- Image Display with Interactive Comments -->
+          <div v-else class="w-full h-full flex items-center justify-center relative">
+            <InteractiveImageViewer
+              v-if="asset.imageUrl"
+              :image-url="asset.imageUrl"
+              :spatial-comments="spatialComments"
+              :active-comment-id="activeCommentId"
+              :is-commenting-enabled="enableAnnotation"
+              @add-comment="handleSpatialComment"
+              @select-comment="handleSelectComment"
+            />
+            <div v-else class="text-gray-400">No image available</div>
           </div>
         </div>
 
@@ -270,6 +270,7 @@
   </div>
 </template>
 
+<script setup lang="ts">
 import InteractiveImageViewer from '~/components/creative/InteractiveImageViewer.vue'
 import CommentThread from '~/components/CommentThread.vue'
 
@@ -316,8 +317,6 @@ const videoPlayer = ref<HTMLVideoElement>()
 const isPlaying = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
-const currentChapter = ref(2)
-const activeTab = ref<'info' | 'comments'>('comments')
 const currentChapter = ref(2)
 const activeTab = ref<'info' | 'comments'>('comments')
 const pendingSpatialComment = ref<{ x: number; y: number } | null>(null)
@@ -367,6 +366,44 @@ const onCommentAdded = (comment: any) => {
 
 watch(() => props.assetId, loadSpatialComments, { immediate: true })
 
+// Video player helper functions
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+const togglePlay = () => {
+  if (videoPlayer.value) {
+    if (isPlaying.value) {
+      videoPlayer.value.pause()
+    } else {
+      videoPlayer.value.play()
+    }
+  }
+}
+
+const toggleFullscreen = () => {
+  if (videoPlayer.value) {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      videoPlayer.value.requestFullscreen()
+    }
+  }
+}
+
+const onVideoLoaded = () => {
+  if (videoPlayer.value) {
+    duration.value = videoPlayer.value.duration
+  }
+}
+
+const onTimeUpdate = () => {
+  if (videoPlayer.value) {
+    currentTime.value = videoPlayer.value.currentTime
+  }
+}
 
 // Fetch real asset data
 const { getRequestById } = useRequests()
