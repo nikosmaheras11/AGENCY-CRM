@@ -79,7 +79,6 @@
               :image-url="asset.imageUrl"
               :spatial-comments="spatialComments"
               :active-comment-id="activeCommentId"
-              :active-comment-id="activeCommentId"
               :is-commenting-enabled="enableAnnotation"
               @add-comment="handleSpatialComment"
               @select-comment="handleSelectComment"

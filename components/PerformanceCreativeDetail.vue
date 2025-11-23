@@ -212,7 +212,6 @@
     <AssetViewer
       v-if="creative"
       :asset-id="creative.id"
-      :asset-id="creative.id"
       entity-type="creative"
       :enable-annotation="false"
       @close="showFeedbackTool = false"
