@@ -139,7 +139,12 @@ import { formatRelativeTime, formatTime } from '~/utils/asset-viewer'
 
 interface Comment {
   id: string
-  request_id: string
+  entity_type?: string | null
+  entity_id?: string | null
+  request_id?: string | null
+  campaign_id?: string | null
+  ad_set_id?: string | null
+  creative_id?: string | null
   version_id?: string | null
   parent_comment_id?: string | null
   author_id?: string | null
@@ -229,7 +234,8 @@ const fetchComments = async () => {
     const { data, error: fetchError } = await supabase
       .from('comments')
       .select('*')
-      .eq('request_id', props.entityId)
+      .eq('entity_type', props.entityType)
+      .eq('entity_id', props.entityId)
       .order('created_at', { ascending: false })
     
     if (fetchError) throw fetchError
@@ -252,7 +258,8 @@ const submitComment = async () => {
     const config = useRuntimeConfig()
     
     const commentData = {
-      request_id: props.entityId, // Map entityId to request_id for DB schema
+      entity_type: props.entityType, // Polymorphic comment schema
+      entity_id: props.entityId,
       author_id: user.value?.id || null,
       author_name: getDisplayName.value,
       author_email: user.value?.email || null,
@@ -405,7 +412,7 @@ onMounted(async () => {
         event: '*', 
         schema: 'public', 
         table: 'comments',
-        filter: `request_id=eq.${props.entityId}`
+        filter: `entity_type=eq.${props.entityType},entity_id=eq.${props.entityId}`
       },
       (payload) => {
         console.log('Comment update:', payload)
