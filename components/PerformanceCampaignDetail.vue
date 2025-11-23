@@ -374,10 +374,21 @@
                         <p class="text-xs text-gray-500">{{ creative.format || 'No format' }}</p>
                       </div>
                       
-                      <UIcon 
-                        :name="expandedCreatives.has(creative.id) ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'"
-                        class="text-gray-500"
-                      />
+                      <div class="flex items-center gap-2">
+                        <UButton
+                          v-if="creative.status !== 'approved' && creative.status !== 'live'"
+                          size="xs"
+                          class="bg-secondary/10 text-secondary hover:bg-secondary/20"
+                          variant="soft"
+                          @click.stop="quickApproveCreative(creative.id)"
+                        >
+                          Approve
+                        </UButton>
+                        <UIcon 
+                          :name="expandedCreatives.has(creative.id) ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'"
+                          class="text-gray-500"
+                        />
+                      </div>
                     </div>
 
                     <!-- Creative Details (Expandable) -->
@@ -658,6 +669,24 @@ const quickApprove = async (adSetId: string) => {
     toast.add({ title: 'Ad Set approved', color: 'green' })
   } catch (error) {
     console.error('Failed to approve ad set:', error)
+    toast.add({ title: 'Approval failed', color: 'red' })
+  }
+}
+
+// Quick approve creative
+const quickApproveCreative = async (creativeId: string) => {
+  try {
+    const { error } = await supabase
+      .from('creatives')
+      .update({ status: 'approved', updated_at: new Date().toISOString() })
+      .eq('id', creativeId)
+    
+    if (error) throw error
+    
+    await loadCampaignData()
+    toast.add({ title: 'Creative approved', color: 'green' })
+  } catch (error) {
+    console.error('Failed to approve creative:', error)
     toast.add({ title: 'Approval failed', color: 'red' })
   }
 }
