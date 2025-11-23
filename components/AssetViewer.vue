@@ -299,16 +299,14 @@ interface Asset {
   reviewCount: number
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   assetId: string
   entityType?: string
   enableAnnotation?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
+}>(), {
   entityType: 'request', // Default to request for backward compatibility
   enableAnnotation: true
-})>()
+})
 
 defineEmits<{
   close: []
