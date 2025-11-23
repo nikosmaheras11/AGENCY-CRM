@@ -50,8 +50,8 @@
           <!-- Creative Details -->
           <div class="space-y-6">
             <!-- Name -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Name</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Name</label>
               <div class="flex-1">
                 <input
                   type="text"
@@ -63,13 +63,13 @@
             </div>
 
             <!-- Status -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Status</label>
-              <div class="flex-1">
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Status</label>
+              <div class="flex-1 flex items-center gap-2">
                 <select
                   :value="creative.status"
                   @change="(e) => updateField('status', (e.target as HTMLSelectElement).value)"
-                  class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700 cursor-pointer"
+                  class="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700 cursor-pointer"
                 >
                   <option value="draft">Draft</option>
                   <option value="in_review">In Review</option>
@@ -78,12 +78,21 @@
                   <option value="live">Live</option>
                   <option value="paused">Paused</option>
                 </select>
+                
+                <button 
+                  v-if="creative.status === 'approved' || creative.status === 'live'"
+                  @click="updateField('status', 'draft')"
+                  class="px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg text-sm transition-colors whitespace-nowrap"
+                  title="Revert to Draft"
+                >
+                  Revert to Draft
+                </button>
               </div>
             </div>
 
             <!-- Format -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Format</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Format</label>
               <div class="flex-1">
                 <select
                   :value="creative.format"
@@ -100,8 +109,8 @@
 
             <!-- Budget -->
             <div class="grid grid-cols-2 gap-4">
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Daily Budget</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Daily Budget</label>
                 <div class="flex-1">
                   <input
                     type="number"
@@ -114,8 +123,8 @@
                 </div>
               </div>
 
-              <div class="flex items-start gap-4">
-                <label class="w-32 text-sm text-gray-400 pt-2">Total Budget</label>
+              <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Total Budget</label>
                 <div class="flex-1">
                   <input
                     type="number"
@@ -130,8 +139,8 @@
             </div>
 
             <!-- Copy -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Ad Copy</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Ad Copy</label>
               <div class="flex-1">
                 <textarea
                   :value="creative.ad_copy || ''"
@@ -144,8 +153,8 @@
             </div>
 
             <!-- Headline -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Headline</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Headline</label>
               <div class="flex-1">
                 <input
                   type="text"
@@ -158,8 +167,8 @@
             </div>
 
             <!-- CTA -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Call to Action</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Call to Action</label>
               <div class="flex-1">
                 <input
                   type="text"
@@ -172,8 +181,8 @@
             </div>
 
             <!-- Landing Page -->
-            <div class="flex items-start gap-4">
-              <label class="w-32 text-sm text-gray-400 pt-2">Landing Page</label>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+              <label class="w-full sm:w-32 text-sm text-gray-400 pt-0 sm:pt-2">Landing Page</label>
               <div class="flex-1">
                 <input
                   type="url"

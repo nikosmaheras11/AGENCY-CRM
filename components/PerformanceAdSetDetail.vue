@@ -71,11 +71,11 @@
                   class="w-full px-3 py-2 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-gray-700 cursor-pointer"
                 >
                   <option value="draft">Draft</option>
-                  <option value="ready_for_review">Ready for Review</option>
                   <option value="in_review">In Review</option>
                   <option value="approved">Approved</option>
-                  <option value="changes_requested">Changes Requested</option>
+                  <option value="rejected">Rejected</option>
                   <option value="live">Live</option>
+                  <option value="paused">Paused</option>
                   <option value="completed">Completed</option>
                   <option value="archived">Archived</option>
                 </select>
