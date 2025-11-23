@@ -250,10 +250,16 @@ const fetchComments = async () => {
 
 // Submit new comment
 const submitComment = async () => {
-  if (!newCommentContent.value.trim()) return
+  console.log('🚀 submitComment called!')
+  console.log('newCommentContent:', newCommentContent.value)
+  
+  if (!newCommentContent.value.trim()) {
+    console.log('❌ Content is empty, returning early')
+    return
+  }
   
   try {
-    console.log(`Submitting comment to ${props.entityType}:${props.entityId}`)
+    console.log(`✅ Submitting comment to ${props.entityType}:${props.entityId}`)
     const { supabase } = useSupabase()
     const config = useRuntimeConfig()
     
@@ -273,12 +279,19 @@ const submitComment = async () => {
     }
     
     console.log('Comment data:', commentData)
+    console.log('User:', user.value)
+    console.log('Profile:', profile.value)
+    console.log('Display name:', getDisplayName.value)
     
     // Use REST API directly to avoid Supabase JS client .select() hang issue
     const restUrl = `${config.public.supabaseUrl}/rest/v1/comments`
+    console.log('REST URL:', restUrl)
+    
     const authSession = await supabase.auth.getSession()
     const token = authSession.data.session?.access_token || config.public.supabaseAnonKey
+    console.log('Using token type:', authSession.data.session?.access_token ? 'session' : 'anon')
     
+    console.log('Making POST request...')
     const response = await fetch(restUrl, {
       method: 'POST',
       headers: {
@@ -290,9 +303,13 @@ const submitComment = async () => {
       body: JSON.stringify(commentData)
     })
     
+    console.log('Response status:', response.status)
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+    
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('REST API error:', response.status, errorText)
+      console.error('REST API error response:', errorText)
+      console.error('Full response:', response)
       throw new Error(`Failed to post comment: ${response.status} ${errorText}`)
     }
     
@@ -400,6 +417,13 @@ const getInitials = (name: string) => {
 
 // Real-time subscriptions
 onMounted(async () => {
+  console.log('CommentThread mounted with props:', {
+    entityType: props.entityType,
+    entityId: props.entityId,
+    currentTime: props.currentTime,
+    pendingSpatialComment: props.pendingSpatialComment
+  })
+  
   await fetchComments()
   
   // Subscribe to real-time updates
