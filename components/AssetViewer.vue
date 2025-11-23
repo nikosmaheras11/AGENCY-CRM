@@ -72,9 +72,44 @@
             </div>
           </div>
 
-          <!-- Image Display -->
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <img :src="asset.imageUrl || '/placeholder.jpg'" alt="Asset" class="max-w-full max-h-full object-contain rounded-lg" />
+          <!-- Image Display with Interactive Comments -->
+          <div v-else class="w-full h-full flex items-center justify-center relative">
+            <InteractiveImageViewer
+              v-if="asset.imageUrl"
+              :image-url="asset.imageUrl"
+              :spatial-comments="spatialComments"
+              :active-comment-id="activeCommentId"
+              :active-comment-id="activeCommentId"
+              :is-commenting-enabled="enableAnnotation"
+              @add-comment="handleSpatialComment"
+              @select-comment="handleSelectComment"
+            />
+            <img v-else src="/placeholder.jpg" alt="Asset" class="max-w-full max-h-full object-contain rounded-lg" />
+          </div>
+
+          <!-- Figma Display -->
+          <div v-else-if="asset.type === 'figma'" class="w-full h-full flex flex-col items-center justify-center bg-[#1E1E1E] gap-4">
+            <div class="text-center">
+              <div class="w-16 h-16 bg-[#333] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-white" viewBox="0 0 38 57" fill="currentColor">
+                  <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z"/>
+                  <path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z"/>
+                  <path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z"/>
+                  <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z"/>
+                  <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z"/>
+                </svg>
+              </div>
+              <h3 class="text-xl font-medium text-white mb-2">Figma Design File</h3>
+              <p class="text-gray-400 mb-6">View and comment directly in Figma</p>
+              <a 
+                :href="asset.figmaUrl" 
+                target="_blank"
+                class="px-6 py-3 bg-[#0D99FF] hover:bg-[#007BE5] text-white rounded-lg font-medium transition-colors inline-flex items-center gap-2"
+              >
+                <span>Open in Figma</span>
+                <span class="material-icons text-sm">open_in_new</span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -216,69 +251,29 @@
         <!-- Comments Tab -->
         <div v-if="activeTab === 'comments'" class="flex-1 flex flex-col">
           <!-- Comments List -->
-          <div class="flex-1 overflow-y-auto p-4 space-y-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm text-gray-400">{{ comments.length }} open comments</span>
-              <button class="text-sm text-blue-500 hover:text-blue-400">Comment</button>
-            </div>
-
-            <div v-for="comment in comments" :key="comment.id" class="space-y-2">
-              <div class="flex gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" :style="{ backgroundColor: comment.avatarColor }">
-                  {{ comment.initials }}
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="font-medium text-sm">{{ comment.author }}</span>
-                    <span class="text-xs text-gray-500">{{ comment.time }}</span>
-                    <span class="text-xs text-gray-500">{{ comment.version }}</span>
-                  </div>
-                  <p class="text-sm text-gray-300">{{ comment.text }}</p>
-                  <button class="text-xs text-gray-500 hover:text-gray-400 mt-1">Reply</button>
-                </div>
-              </div>
-
-              <!-- Replies -->
-              <div v-for="reply in comment.replies" :key="reply.id" class="ml-11 flex gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" :style="{ backgroundColor: reply.avatarColor }">
-                  {{ reply.initials }}
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="font-medium text-sm">{{ reply.author }}</span>
-                    <span class="text-xs text-gray-500">{{ reply.time }}</span>
-                  </div>
-                  <p class="text-sm text-gray-300">{{ reply.text }}</p>
-                </div>
-              </div>
-            </div>
+          <div class="flex-1 overflow-hidden flex flex-col">
+            <CommentThread
+              :entity-type="entityType"
+              :entity-id="assetId"
+              :current-time="enableAnnotation ? currentTime : null"
+              :pending-spatial-comment="pendingSpatialComment"
+              :active-comment-id="activeCommentId"
+              @comment-added="onCommentAdded"
+              @select-comment="handleSelectComment"
+              @clear-spatial="pendingSpatialComment = null"
+            />
           </div>
 
-          <!-- Comment Input -->
-          <div class="border-t border-gray-800 p-4">
-            <div class="flex gap-2">
-              <input 
-                v-model="newComment"
-                type="text" 
-                placeholder="Add a comment..." 
-                class="flex-1 bg-[#1E1E1E] border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                @keyup.enter="addComment"
-              />
-              <button class="text-gray-400 hover:text-white transition-colors">
-                <span class="material-icons">alternate_email</span>
-              </button>
-              <button @click="addComment" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-colors">
-                Post
-              </button>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+import InteractiveImageViewer from '~/components/creative/InteractiveImageViewer.vue'
+import CommentThread from '~/components/CommentThread.vue'
+
 interface Comment {
   id: number
   author: string
@@ -293,7 +288,7 @@ interface Comment {
 interface Asset {
   id: string
   title: string
-  type: 'video' | 'image'
+  type: 'video' | 'image' | 'figma'
   format: string
   size: string
   dimensions: string
@@ -301,12 +296,20 @@ interface Asset {
   aspectRatio: string
   videoUrl?: string
   imageUrl?: string
+  figmaUrl?: string
   reviewCount: number
 }
 
 const props = defineProps<{
   assetId: string
-}>()
+  entityType?: string
+  enableAnnotation?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  entityType: 'request', // Default to request for backward compatibility
+  enableAnnotation: true
+})>()
 
 defineEmits<{
   close: []
@@ -318,7 +321,55 @@ const currentTime = ref(0)
 const duration = ref(0)
 const currentChapter = ref(2)
 const activeTab = ref<'info' | 'comments'>('comments')
-const newComment = ref('')
+const currentChapter = ref(2)
+const activeTab = ref<'info' | 'comments'>('comments')
+const pendingSpatialComment = ref<{ x: number; y: number } | null>(null)
+const activeCommentId = ref<string | null>(null)
+const spatialComments = ref<any[]>([])
+
+// Load spatial comments
+const loadSpatialComments = async () => {
+  const { supabase } = useSupabase()
+  const { data } = await supabase
+    .from('comments')
+    .select('*')
+    .eq('entity_type', props.entityType)
+    .eq('entity_id', props.assetId)
+    .not('x_position', 'is', null)
+    .order('created_at', { ascending: true })
+  
+  spatialComments.value = data || []
+}
+
+// Handle new spatial comment from InteractiveImageViewer
+const handleSpatialComment = (payload: { x: number; y: number; text: string }) => {
+  // Switch to comments tab
+  activeTab.value = 'comments'
+  // Set pending comment to be picked up by CommentThread
+  pendingSpatialComment.value = { x: payload.x, y: payload.y }
+}
+
+// Handle selecting a comment (from pin or list)
+const handleSelectComment = (commentId: string | any) => {
+  const id = typeof commentId === 'string' ? commentId : commentId.id
+  activeCommentId.value = id
+  activeTab.value = 'comments'
+  
+  // If it's a video comment with timecode, seek to it
+  if (typeof commentId === 'object' && commentId.timecode && videoPlayer.value) {
+    videoPlayer.value.currentTime = commentId.timecode
+  }
+}
+
+const onCommentAdded = (comment: any) => {
+  if (comment.x_position) {
+    spatialComments.value.push(comment)
+  }
+  pendingSpatialComment.value = null
+}
+
+watch(() => props.assetId, loadSpatialComments, { immediate: true })
+
 
 // Fetch real asset data
 const { getRequestById } = useRequests()
@@ -351,7 +402,7 @@ const asset = computed<Asset | null>(() => {
   const assetData: Asset = {
     id: req.id,
     title: req.title,
-    type: (req.videoUrl ? 'video' : 'image') as 'video' | 'image',
+    type: (req.figmaUrl ? 'figma' : (req.videoUrl ? 'video' : 'image')) as 'video' | 'image' | 'figma',
     format: req.format || 'Unknown',
     size: req.size || '0 MB',
     dimensions: req.dimensions || 'Unknown',
@@ -359,90 +410,14 @@ const asset = computed<Asset | null>(() => {
     aspectRatio: '16/9',
     videoUrl,
     imageUrl: req.thumbnail,
+    figmaUrl: req.figmaUrl,
     reviewCount: req.comments?.length || 0
   }
   console.log('✅ AssetViewer - Computed asset:', assetData)
   return assetData
 })
 
-const comments = ref<Comment[]>([
-  {
-    id: 1,
-    author: 'Nikos Maheras',
-    initials: 'NM',
-    avatarColor: '#8B5CF6',
-    time: '0:00',
-    version: '3d V1',
-    text: 'Nicole Wren See my email with any comments or modifications on these movements.',
-    replies: []
-  },
-  {
-    id: 2,
-    author: 'MarcAnthony Paz',
-    initials: 'MA',
-    avatarColor: '#F59E0B',
-    time: '3d V1',
-    version: '3d V1',
-    text: 'Approved',
-    replies: []
-  }
-])
 
-function togglePlay() {
-  if (!videoPlayer.value) return
-  
-  if (isPlaying.value) {
-    videoPlayer.value.pause()
-  } else {
-    videoPlayer.value.play()
-  }
-  isPlaying.value = !isPlaying.value
-}
-
-function toggleFullscreen() {
-  if (!videoPlayer.value) return
-  if (document.fullscreenElement) {
-    document.exitFullscreen()
-  } else {
-    videoPlayer.value.requestFullscreen()
-  }
-}
-
-function onVideoLoaded() {
-  if (videoPlayer.value) {
-    duration.value = videoPlayer.value.duration
-  }
-}
-
-function onTimeUpdate() {
-  if (videoPlayer.value) {
-    currentTime.value = videoPlayer.value.currentTime
-  }
-}
-
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
-  return `${mins}:${secs.toString().padStart(2, '0')}`
-}
-
-function addComment() {
-  if (!newComment.value.trim()) return
-  
-  const newCommentObj: Comment = {
-    id: Date.now(),
-    author: 'You',
-    initials: 'YO',
-    avatarColor: '#3B82F6',
-    time: 'Just now',
-    version: 'V1',
-    text: newComment.value,
-    replies: []
-  }
-  
-  comments.value.push(newCommentObj)
-  newComment.value = ''
-}
 
 // Listen for video player events
 onMounted(() => {

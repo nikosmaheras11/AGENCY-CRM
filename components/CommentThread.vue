@@ -40,7 +40,8 @@
         v-for="comment in filteredComments"
         :key="comment.id"
         class="comment-item"
-        :class="{ resolved: comment.resolved }"
+        :class="{ resolved: comment.resolved, active: activeCommentId === comment.id }"
+        @click="$emit('select-comment', comment)"
       >
         <div class="comment-header">
           <div class="comment-author">
@@ -53,7 +54,7 @@
             </div>
           </div>
           
-          <button @click="toggleCommentMenu(comment)" class="comment-menu-btn">
+          <button @click.stop="toggleCommentMenu(comment)" class="comment-menu-btn">
             <span class="material-icons">more_horiz</span>
           </button>
         </div>
@@ -69,16 +70,22 @@
           <span class="material-icons">play_circle</span>
           <span>{{ formatTime(comment.timecode) }}</span>
         </div>
+
+        <!-- Spatial badge (for image comments) -->
+        <div v-if="comment.x_position !== null && comment.x_position !== undefined" class="comment-spatial">
+          <span class="material-icons">pin_drop</span>
+          <span>Pin {{ getPinNumber(comment) }}</span>
+        </div>
         
         <div class="comment-actions">
-          <button @click="replyToComment(comment)" class="action-btn">
+          <button @click.stop="replyToComment(comment)" class="action-btn">
             <span class="material-icons">reply</span>
             Reply
           </button>
           
           <button 
             v-if="!comment.resolved"
-            @click="resolveComment(comment)"
+            @click.stop="resolveComment(comment)"
             class="action-btn"
           >
             <span class="material-icons">check</span>
@@ -87,7 +94,7 @@
           
           <button 
             v-else
-            @click="unresolveComment(comment)"
+            @click.stop="unresolveComment(comment)"
             class="action-btn"
           >
             <span class="material-icons">refresh</span>
@@ -105,8 +112,13 @@
         <span v-if="currentTime !== null && currentTime !== undefined && currentTime > 0" class="timecode-display">
           at {{ formatTime(currentTime) }}
         </span>
+         <!-- Show spatial info if present -->
+        <span v-if="pendingSpatialComment" class="spatial-display">
+          at Pin Location
+        </span>
       </div>
       <textarea
+        ref="commentInput"
         v-model="newCommentContent"
         placeholder="Write a comment..."
         @keydown.meta.enter="submitComment"
@@ -127,7 +139,8 @@ import { formatRelativeTime, formatTime } from '~/utils/asset-viewer'
 
 interface Comment {
   id: string
-  request_id: string
+  entity_type: string
+  entity_id: string
   parent_comment_id?: string | null
   author_id?: string | null
   author_name?: string | null
@@ -148,11 +161,20 @@ interface Comment {
 }
 
 interface Props {
-  assetId: string
+  entityType: string
+  entityId: string
   currentTime?: number | null
+  pendingSpatialComment?: { x: number; y: number } | null
+  activeCommentId?: string | null
 }
 
 const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  'comment-added': [comment: Comment]
+  'select-comment': [comment: Comment]
+  'clear-spatial': []
+}>()
 
 // Auth
 const { user, profile, getDisplayName } = useAuth()
@@ -162,6 +184,7 @@ const allComments = ref<Comment[]>([])
 const loading = ref(true)
 const filter = ref<'all' | 'unresolved' | 'resolved'>('all')
 const newCommentContent = ref('')
+const commentInput = ref<HTMLTextAreaElement | null>(null)
 
 // Filtered comments
 const unresolvedComments = computed(() => 
@@ -178,6 +201,24 @@ const filteredComments = computed(() => {
   return allComments.value
 })
 
+// Watch for pending spatial comment to focus input
+watch(() => props.pendingSpatialComment, (newVal) => {
+  if (newVal) {
+    nextTick(() => {
+      commentInput.value?.focus()
+    })
+  }
+})
+
+// Get pin number based on index in all comments (filtered by spatial)
+const getPinNumber = (comment: Comment) => {
+  const spatialComments = allComments.value
+    .filter(c => c.x_position !== null && c.x_position !== undefined)
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  
+  return spatialComments.findIndex(c => c.id === comment.id) + 1
+}
+
 // Fetch comments from Supabase
 const fetchComments = async () => {
   loading.value = true
@@ -188,7 +229,8 @@ const fetchComments = async () => {
     const { data, error: fetchError } = await supabase
       .from('comments')
       .select('*')
-      .eq('request_id', props.assetId)
+      .eq('entity_type', props.entityType)
+      .eq('entity_id', props.entityId)
       .order('created_at', { ascending: false })
     
     if (fetchError) throw fetchError
@@ -206,16 +248,19 @@ const submitComment = async () => {
   if (!newCommentContent.value.trim()) return
   
   try {
-    console.log('Submitting comment to assetId:', props.assetId)
+    console.log(`Submitting comment to ${props.entityType}:${props.entityId}`)
     const { supabase } = useSupabase()
     
     const commentData = {
-      request_id: props.assetId,
+      entity_type: props.entityType,
+      entity_id: props.entityId,
       author_id: user.value?.id || null,
       author_name: getDisplayName.value,
       author_email: user.value?.email || null,
       content: newCommentContent.value.trim(),
       timecode: props.currentTime || null,
+      x_position: props.pendingSpatialComment?.x || null,
+      y_position: props.pendingSpatialComment?.y || null,
       resolved: false,
       edited: false,
       thread_depth: 0
@@ -239,8 +284,12 @@ const submitComment = async () => {
     // Add to local state
     allComments.value.unshift(data)
     
-    // Clear input
+    // Emit event
+    emit('comment-added', data)
+    
+    // Clear input and spatial
     newCommentContent.value = ''
+    emit('clear-spatial')
   } catch (e: any) {
     console.error('Error posting comment:', e)
     alert(`Failed to post comment: ${e.message || 'Unknown error'}\n\nPlease check the browser console for details.`)
@@ -303,6 +352,8 @@ const unresolveComment = async (comment: Comment) => {
 const replyToComment = (comment: Comment) => {
   // TODO: Implement reply functionality
   console.log('Reply to:', comment)
+  newCommentContent.value = `@${comment.author_name} `
+  commentInput.value?.focus()
 }
 
 // Toggle comment menu
@@ -314,6 +365,7 @@ const toggleCommentMenu = (comment: Comment) => {
 // Clear comment input
 const clearComment = () => {
   newCommentContent.value = ''
+  emit('clear-spatial')
 }
 
 // Get initials from name
@@ -334,13 +386,13 @@ onMounted(async () => {
   const { supabase } = useSupabase()
   
   const subscription = supabase
-    .channel(`comments:${props.assetId}`)
+    .channel(`comments:${props.entityType}:${props.entityId}`)
     .on('postgres_changes', 
       { 
         event: '*', 
         schema: 'public', 
         table: 'comments',
-        filter: `request_id=eq.${props.assetId}`
+        filter: `entity_type=eq.${props.entityType}&entity_id=eq.${props.entityId}`
       },
       (payload) => {
         console.log('Comment update:', payload)
@@ -453,6 +505,17 @@ onMounted(async () => {
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.comment-item:hover {
+  border-color: #4b5563;
+}
+
+.comment-item.active {
+  border-color: #3b82f6;
+  background: #1e293b;
 }
 
 .comment-item.resolved {
@@ -537,7 +600,7 @@ onMounted(async () => {
   margin-left: 8px;
 }
 
-.comment-timecode {
+.comment-timecode, .comment-spatial {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -550,7 +613,7 @@ onMounted(async () => {
   margin-bottom: 8px;
 }
 
-.comment-timecode .material-icons {
+.comment-timecode .material-icons, .comment-spatial .material-icons {
   font-size: 14px;
 }
 
@@ -601,7 +664,7 @@ onMounted(async () => {
   font-weight: 500;
 }
 
-.timecode-display {
+.timecode-display, .spatial-display {
   color: #60a5fa;
   font-weight: 600;
 }

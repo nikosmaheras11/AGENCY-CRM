@@ -19,6 +19,14 @@
             
             <div class="flex items-center gap-2">
               <button 
+                @click="showFeedbackTool = true"
+                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <UIcon name="i-heroicons-chat-bubble-left-right" />
+                Feedback Tool
+              </button>
+              
+              <button 
                 @click="$emit('update:modelValue', false)"
                 class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors"
               >
@@ -198,9 +206,23 @@
       </div>
     </div>
   </Transition>
+
+  <!-- Feedback Tool Modal -->
+  <div v-if="showFeedbackTool" class="fixed inset-0 z-[60] bg-black">
+    <AssetViewer
+      v-if="creative"
+      :asset-id="creative.id"
+      :asset-id="creative.id"
+      entity-type="creative"
+      :enable-annotation="false"
+      @close="showFeedbackTool = false"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
+import AssetViewer from '~/components/AssetViewer.vue'
+
 interface Props {
   modelValue: boolean
   creative?: any
@@ -211,6 +233,8 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'updated'): void
 }>()
+
+const showFeedbackTool = ref(false)
 
 const { supabase } = useSupabase()
 

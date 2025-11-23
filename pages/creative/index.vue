@@ -456,8 +456,8 @@ const router = useRouter()
 function handleAssetClick(asset: any) {
   console.log('🔍 Asset clicked:', { id: asset.id, status: asset.status, title: asset.title })
   
-  // If it's a Figma link and still in brief stage, open directly in new tab
-  if (asset.figmaUrl && !['needs-review', 'needs-edit', 'done'].includes(asset.status)) {
+  // If it's a Figma link, always open directly in new tab
+  if (asset.figmaUrl) {
     console.log('🎨 Figma asset detected - Opening in Figma:', asset.figmaUrl)
     window.open(asset.figmaUrl, '_blank')
     return
@@ -473,10 +473,11 @@ function handleAssetClick(asset: any) {
     selectedBriefId.value = asset.id
     showBriefModal.value = true
   } else if (assetStatuses.includes(asset.status)) {
-    // Open asset detail modal
-    console.log('🎨 Opening CampaignDetailPanel for status:', asset.status)
-    selectedRequestId.value = asset.id
-    showAssetModal.value = true
+    // Open asset viewer (Feedback Tool)
+    console.log('🎨 Opening AssetViewer (Feedback Tool) for status:', asset.status)
+    selectedAssetId.value = asset.id
+    // selectedRequestId.value = asset.id // No longer needed for this path
+    // showAssetModal.value = true // No longer needed for this path
   } else {
     console.warn('⚠️ Unknown status:', asset.status)
   }

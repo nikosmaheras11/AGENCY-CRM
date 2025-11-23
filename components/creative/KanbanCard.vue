@@ -69,15 +69,25 @@
           </div>
         </div>
         
-        <!-- Figma badge overlay -->
-        <div class="absolute top-2 left-2">
-          <div class="bg-purple-600 text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
-            <svg class="w-3 h-3" viewBox="0 0 38 57" fill="currentColor">
-              <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z"/>
-            </svg>
-            Figma
-          </div>
+      <!-- Figma badge overlay -->
+      <div class="absolute top-2 left-2 flex items-center gap-2">
+        <div class="bg-purple-600 text-white text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
+          <svg class="w-3 h-3" viewBox="0 0 38 57" fill="currentColor">
+            <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z"/>
+          </svg>
+          Figma
         </div>
+        
+        <!-- Sync Button -->
+        <button 
+          @click.stop="handleSyncComments"
+          class="bg-white/90 hover:bg-white text-gray-700 p-1 rounded-md shadow-sm transition-colors"
+          :class="{ 'animate-spin': isSyncing }"
+          title="Sync comments from Figma"
+        >
+          <span class="material-icons text-xs">refresh</span>
+        </button>
+      </div>
       </div>
       
       <!-- Gradient fallback -->
@@ -200,9 +210,26 @@ onMounted(() => {
 })
 
 // Figma integration
-const { fetchFigmaThumbnail } = useFigma()
+const { fetchFigmaThumbnail, importFigmaComments } = useFigma()
 const figmaThumbnail = ref<string | null>(null)
 const figmaLoading = ref(false)
+const isSyncing = ref(false)
+
+const handleSyncComments = async () => {
+  if (!props.asset.figmaUrl || isSyncing.value) return
+  
+  try {
+    isSyncing.value = true
+    await importFigmaComments(props.asset.id, props.asset.figmaUrl)
+    // Ideally emit an event to refresh the asset data or increment comment count locally
+    // props.asset.commentCount++ // Prop mutation is bad, but for UI feedback:
+    console.log('✅ Synced comments from Figma')
+  } catch (error) {
+    console.error('❌ Failed to sync Figma comments:', error)
+  } finally {
+    isSyncing.value = false
+  }
+}
 
 // Fetch Figma thumbnail if asset has Figma URL
 if (props.asset.figmaUrl) {
