@@ -510,6 +510,7 @@
 
 <script setup lang="ts">
 import ConfirmModal from '~/components/common/ConfirmModal.vue'
+import PerformanceCommentThread from '~/components/performance/CommentThread.vue'
 
 interface Props {
   modelValue: boolean
