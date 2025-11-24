@@ -133,8 +133,9 @@ const openCampaignDetail = (campaign: any) => {
   showCampaignDetail.value = true
 }
 
-const handleCampaignUpdated = () => {
-  fetchCampaigns()
+const handleCampaignUpdated = async () => {
+  console.log('🔄 Campaign updated/deleted - refreshing list')
+  await fetchCampaigns()
   liveCreativesKey.value++
 }
 
