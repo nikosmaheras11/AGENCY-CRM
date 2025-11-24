@@ -113,7 +113,12 @@ const handleFinish = async () => {
 
 <template>
   <UModal :model-value="true" @update:model-value="emit('close')" :ui="{ width: 'sm:max-w-3xl' }">
-    <UCard>
+    <UCard :ui="{ 
+      base: 'bg-gray-900',
+      body: { base: 'bg-gray-900' },
+      header: { base: 'bg-gray-900 border-b border-gray-800' },
+      footer: { base: 'bg-gray-900 border-t border-gray-800' }
+    }">
       <template #header>
         <div class="flex items-center justify-between">
           <div>
