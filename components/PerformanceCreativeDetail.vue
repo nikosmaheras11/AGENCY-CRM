@@ -27,7 +27,7 @@
               </button>
               
               <button 
-                @click="deleteCreative"
+                @click="confirmDelete"
                 class="w-9 h-9 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors"
                 title="Delete Creative"
               >
@@ -229,6 +229,7 @@
 
 <script setup lang="ts">
 import AssetViewer from '~/components/AssetViewer.vue'
+import ConfirmModal from '~/components/common/ConfirmModal.vue'
 
 interface Props {
   modelValue: boolean
@@ -273,10 +274,6 @@ const toast = useToast()
 const deleteCreative = async () => {
   if (!props.creative?.id) return
   
-  if (!window.confirm('Are you sure you want to delete this creative? This action cannot be undone.')) {
-    return
-  }
-  
   try {
     const { error } = await supabase
       .from('creatives')
@@ -293,6 +290,21 @@ const deleteCreative = async () => {
     console.error('Failed to delete creative:', error)
     toast.add({ title: 'Delete failed', color: 'red' })
   }
+}
+
+// Modal state
+const showDeleteModal = ref(false)
+const deleting = ref(false)
+
+const confirmDelete = () => {
+  showDeleteModal.value = true
+}
+
+const handleDeleteConfirm = async () => {
+  deleting.value = true
+  await deleteCreative()
+  deleting.value = false
+  showDeleteModal.value = false
 }
 </script>
 

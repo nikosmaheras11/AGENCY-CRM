@@ -19,7 +19,7 @@
             
             <div class="flex items-center gap-2">
               <button 
-                @click="deleteCampaign"
+                @click="confirmDelete"
                 class="w-9 h-9 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors"
                 title="Delete Campaign"
               >
@@ -285,7 +285,7 @@
                   color="red"
                   variant="solid"
                   :loading="deleting"
-                  @click="deleteCampaign"
+                  @click="confirmDelete"
                 >
                   Delete Campaign
                 </UButton>
@@ -496,9 +496,21 @@
     @updated="handleAdSetUpdated"
   />
 
+  <ConfirmModal
+    v-model="showDeleteModal"
+    title="Delete Campaign"
+    description="Are you sure you want to delete this campaign? This action cannot be undone and will delete all associated ad sets and creatives."
+    :danger="true"
+    confirm-label="Delete Campaign"
+    :loading="deleting"
+    @confirm="handleDeleteConfirm"
+    @cancel="showDeleteModal = false"
+  />
 </template>
 
 <script setup lang="ts">
+import ConfirmModal from '~/components/common/ConfirmModal.vue'
+
 interface Props {
   modelValue: boolean
   campaign?: any
@@ -724,10 +736,6 @@ const deleting = ref(false)
 const deleteCampaign = async () => {
   if (!props.campaign?.id) return
   
-  if (!window.confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
-    return
-  }
-  
   try {
     deleting.value = true
     const { error } = await supabase
@@ -747,6 +755,18 @@ const deleteCampaign = async () => {
   } finally {
     deleting.value = false
   }
+}
+
+// Modal state
+const showDeleteModal = ref(false)
+
+const confirmDelete = () => {
+  showDeleteModal.value = true
+}
+
+const handleDeleteConfirm = async () => {
+  await deleteCampaign()
+  showDeleteModal.value = false
 }
 </script>
 

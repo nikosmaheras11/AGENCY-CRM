@@ -19,7 +19,7 @@
             
             <div class="flex items-center gap-2">
               <button 
-                @click="deleteAdSet"
+                @click="confirmDelete"
                 class="w-9 h-9 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors"
                 title="Delete Ad Set"
               >
@@ -178,9 +178,22 @@
       </div>
     </div>
   </Transition>
+
+  <ConfirmModal
+    v-model="showDeleteModal"
+    title="Delete Ad Set"
+    description="Are you sure you want to delete this ad set? All creatives within it will also be deleted. This action cannot be undone."
+    :danger="true"
+    confirm-label="Delete Ad Set"
+    :loading="deleting"
+    @confirm="handleDeleteConfirm"
+    @cancel="showDeleteModal = false"
+  />
 </template>
 
 <script setup lang="ts">
+import ConfirmModal from '~/components/common/ConfirmModal.vue'
+
 interface Props {
   modelValue: boolean
   adSet?: any
@@ -222,10 +235,6 @@ const toast = useToast()
 const deleteAdSet = async () => {
   if (!props.adSet?.id) return
   
-  if (!window.confirm('Are you sure you want to delete this ad set? All creatives within it will also be deleted. This action cannot be undone.')) {
-    return
-  }
-  
   try {
     const { error } = await supabase
       .from('ad_sets')
@@ -242,6 +251,21 @@ const deleteAdSet = async () => {
     console.error('Failed to delete ad set:', error)
     toast.add({ title: 'Delete failed', color: 'red' })
   }
+}
+
+// Modal state
+const showDeleteModal = ref(false)
+const deleting = ref(false)
+
+const confirmDelete = () => {
+  showDeleteModal.value = true
+}
+
+const handleDeleteConfirm = async () => {
+  deleting.value = true
+  await deleteAdSet()
+  deleting.value = false
+  showDeleteModal.value = false
 }
 </script>
 
