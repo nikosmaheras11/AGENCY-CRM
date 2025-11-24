@@ -14,9 +14,12 @@ export default defineNuxtConfig({
   },
 
   colorMode: {
-    preference: 'dark', // default value
-    fallback: 'dark', // fallback value if not system preference found
-    classSuffix: '' // use 'dark' class instead of 'dark-mode'
+    preference: 'dark',
+    fallback: 'dark',
+    classSuffix: '',
+    storageKey: 'nuxt-color-mode',
+    // Force dark mode - ignore system preference
+    dataValue: 'dark'
   },
 
   runtimeConfig: {
