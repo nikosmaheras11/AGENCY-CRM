@@ -18,20 +18,29 @@
             <h2 class="text-2xl font-bold">Ad Set Details</h2>
             
             <div class="flex items-center gap-2">
-              <button 
+              <UButton
+                icon="i-heroicons-share"
+                color="gray"
+                variant="ghost"
+                size="sm"
+                @click="handleShare"
+              >
+                Share
+              </UButton>
+              <UButton
+                icon="i-heroicons-trash"
+                color="red"
+                variant="ghost"
+                size="sm"
                 @click="confirmDelete"
-                class="w-9 h-9 hover:bg-red-500/10 text-slate-400 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors"
-                title="Delete Ad Set"
-              >
-                <UIcon name="i-heroicons-trash" class="text-xl" />
-              </button>
-
-              <button 
-                @click="$emit('update:modelValue', false)"
-                class="w-9 h-9 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors"
-              >
-                <UIcon name="i-heroicons-x-mark" class="text-xl text-slate-400" />
-              </button>
+              />
+              <UButton
+                icon="i-heroicons-x-mark"
+                color="gray"
+                variant="ghost"
+                size="sm"
+                @click="$emit('close')"
+              />
             </div>
           </div>
         </div>
@@ -203,6 +212,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'updated'): void
+  (e: 'close'): void
 }>()
 
 const { supabase } = useSupabase()
@@ -253,9 +263,45 @@ const deleteAdSet = async () => {
   }
 }
 
-// Modal state
+// Delete Modal State
 const showDeleteModal = ref(false)
 const deleting = ref(false)
+
+// Share State
+const sharing = ref(false)
+const { generateShareLink, copyToClipboard } = useShareLinks()
+
+const handleShare = async () => {
+  if (sharing.value || !props.adSet?.id) return
+  
+  try {
+    sharing.value = true
+    const link = await generateShareLink({
+      entityType: 'ad_set',
+      entityId: props.adSet.id,
+      permissions: {
+        canComment: true,
+        canDownload: true
+      }
+    })
+    
+    if (link) {
+      await copyToClipboard(link.url)
+      toast.add({ 
+        title: 'Link Copied!', 
+        description: 'Share link copied to clipboard',
+        color: 'green',
+        icon: 'i-heroicons-clipboard-document-check'
+      })
+    } else {
+      throw new Error('Failed to generate link')
+    }
+  } catch (error) {
+    toast.add({ title: 'Share failed', color: 'red' })
+  } finally {
+    sharing.value = false
+  }
+}
 
 const confirmDelete = () => {
   showDeleteModal.value = true

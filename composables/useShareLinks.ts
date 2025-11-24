@@ -4,7 +4,8 @@
  */
 
 export interface ShareLinkOptions {
-  assetId: string
+  entityType: 'request' | 'campaign' | 'ad_set' | 'creative'
+  entityId: string
   permissions?: {
     canComment?: boolean
     canDownload?: boolean
@@ -14,7 +15,8 @@ export interface ShareLinkOptions {
 
 export interface ShareLink {
   id: string
-  assetId: string
+  entityType: string
+  entityId: string
   token: string
   url: string
   canComment: boolean
@@ -28,7 +30,7 @@ export const useShareLinks = () => {
   const config = useRuntimeConfig()
 
   /**
-   * Generate a shareable link for an asset
+   * Generate a shareable link for an entity
    */
   const generateShareLink = async (options: ShareLinkOptions): Promise<ShareLink | null> => {
     try {
@@ -48,7 +50,8 @@ export const useShareLinks = () => {
       const { data, error } = await supabase
         .from('share_links')
         .insert({
-          asset_id: options.assetId,
+          entity_type: options.entityType,
+          entity_id: options.entityId,
           token,
           can_comment: canComment,
           can_download: canDownload,
@@ -59,12 +62,13 @@ export const useShareLinks = () => {
 
       if (error) throw error
 
-      const siteUrl = config.public.siteUrl || 'http://localhost:3000'
+      const siteUrl = config.public.siteUrl || window.location.origin
       const shareUrl = `${siteUrl}/share/${token}`
 
       return {
         id: data.id,
-        assetId: data.asset_id,
+        entityType: data.entity_type,
+        entityId: data.entity_id,
         token: data.token,
         url: shareUrl,
         canComment: data.can_comment,
@@ -79,60 +83,60 @@ export const useShareLinks = () => {
   }
 
   /**
-   * Validate a share token and get asset info
+   * Fetch shared data (Public/Guest)
    */
-  const validateShareToken = async (token: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('share_links')
-        .select(`
-          *,
-          request:requests(*)
-        `)
-        .eq('token', token)
-        .single()
-
-      if (error) throw error
-
-      // Check if expired
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        return {
-          valid: false,
-          error: 'Link has expired'
-        }
-      }
-
-      return {
-        valid: true,
-        shareLink: data,
-        asset: data.request
-      }
-    } catch (error) {
-      return {
-        valid: false,
-        error: 'Invalid share link'
-      }
-    }
+  const fetchSharedData = async (token: string) => {
+    return await $fetch(`/api/share/${token}`)
   }
 
   /**
-   * Get all share links for an asset
+   * Post a guest comment
    */
-  const getShareLinks = async (assetId: string): Promise<ShareLink[]> => {
+  const postGuestComment = async (token: string, entityType: string, entityId: string, text: string, authorName: string) => {
+    return await $fetch(`/api/share/${token}/comment`, {
+      method: 'POST',
+      body: {
+        entity_type: entityType,
+        entity_id: entityId,
+        text,
+        author_name: authorName
+      }
+    })
+  }
+
+  /**
+   * Submit guest approval
+   */
+  const submitGuestApproval = async (token: string, creativeId: string, status: 'approved' | 'rejected') => {
+    return await $fetch(`/api/share/${token}/approve`, {
+      method: 'POST',
+      body: {
+        creative_id: creativeId,
+        status
+      }
+    })
+  }
+
+  /**
+   * Get all share links for an entity
+   */
+  const getShareLinks = async (entityType: string, entityId: string): Promise<ShareLink[]> => {
     try {
       const { data, error } = await supabase
         .from('share_links')
         .select('*')
-        .eq('asset_id', assetId)
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      const siteUrl = config.public.siteUrl || 'http://localhost:3000'
+      const siteUrl = config.public.siteUrl || window.location.origin
 
       return (data || []).map(link => ({
         id: link.id,
-        assetId: link.asset_id,
+        entityType: link.entity_type,
+        entityId: link.entity_id,
         token: link.token,
         url: `${siteUrl}/share/${link.token}`,
         canComment: link.can_comment,
@@ -172,22 +176,16 @@ export const useShareLinks = () => {
       await navigator.clipboard.writeText(url)
       return true
     } catch (error) {
-      // Fallback for older browsers
-      const textarea = document.createElement('textarea')
-      textarea.value = url
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
-      const success = document.execCommand('copy')
-      document.body.removeChild(textarea)
-      return success
+      console.error('Failed to copy:', error)
+      return false
     }
   }
 
   return {
     generateShareLink,
-    validateShareToken,
+    fetchSharedData,
+    postGuestComment,
+    submitGuestApproval,
     getShareLinks,
     revokeShareLink,
     copyToClipboard
