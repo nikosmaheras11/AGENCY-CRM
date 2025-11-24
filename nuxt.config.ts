@@ -2,12 +2,22 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  
+
   modules: [
     '@nuxt/ui',
     '@nuxtjs/tailwindcss',
     '@vueuse/nuxt'
   ],
+
+  ui: {
+    global: true
+  },
+
+  colorMode: {
+    preference: 'dark', // default value
+    fallback: 'dark', // fallback value if not system preference found
+    classSuffix: '' // use 'dark' class instead of 'dark-mode'
+  },
 
   runtimeConfig: {
     // Private keys (server-side only - never exposed to client)
@@ -20,7 +30,7 @@ export default defineNuxtConfig({
     slackChannelUgc: process.env.SLACK_CHANNEL_UGC,
     supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
     figmaAccessToken: process.env.FIGMA_ACCESS_TOKEN,
-    
+
     // Public keys (exposed to client - safe for browser)
     public: {
       siteUrl: process.env.PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:3000',

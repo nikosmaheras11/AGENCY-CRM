@@ -8,6 +8,16 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Base background and text colors for light/dark mode */
+  body {
+    @apply bg-white dark:bg-gray-950 text-gray-900 dark:text-white;
+  }
+
+  /* Ensure proper color transitions */
+  * {
+    @apply transition-colors duration-200;
+  }
 }
 
 @layer components {
