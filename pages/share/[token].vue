@@ -16,7 +16,7 @@ const pendingAction = ref<any>(null) // { type: 'comment' | 'approve', payload: 
 // Fetch Data
 onMounted(async () => {
   try {
-    const result = await fetchSharedData(token)
+    const result = await fetchSharedData(token) as any
     data.value = result.data
     permissions.value = result.permissions
     
