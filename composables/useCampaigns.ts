@@ -208,6 +208,42 @@ export const useCampaigns = () => {
         }
     }
 
+    // Realtime subscription for campaigns
+    const setupRealtimeSubscription = () => {
+        console.log('🔄 Setting up realtime subscription for campaigns')
+
+        const channel = supabase
+            .channel('campaigns-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+                    schema: 'public',
+                    table: 'campaigns'
+                },
+                (payload) => {
+                    console.log('📡 Realtime event received:', payload.eventType, payload)
+
+                    // Refresh campaigns list when any change occurs
+                    fetchCampaigns()
+                }
+            )
+            .subscribe((status) => {
+                console.log('📡 Subscription status:', status)
+            })
+
+        return channel
+    }
+
+    // Set up subscription on composable initialization
+    const realtimeChannel = setupRealtimeSubscription()
+
+    // Cleanup function
+    const cleanup = () => {
+        console.log('🧹 Cleaning up realtime subscription')
+        realtimeChannel.unsubscribe()
+    }
+
     return {
         campaigns: readonly(campaigns),
         campaign: readonly(campaign),
@@ -216,6 +252,7 @@ export const useCampaigns = () => {
         fetchCampaignWithHierarchy,
         createCampaign,
         updateCampaignStatus,
-        fetchLiveCreatives
+        fetchLiveCreatives,
+        cleanup
     }
 }
