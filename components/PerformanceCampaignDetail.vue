@@ -734,26 +734,43 @@ const quickApproveCreative = async (creativeId: string) => {
 const deleting = ref(false)
 
 const deleteCampaign = async () => {
-  if (!props.campaign?.id) return
+  console.log('🗑️ deleteCampaign called')
+  console.log('Campaign ID:', props.campaign?.id)
+  console.log('Campaign object:', props.campaign)
+  
+  if (!props.campaign?.id) {
+    console.error('❌ No campaign ID found')
+    return
+  }
   
   try {
     deleting.value = true
-    const { error } = await supabase
+    console.log('🔄 Starting delete operation...')
+    
+    const { data, error } = await supabase
       .from('campaigns')
       .delete()
       .eq('id', props.campaign.id)
+      .select()
     
-    if (error) throw error
+    console.log('Delete response:', { data, error })
     
+    if (error) {
+      console.error('❌ Supabase error:', error)
+      throw error
+    }
+    
+    console.log('✅ Campaign deleted successfully')
     toast.add({ title: 'Campaign deleted', color: 'green' })
     emit('update:modelValue', false)
     await fetchCampaigns() // Refresh the list
     
   } catch (error) {
-    console.error('Failed to delete campaign:', error)
+    console.error('❌ Failed to delete campaign:', error)
     toast.add({ title: 'Delete failed', color: 'red' })
   } finally {
     deleting.value = false
+    console.log('🏁 Delete operation finished')
   }
 }
 
@@ -761,12 +778,15 @@ const deleteCampaign = async () => {
 const showDeleteModal = ref(false)
 
 const confirmDelete = () => {
+  console.log('🚨 confirmDelete called - opening modal')
   showDeleteModal.value = true
 }
 
 const handleDeleteConfirm = async () => {
+  console.log('✅ User confirmed delete - calling deleteCampaign')
   await deleteCampaign()
   showDeleteModal.value = false
+  console.log('Modal closed')
 }
 </script>
 
