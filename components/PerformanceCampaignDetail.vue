@@ -762,8 +762,16 @@ const deleteCampaign = async () => {
     
     console.log('✅ Campaign deleted successfully')
     toast.add({ title: 'Campaign deleted', color: 'green' })
+    
+    console.log('📤 Emitting update:modelValue = false')
     emit('update:modelValue', false)
-    await fetchCampaigns() // Refresh the list
+    
+    console.log('📤 Emitting updated event')
+    emit('updated')
+    
+    console.log('🔄 Calling fetchCampaigns to refresh list')
+    await fetchCampaigns()
+    console.log('✅ fetchCampaigns completed')
     
   } catch (error) {
     console.error('❌ Failed to delete campaign:', error)
