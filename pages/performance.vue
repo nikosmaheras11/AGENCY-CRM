@@ -84,14 +84,14 @@
         <!-- Status Table View -->
         <PerformanceStatusTable 
           v-if="viewMode === 'status_table'"
-          :campaigns="campaigns"
+          :campaigns="campaigns as any[]"
           @select="openCampaignDetail"
         />
 
         <!-- Platform Kanban View -->
         <PerformancePlatformKanban
           v-else-if="viewMode === 'platform_kanban'"
-          :campaigns="campaigns"
+          :campaigns="campaigns as any[]"
           @select="openCampaignDetail"
         />
 
