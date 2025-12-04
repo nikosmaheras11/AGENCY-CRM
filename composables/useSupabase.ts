@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { User } from '@supabase/supabase-js'
+import type { User, SupabaseClient } from '@supabase/supabase-js'
 
 // Database types
 export interface SlackMessage {
@@ -23,41 +23,89 @@ export interface SlackMessage {
   mentions: any[]
 }
 
-// Singleton Supabase client - created once and reused
-let supabaseClient: any = null
-
 export const useSupabase = () => {
   const config = useRuntimeConfig()
-  
-  // Create client only once
-  if (!supabaseClient) {
-    supabaseClient = createClient(
+  const nuxtApp = useNuxtApp()
+
+  // Create a unique key for the client in the Nuxt app context
+  // This ensures we reuse the client within the same request (SSR) or session (Client)
+  // but NEVER share it across different requests on the server
+  const clientKey = 'supabase-client'
+
+  // Initialize or retrieve the Supabase client
+  const supabase = useState<SupabaseClient>(clientKey, () => {
+    // Custom storage adapter using Nuxt Cookies
+    // This allows the session to persist across SSR
+    const cookieOptions = {
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+      sameSite: 'lax' as const,
+      secure: process.env.NODE_ENV === 'production'
+    }
+
+    const storageAdapter = {
+      getItem: (key: string) => {
+        // We use a specific prefix for auth tokens to avoid conflicts
+        // Supabase default key is usually 'sb-<project-ref>-auth-token'
+        // We'll just use the key passed by Supabase
+        const cookie = useCookie(key)
+        return cookie.value
+      },
+      setItem: (key: string, value: string) => {
+        const cookie = useCookie(key, cookieOptions)
+        cookie.value = value
+      },
+      removeItem: (key: string) => {
+        const cookie = useCookie(key, cookieOptions)
+        cookie.value = null
+      }
+    }
+
+    return createClient(
       config.public.supabaseUrl,
-      config.public.supabaseAnonKey
+      config.public.supabaseAnonKey,
+      {
+        auth: {
+          storage: storageAdapter,
+          flowType: 'pkce',
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true
+        }
+      }
     )
-  }
-  
-  const supabase = supabaseClient
+  })
 
   // Get current user state
   const user = useState<User | null>('supabase-user', () => null)
-  
+
   // Initialize user
   const initUser = async () => {
-    const { data } = await supabase.auth.getUser()
+    const { data } = await supabase.value.auth.getUser()
     user.value = data.user
   }
-  
-  // Only run on client side
+
+  // Initialize on mount (client-side) or if not present
   if (process.client && !user.value) {
     initUser()
+  }
+
+  // Also try to init on server if we have a session
+  if (process.server && !user.value) {
+    // We can't await in setup, but we can start the promise
+    // Or rely on middleware to handle the critical auth checks
+    supabase.value.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        user.value = data.session.user
+      }
+    })
   }
 
   /**
    * Upload file to Supabase Storage
    */
   const uploadFile = async (bucket: string, path: string, file: File) => {
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabase.value.storage
       .from(bucket)
       .upload(path, file, {
         cacheControl: '3600',
@@ -72,10 +120,10 @@ export const useSupabase = () => {
    * Get public URL for a file
    */
   const getPublicUrl = (bucket: string, path: string) => {
-    const { data } = supabase.storage
+    const { data } = supabase.value.storage
       .from(bucket)
       .getPublicUrl(path)
-    
+
     return data.publicUrl
   }
 
@@ -105,19 +153,19 @@ export const useSupabase = () => {
       const video = document.createElement('video')
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')
-      
+
       video.preload = 'metadata'
       video.src = URL.createObjectURL(videoFile)
-      
+
       video.onloadedmetadata = () => {
         video.currentTime = 1 // Get frame at 1 second
       }
-      
+
       video.onseeked = () => {
         canvas.width = video.videoWidth
         canvas.height = video.videoHeight
         ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
-        
+
         canvas.toBlob((blob) => {
           if (blob) {
             resolve(blob)
@@ -127,14 +175,14 @@ export const useSupabase = () => {
           URL.revokeObjectURL(video.src)
         }, 'image/jpeg', 0.8)
       }
-      
+
       video.onerror = reject
     })
   }
 
   return {
-    supabase,
-    client: supabase,
+    supabase: supabase.value,
+    client: supabase.value,
     user,
     uploadFile,
     getPublicUrl,
