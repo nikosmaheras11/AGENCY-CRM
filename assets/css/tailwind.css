@@ -41,7 +41,7 @@
   }
 
   .btn-primary:hover {
-    @apply -translate-y-0.5 shadow-[0_6px_20px_rgba(67, 24, 255, 0.4)];
+    @apply -translate-y-0.5 shadow-[0_6px_20px_rgba(67,24,255,0.4)];
   }
 
   /* Icon container */
