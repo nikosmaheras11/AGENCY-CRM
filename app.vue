@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-gradient-dark overflow-hidden">
+  <div class="dark flex h-screen bg-gradient-dark overflow-hidden">
     <!-- Elevated Glass Sidebar (hidden for fullscreen routes) -->
     <aside v-if="!isFullscreenRoute" class="w-20 backdrop-blur-xl border-r-0 flex flex-col items-center py-6 gap-6 flex-shrink-0 relative" style="background: linear-gradient(111.84deg, rgba(6, 11, 38, 0.94) 59.3%, rgba(26, 31, 55, 0) 100%); box-shadow: inset -1px 0px 2px rgba(26, 50, 130, 0.5), 20px 0px 40px rgba(0, 0, 0, 0.3);">
       <!-- Logo -->
@@ -93,7 +93,7 @@ const isFullscreenRoute = computed(() => {
   return isFullscreen
 })
 
-// Head configuration for fonts
+// Head configuration for fonts and dark mode
 useHead({
   link: [
     {
@@ -106,7 +106,11 @@ useHead({
     }
   ],
   htmlAttrs: {
-    lang: 'en'
+    lang: 'en',
+    class: 'dark'
+  },
+  bodyAttrs: {
+    class: 'dark'
   }
 })
 </script>
