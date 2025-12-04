@@ -24,8 +24,26 @@ export interface SlackMessage {
 }
 
 export const useSupabase = () => {
+  const nuxtApp = tryUseNuxtApp()
+
+  // If called outside of Nuxt context (e.g. some edge cases), return a dummy or throw
+  if (!nuxtApp) {
+    console.warn('useSupabase called outside of Nuxt context')
+    // We can't do much without context, but we can try to return a minimal object
+    // to prevent immediate destructuring errors
+    return {
+      supabase: null as any,
+      client: null as any,
+      user: ref(null),
+      uploadFile: async () => null,
+      getPublicUrl: () => '',
+      uploadVideo: async () => '',
+      uploadImage: async () => '',
+      generateVideoThumbnail: async () => new Blob()
+    }
+  }
+
   const config = useRuntimeConfig()
-  const nuxtApp = useNuxtApp()
 
   // Initialize or retrieve the Supabase client
   // We use nuxtApp to store the client instance instead of useState
