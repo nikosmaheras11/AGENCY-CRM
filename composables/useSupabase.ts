@@ -27,13 +27,13 @@ export const useSupabase = () => {
   const config = useRuntimeConfig()
   const nuxtApp = useNuxtApp()
 
-  // Create a unique key for the client in the Nuxt app context
-  // This ensures we reuse the client within the same request (SSR) or session (Client)
-  // but NEVER share it across different requests on the server
-  const clientKey = 'supabase-client'
-
   // Initialize or retrieve the Supabase client
-  const supabase = useState<SupabaseClient>(clientKey, () => {
+  // We use nuxtApp to store the client instance instead of useState
+  // because useState tries to serialize the object (causing 500 error)
+  // while nuxtApp is per-request on server and singleton on client
+  let supabaseClient = (nuxtApp as any)._supabaseClient
+
+  if (!supabaseClient) {
     // Custom storage adapter using Nuxt Cookies
     // This allows the session to persist across SSR
     const cookieOptions = {
@@ -67,7 +67,7 @@ export const useSupabase = () => {
       }
     }
 
-    return createClient(
+    supabaseClient = createClient(
       config.public.supabaseUrl,
       config.public.supabaseAnonKey,
       {
@@ -80,14 +80,19 @@ export const useSupabase = () => {
         }
       }
     )
-  })
+
+      // Save to nuxtApp for reuse
+      ; (nuxtApp as any)._supabaseClient = supabaseClient
+  }
+
+  const supabase = supabaseClient
 
   // Get current user state
   const user = useState<User | null>('supabase-user', () => null)
 
   // Initialize user
   const initUser = async () => {
-    const { data } = await supabase.value.auth.getUser()
+    const { data } = await supabase.auth.getUser()
     user.value = data.user
   }
 
@@ -100,7 +105,7 @@ export const useSupabase = () => {
   if (process.server && !user.value) {
     // We can't await in setup, but we can start the promise
     // Or rely on middleware to handle the critical auth checks
-    supabase.value.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         user.value = data.session.user
       }
@@ -111,7 +116,7 @@ export const useSupabase = () => {
    * Upload file to Supabase Storage
    */
   const uploadFile = async (bucket: string, path: string, file: File) => {
-    const { data, error } = await supabase.value.storage
+    const { data, error } = await supabase.storage
       .from(bucket)
       .upload(path, file, {
         cacheControl: '3600',
@@ -126,7 +131,7 @@ export const useSupabase = () => {
    * Get public URL for a file
    */
   const getPublicUrl = (bucket: string, path: string) => {
-    const { data } = supabase.value.storage
+    const { data } = supabase.storage
       .from(bucket)
       .getPublicUrl(path)
 
@@ -187,8 +192,8 @@ export const useSupabase = () => {
   }
 
   return {
-    supabase: supabase.value,
-    client: supabase.value,
+    supabase: supabase,
+    client: supabase,
     user,
     uploadFile,
     getPublicUrl,
