@@ -11,6 +11,26 @@ export interface UserProfile {
 }
 
 export const useAuth = () => {
+  const nuxtApp = tryUseNuxtApp()
+
+  if (!nuxtApp) {
+    console.warn('useAuth called outside of Nuxt context')
+    return {
+      user: ref(null),
+      profile: ref(null),
+      loading: ref(false),
+      getCurrentUser: async () => null,
+      fetchProfile: async () => null,
+      signIn: async () => ({ data: null, error: new Error('No context') }),
+      signUp: async () => ({ data: null, error: new Error('No context') }),
+      signOut: async () => { },
+      updateProfile: async () => ({ data: null, error: new Error('No context') }),
+      getDisplayName: computed(() => ''),
+      isAdmin: computed(() => false),
+      getInitials: computed(() => '')
+    }
+  }
+
   const { supabase } = useSupabase()
 
   // Use global state for user and profile to persist across components/pages
