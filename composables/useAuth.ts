@@ -10,14 +10,19 @@ export interface UserProfile {
   role: 'admin' | 'designer' | 'account_manager' | 'client' | 'member'
 }
 
+// Module-level state for SSR safety
+const _authUser = ref<any>(null)
+const _authProfile = ref<UserProfile | null>(null)
+const _authLoading = ref<boolean>(true)
+
 export const useAuth = () => {
   const nuxtApp = tryUseNuxtApp()
 
   if (!nuxtApp) {
-    console.warn('useAuth called outside of Nuxt context')
+    console.warn('[useAuth] Called outside Nuxt context')
     return {
-      user: ref(null),
-      profile: ref(null),
+      user: _authUser,
+      profile: _authProfile,
       loading: ref(false),
       getCurrentUser: async () => null,
       fetchProfile: async () => null,
@@ -33,15 +38,16 @@ export const useAuth = () => {
 
   const { supabase } = useSupabase()
 
-  // Use global state for user and profile to persist across components/pages
-  const user = useState<any>('auth-user', () => null)
-  const profile = useState<UserProfile | null>('auth-profile', () => null)
-  const loading = useState<boolean>('auth-loading', () => true)
+  // Use module-level refs instead of useState
+  const user = _authUser
+  const profile = _authProfile
+  const loading = _authLoading
 
   /**
    * Get current authenticated user
    */
   const getCurrentUser = async () => {
+    if (!supabase) return null
     try {
       const { data: { user: authUser }, error } = await supabase.auth.getUser()
 
@@ -56,7 +62,7 @@ export const useAuth = () => {
 
       return authUser
     } catch (e) {
-      console.error('Error getting current user:', e)
+      console.error('[useAuth] Error getting current user:', e)
       return null
     } finally {
       loading.value = false
@@ -67,6 +73,7 @@ export const useAuth = () => {
    * Fetch user profile from profiles table
    */
   const fetchProfile = async (userId: string) => {
+    if (!supabase) return null
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -79,7 +86,7 @@ export const useAuth = () => {
       profile.value = data
       return data
     } catch (e) {
-      console.error('Error fetching profile:', e)
+      console.error('[useAuth] Error fetching profile:', e)
       return null
     }
   }
@@ -88,6 +95,7 @@ export const useAuth = () => {
    * Sign in with email and password
    */
   const signIn = async (email: string, password: string) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not initialized') }
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -104,7 +112,7 @@ export const useAuth = () => {
 
       return { data, error: null }
     } catch (e: any) {
-      console.error('Sign in error:', e)
+      console.error('[useAuth] Sign in error:', e)
       return { data: null, error: e }
     }
   }
@@ -113,6 +121,7 @@ export const useAuth = () => {
    * Sign up with email and password
    */
   const signUp = async (email: string, password: string, fullName?: string) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not initialized') }
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -128,7 +137,7 @@ export const useAuth = () => {
 
       return { data, error: null }
     } catch (e: any) {
-      console.error('Sign up error:', e)
+      console.error('[useAuth] Sign up error:', e)
       return { data: null, error: e }
     }
   }
@@ -137,6 +146,7 @@ export const useAuth = () => {
    * Sign out
    */
   const signOut = async () => {
+    if (!supabase) return
     try {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
@@ -144,7 +154,7 @@ export const useAuth = () => {
       user.value = null
       profile.value = null
     } catch (e) {
-      console.error('Sign out error:', e)
+      console.error('[useAuth] Sign out error:', e)
     }
   }
 
@@ -152,6 +162,7 @@ export const useAuth = () => {
    * Update user profile
    */
   const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!supabase) return { data: null, error: new Error('Supabase not initialized') }
     if (!user.value) return { data: null, error: new Error('No user logged in') }
 
     try {
@@ -167,7 +178,7 @@ export const useAuth = () => {
       profile.value = data
       return { data, error: null }
     } catch (e: any) {
-      console.error('Update profile error:', e)
+      console.error('[useAuth] Update profile error:', e)
       return { data: null, error: e }
     }
   }
@@ -176,8 +187,9 @@ export const useAuth = () => {
    * Listen for auth state changes
    */
   const initAuthListener = () => {
+    if (!supabase) return
     supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event)
+      console.log('[useAuth] Auth state changed:', event)
 
       if (session?.user) {
         user.value = session.user
@@ -220,11 +232,13 @@ export const useAuth = () => {
       .substring(0, 2)
   })
 
-  // Initialize on mount
-  onMounted(() => {
-    getCurrentUser()
-    initAuthListener()
-  })
+  // Initialize on mount (client-side only)
+  if (import.meta.client) {
+    onMounted(() => {
+      getCurrentUser()
+      initAuthListener()
+    })
+  }
 
   return {
     user,

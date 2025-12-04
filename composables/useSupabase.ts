@@ -23,18 +23,21 @@ export interface SlackMessage {
   mentions: any[]
 }
 
+// Module-level singleton for SSR safety
+let _supabaseClient: SupabaseClient | null = null
+const _user = ref<User | null>(null)
+
 export const useSupabase = () => {
+  // Try to get Nuxt app context
   const nuxtApp = tryUseNuxtApp()
 
-  // If called outside of Nuxt context (e.g. some edge cases), return a dummy or throw
+  // If no Nuxt context, return safe defaults
   if (!nuxtApp) {
-    console.warn('useSupabase called outside of Nuxt context')
-    // We can't do much without context, but we can try to return a minimal object
-    // to prevent immediate destructuring errors
+    console.warn('[useSupabase] Called outside Nuxt context, returning safe defaults')
     return {
       supabase: null as any,
       client: null as any,
-      user: ref(null),
+      user: _user,
       uploadFile: async () => null,
       getPublicUrl: () => '',
       uploadVideo: async () => '',
@@ -43,54 +46,16 @@ export const useSupabase = () => {
     }
   }
 
-  const config = useRuntimeConfig()
+  // Get runtime config safely using runWithContext
+  const config = nuxtApp.runWithContext(() => useRuntimeConfig())
 
-  // Initialize or retrieve the Supabase client
-  // We use nuxtApp to store the client instance instead of useState
-  // because useState tries to serialize the object (causing 500 error)
-  // while nuxtApp is per-request on server and singleton on client
-  let supabaseClient = (nuxtApp as any)._supabaseClient
-
-  if (!supabaseClient) {
-    // Custom storage adapter using Nuxt Cookies
-    // This allows the session to persist across SSR
-    const cookieOptions = {
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-      sameSite: 'lax' as const,
-      secure: process.env.NODE_ENV === 'production'
-    }
-
-    const storageAdapter = {
-      getItem: (key: string) => {
-        // We use a specific prefix for auth tokens to avoid conflicts
-        // Supabase default key is usually 'sb-<project-ref>-auth-token'
-        // We'll just use the key passed by Supabase
-        return nuxtApp.runWithContext(() => {
-          const cookie = useCookie(key)
-          return cookie.value
-        })
-      },
-      setItem: (key: string, value: string) => {
-        nuxtApp.runWithContext(() => {
-          const cookie = useCookie(key, cookieOptions)
-          cookie.value = value
-        })
-      },
-      removeItem: (key: string) => {
-        nuxtApp.runWithContext(() => {
-          const cookie = useCookie(key, cookieOptions)
-          cookie.value = null
-        })
-      }
-    }
-
-    supabaseClient = createClient(
-      config.public.supabaseUrl,
-      config.public.supabaseAnonKey,
+  // Initialize Supabase client if needed
+  if (!_supabaseClient && config.public.supabaseUrl && config.public.supabaseAnonKey) {
+    _supabaseClient = createClient(
+      config.public.supabaseUrl as string,
+      config.public.supabaseAnonKey as string,
       {
         auth: {
-          storage: storageAdapter,
           flowType: 'pkce',
           detectSessionInUrl: true,
           persistSession: true,
@@ -98,42 +63,32 @@ export const useSupabase = () => {
         }
       }
     )
-
-      // Save to nuxtApp for reuse
-      ; (nuxtApp as any)._supabaseClient = supabaseClient
   }
 
-  const supabase = supabaseClient
+  const supabase = _supabaseClient!
 
-  // Get current user state
-  const user = useState<User | null>('supabase-user', () => null)
-
-  // Initialize user
+  // Initialize user on client side only
   const initUser = async () => {
-    const { data } = await supabase.auth.getUser()
-    user.value = data.user
-  }
-
-  // Initialize on mount (client-side) or if not present
-  if (process.client && !user.value) {
-    initUser()
-  }
-
-  // Also try to init on server if we have a session
-  if (process.server && !user.value) {
-    // We can't await in setup, but we can start the promise
-    // Or rely on middleware to handle the critical auth checks
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        user.value = data.session.user
+    if (import.meta.client && supabase) {
+      try {
+        const { data } = await supabase.auth.getUser()
+        _user.value = data.user
+      } catch (e) {
+        console.warn('[useSupabase] Failed to get user:', e)
       }
-    })
+    }
+  }
+
+  // Auto-init on client if user not set
+  if (import.meta.client && !_user.value && supabase) {
+    initUser()
   }
 
   /**
    * Upload file to Supabase Storage
    */
   const uploadFile = async (bucket: string, path: string, file: File) => {
+    if (!supabase) throw new Error('Supabase client not initialized')
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(path, file, {
@@ -149,6 +104,7 @@ export const useSupabase = () => {
    * Get public URL for a file
    */
   const getPublicUrl = (bucket: string, path: string) => {
+    if (!supabase) return ''
     const { data } = supabase.storage
       .from(bucket)
       .getPublicUrl(path)
@@ -175,10 +131,15 @@ export const useSupabase = () => {
   }
 
   /**
-   * Generate thumbnail from video (client-side)
+   * Generate thumbnail from video (client-side only)
    */
   const generateVideoThumbnail = (videoFile: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
+      if (!import.meta.client) {
+        reject(new Error('generateVideoThumbnail can only be called on client'))
+        return
+      }
+
       const video = document.createElement('video')
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')
@@ -210,9 +171,9 @@ export const useSupabase = () => {
   }
 
   return {
-    supabase: supabase,
+    supabase,
     client: supabase,
-    user,
+    user: _user,
     uploadFile,
     getPublicUrl,
     uploadVideo,

@@ -1,6 +1,6 @@
 /**
  * Composable for managing unified request system
- * Reads from data/requests/requests.json and filters by projectType
+ * Reads from Supabase database and filters by projectType
  */
 
 export interface Request {
@@ -53,17 +53,16 @@ export interface Asset {
   }
 }
 
-// Global state - shared across all pages
-// We use useState inside the composable to ensure SSR safety
-// const allRequests = ref<Request[]>([])
-// const loading = ref(true)
-// const error = ref<Error | null>(null)
+// Module-level state for SSR safety - shared across all pages
+const _allRequests = ref<Request[]>([])
+const _loading = ref<boolean>(true)
+const _error = ref<Error | null>(null)
 
 export const useRequests = () => {
-  // Use useState for shared state across components/pages
-  const allRequests = useState<Request[]>('requests-all', () => [])
-  const loading = useState<boolean>('requests-loading', () => true)
-  const error = useState<Error | null>('requests-error', () => null)
+  // Use module-level refs for shared state
+  const allRequests = _allRequests
+  const loading = _loading
+  const error = _error
 
   /**
    * Fetch all requests from Supabase database
@@ -73,6 +72,12 @@ export const useRequests = () => {
       loading.value = true
       console.log('🔌 useRequests: Connecting to Supabase...')
       const { supabase } = useSupabase()
+      
+      if (!supabase) {
+        console.warn('⚠️ useRequests: Supabase not available')
+        loading.value = false
+        return
+      }
 
       console.log('📡 useRequests: Fetching from requests table...')
       const { data, error: fetchError } = await supabase
@@ -102,7 +107,6 @@ export const useRequests = () => {
           if (assetsError) {
             console.warn('⚠️ Could not fetch asset versions:', assetsError)
           } else {
-            // Create a map of request_id -> asset data
             assetVersions = (assetsData || []).reduce((acc: Record<string, any>, asset: any) => {
               acc[asset.request_id] = asset
               return acc
@@ -126,7 +130,6 @@ export const useRequests = () => {
           size: item.size,
           dimensions: item.dimensions,
           duration: item.duration,
-          // Use current asset version thumbnail if available, otherwise use request thumbnail
           thumbnail: currentAsset?.thumbnail_url || currentAsset?.preview_url || item.thumbnail_url,
           figmaUrl: item.figma_url,
           videoUrl: item.video_url,
@@ -145,14 +148,11 @@ export const useRequests = () => {
         }
       })
       console.log('✅ useRequests: Transformed', allRequests.value.length, 'requests')
-      console.log('🎨 useRequests: Creative requests:', allRequests.value.filter(r => r.projectType === 'creative').length)
       error.value = null
     } catch (e) {
       error.value = e as Error
       console.error('❌ Error fetching requests:', e)
-      // Set empty array so app doesn't crash
       allRequests.value = []
-      // Don't throw - let the app continue
     } finally {
       loading.value = false
     }
@@ -169,12 +169,10 @@ export const useRequests = () => {
 
   /**
    * Get requests grouped by status for a specific projectType
-   * Returns object with status as keys and arrays of requests as values
    */
   const getRequestsByTypeAndStatus = (projectType: Request['projectType']) => {
     return computed(() => {
       const filtered = allRequests.value.filter(req => req.projectType === projectType)
-
       return {
         'new-request': filtered.filter(req => req.status === 'new-request'),
         'in-progress': filtered.filter(req => req.status === 'in-progress'),
@@ -187,7 +185,6 @@ export const useRequests = () => {
 
   /**
    * Get all requests (for project management board)
-   * Optionally filter by multiple projectTypes
    */
   const getAllRequests = (projectTypes?: Request['projectType'][]) => {
     return computed(() => {
@@ -199,7 +196,7 @@ export const useRequests = () => {
   }
 
   /**
-   * Get all requests grouped by status (for project management board)
+   * Get all requests grouped by status
    */
   const getAllRequestsByStatus = () => {
     return computed(() => {
@@ -223,7 +220,7 @@ export const useRequests = () => {
   }
 
   /**
-   * Convert Request to legacy Asset format for backward compatibility
+   * Convert Request to legacy Asset format
    */
   const requestToAsset = (request: Request): Asset => {
     return {
@@ -268,12 +265,9 @@ export const useRequests = () => {
   }
 
   return {
-    // State
     allRequests,
     loading,
     error,
-
-    // Methods
     fetchRequests,
     getRequestsByType,
     getRequestsByTypeAndStatus,
