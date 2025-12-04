@@ -48,16 +48,22 @@ export const useSupabase = () => {
         // We use a specific prefix for auth tokens to avoid conflicts
         // Supabase default key is usually 'sb-<project-ref>-auth-token'
         // We'll just use the key passed by Supabase
-        const cookie = useCookie(key)
-        return cookie.value
+        return nuxtApp.runWithContext(() => {
+          const cookie = useCookie(key)
+          return cookie.value
+        })
       },
       setItem: (key: string, value: string) => {
-        const cookie = useCookie(key, cookieOptions)
-        cookie.value = value
+        nuxtApp.runWithContext(() => {
+          const cookie = useCookie(key, cookieOptions)
+          cookie.value = value
+        })
       },
       removeItem: (key: string) => {
-        const cookie = useCookie(key, cookieOptions)
-        cookie.value = null
+        nuxtApp.runWithContext(() => {
+          const cookie = useCookie(key, cookieOptions)
+          cookie.value = null
+        })
       }
     }
 
