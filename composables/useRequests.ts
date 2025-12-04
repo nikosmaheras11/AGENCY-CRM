@@ -54,11 +54,16 @@ export interface Asset {
 }
 
 // Global state - shared across all pages
-const allRequests = ref<Request[]>([])
-const loading = ref(true)
-const error = ref<Error | null>(null)
+// We use useState inside the composable to ensure SSR safety
+// const allRequests = ref<Request[]>([])
+// const loading = ref(true)
+// const error = ref<Error | null>(null)
 
 export const useRequests = () => {
+  // Use useState for shared state across components/pages
+  const allRequests = useState<Request[]>('requests-all', () => [])
+  const loading = useState<boolean>('requests-loading', () => true)
+  const error = useState<Error | null>('requests-error', () => null)
 
   /**
    * Fetch all requests from Supabase database
@@ -68,24 +73,24 @@ export const useRequests = () => {
       loading.value = true
       console.log('🔌 useRequests: Connecting to Supabase...')
       const { supabase } = useSupabase()
-      
+
       console.log('📡 useRequests: Fetching from requests table...')
       const { data, error: fetchError } = await supabase
         .from('requests')
         .select('*')
         .order('created_at', { ascending: false })
-      
+
       console.log('📥 useRequests: Supabase response:', { data, error: fetchError })
-      
+
       if (fetchError) {
         console.error('❌ useRequests: Supabase error:', fetchError)
         throw fetchError
       }
-      
+
       // Fetch current asset versions for thumbnail URLs
       const requestIds = data?.map((r: any) => r.id) || []
       let assetVersions: Record<string, any> = {}
-      
+
       if (requestIds.length > 0) {
         try {
           const { data: assetsData, error: assetsError } = await supabase
@@ -93,7 +98,7 @@ export const useRequests = () => {
             .select('request_id, thumbnail_url, preview_url')
             .in('request_id', requestIds)
             .eq('is_current_version', true)
-          
+
           if (assetsError) {
             console.warn('⚠️ Could not fetch asset versions:', assetsError)
           } else {
@@ -107,11 +112,11 @@ export const useRequests = () => {
           console.warn('⚠️ Error fetching asset versions:', assetsErr)
         }
       }
-      
+
       // Transform database format to Request format
       allRequests.value = (data || []).map(item => {
         const currentAsset = assetVersions[item.id]
-        
+
         return {
           id: item.id,
           projectType: item.project_type,
@@ -157,7 +162,7 @@ export const useRequests = () => {
    * Get requests filtered by projectType
    */
   const getRequestsByType = (projectType: Request['projectType']) => {
-    return computed(() => 
+    return computed(() =>
       allRequests.value.filter(req => req.projectType === projectType)
     )
   }
@@ -169,7 +174,7 @@ export const useRequests = () => {
   const getRequestsByTypeAndStatus = (projectType: Request['projectType']) => {
     return computed(() => {
       const filtered = allRequests.value.filter(req => req.projectType === projectType)
-      
+
       return {
         'new-request': filtered.filter(req => req.status === 'new-request'),
         'in-progress': filtered.filter(req => req.status === 'in-progress'),
@@ -212,7 +217,7 @@ export const useRequests = () => {
    * Get request by ID
    */
   const getRequestById = (id: string) => {
-    return computed(() => 
+    return computed(() =>
       allRequests.value.find(req => req.id === id)
     )
   }
@@ -247,7 +252,7 @@ export const useRequests = () => {
    */
   const getStats = (projectType?: Request['projectType']) => {
     return computed(() => {
-      const filtered = projectType 
+      const filtered = projectType
         ? allRequests.value.filter(req => req.projectType === projectType)
         : allRequests.value
 
