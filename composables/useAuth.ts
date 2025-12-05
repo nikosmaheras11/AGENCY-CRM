@@ -10,38 +10,13 @@ export interface UserProfile {
   role: 'admin' | 'designer' | 'account_manager' | 'client' | 'member'
 }
 
-// Module-level state for SSR safety
-const _authUser = ref<any>(null)
-const _authProfile = ref<UserProfile | null>(null)
-const _authLoading = ref<boolean>(true)
-
 export const useAuth = () => {
-  const nuxtApp = tryUseNuxtApp()
-
-  if (!nuxtApp) {
-    console.warn('[useAuth] Called outside Nuxt context')
-    return {
-      user: _authUser,
-      profile: _authProfile,
-      loading: ref(false),
-      getCurrentUser: async () => null,
-      fetchProfile: async () => null,
-      signIn: async () => ({ data: null, error: new Error('No context') }),
-      signUp: async () => ({ data: null, error: new Error('No context') }),
-      signOut: async () => { },
-      updateProfile: async () => ({ data: null, error: new Error('No context') }),
-      getDisplayName: computed(() => ''),
-      isAdmin: computed(() => false),
-      getInitials: computed(() => '')
-    }
-  }
+  // Use useState for SSR-safe shared state
+  const user = useState<any>('auth-user', () => null)
+  const profile = useState<UserProfile | null>('auth-profile', () => null)
+  const loading = useState<boolean>('auth-loading', () => true)
 
   const { supabase } = useSupabase()
-
-  // Use module-level refs instead of useState
-  const user = _authUser
-  const profile = _authProfile
-  const loading = _authLoading
 
   /**
    * Get current authenticated user

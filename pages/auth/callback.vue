@@ -2,7 +2,7 @@
   <div class="auth-callback">
     <div class="loading-container">
       <UIcon name="i-heroicons-arrow-path" class="loading-icon" />
-      <p>Completing sign in...</p>
+      <p>{{ statusMessage }}</p>
     </div>
   </div>
 </template>
@@ -10,15 +10,17 @@
 <script setup lang="ts">
 const route = useRoute()
 const { supabase } = useSupabase()
+const statusMessage = ref('Completing sign in...')
 
 // Handle OAuth callback on client-side only
 if (import.meta.client) {
   onMounted(async () => {
     console.log('[auth/callback] Processing OAuth callback...')
+    console.log('[auth/callback] URL:', window.location.href)
+    console.log('[auth/callback] Query params:', route.query)
     
     try {
-      // Get the code and error from URL
-      const code = route.query.code as string
+      // Check for error in URL
       const error = route.query.error as string
       const errorDescription = route.query.error_description as string
       
@@ -28,63 +30,74 @@ if (import.meta.client) {
         return
       }
       
+      // Get the authorization code from URL
+      const code = route.query.code as string
+      
       if (!code) {
         console.error('[auth/callback] No code in callback URL')
         await navigateTo('/login?error=no_code')
         return
       }
       
-      console.log('[auth/callback] Exchanging code for session...')
+      console.log('[auth/callback] Got authorization code, exchanging for session...')
+      statusMessage.value = 'Exchanging authorization code...'
       
-      // Exchange the code for a session
-      // Supabase JS client automatically handles PKCE code exchange when detectSessionInUrl is true
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      // Exchange the code for a session - THIS IS THE KEY FIX
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
       
-      if (sessionError) {
-        console.error('[auth/callback] Session error:', sessionError)
-        await navigateTo('/login?error=auth_failed')
+      if (exchangeError) {
+        console.error('[auth/callback] Code exchange error:', exchangeError)
+        await navigateTo(`/login?error=exchange_failed&message=${encodeURIComponent(exchangeError.message)}`)
         return
       }
       
-      if (session) {
-        console.log('[auth/callback] Session established:', session.user.email)
-        
-        // Ensure profile exists in database
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle()
-        
-        if (!profile) {
-          console.log('[auth/callback] Creating profile for new user')
-          // Create profile from Slack user metadata
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: session.user.id,
-              email: session.user.email,
-              full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
-              avatar_url: session.user.user_metadata?.avatar_url,
-              role: 'member' // Default role
-            })
-          
-          if (profileError) {
-            console.error('[auth/callback] Failed to create profile:', profileError)
-            // Continue anyway - profile can be created later
-          }
-        }
-        
-        // Successfully authenticated, redirect to dashboard
-        console.log('[auth/callback] Redirecting to dashboard')
-        await navigateTo('/')
-      } else {
-        console.error('[auth/callback] No session after exchange')
-        await navigateTo('/login?error=session_failed')
+      if (!data.session) {
+        console.error('[auth/callback] No session returned from code exchange')
+        await navigateTo('/login?error=no_session')
+        return
       }
-    } catch (error) {
+      
+      console.log('[auth/callback] Session established for:', data.session.user.email)
+      statusMessage.value = 'Setting up your account...'
+      
+      // Ensure profile exists in database
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.session.user.id)
+        .maybeSingle()
+      
+      if (!profile) {
+        console.log('[auth/callback] Creating profile for new user')
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.session.user.id,
+            email: data.session.user.email,
+            full_name: data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name,
+            avatar_url: data.session.user.user_metadata?.avatar_url,
+            role: 'member'
+          })
+        
+        if (profileError) {
+          console.error('[auth/callback] Failed to create profile:', profileError)
+          // Continue anyway - profile can be created later
+        }
+      }
+      
+      // Get the redirect URL from query params or default to home
+      const redirectTo = route.query.redirect as string || '/'
+      
+      console.log('[auth/callback] Success! Redirecting to:', redirectTo)
+      statusMessage.value = 'Success! Redirecting...'
+      
+      // Small delay to ensure session is persisted
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      await navigateTo(redirectTo)
+    } catch (error: any) {
       console.error('[auth/callback] Unexpected error:', error)
-      await navigateTo('/login?error=unexpected_error')
+      await navigateTo(`/login?error=unexpected_error&message=${encodeURIComponent(error.message || 'Unknown error')}`)
     }
   })
 }

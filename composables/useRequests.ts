@@ -53,16 +53,11 @@ export interface Asset {
   }
 }
 
-// Module-level state for SSR safety - shared across all pages
-const _allRequests = ref<Request[]>([])
-const _loading = ref<boolean>(true)
-const _error = ref<Error | null>(null)
-
 export const useRequests = () => {
-  // Use module-level refs for shared state
-  const allRequests = _allRequests
-  const loading = _loading
-  const error = _error
+  // Use useState for SSR-safe shared state
+  const allRequests = useState<Request[]>('requests-all', () => [])
+  const loading = useState<boolean>('requests-loading', () => true)
+  const error = useState<Error | null>('requests-error', () => null)
 
   /**
    * Fetch all requests from Supabase database
